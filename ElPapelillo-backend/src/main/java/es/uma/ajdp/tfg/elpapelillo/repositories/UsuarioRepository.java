@@ -1,0 +1,23 @@
+package es.uma.ajdp.tfg.elpapelillo.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import es.uma.ajdp.tfg.elpapelillo.models.Usuario;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+    
+    
+    Optional<Usuario> findByEmail(String email);
+    
+   
+    boolean existsByEmail(String email);
+    boolean existsByDNI(String dni);
+
+    // Para listar solo los usuarios que no han sido borrados 
+    List<Usuario> findByActivoTrue();
+}

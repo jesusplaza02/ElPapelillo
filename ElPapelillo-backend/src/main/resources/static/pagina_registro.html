@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElPapelillo - Registro</title>
+    <style>
+        /* --- ESTILOS BASE --- */
+        body, html {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #FCE4EC; /* Rosa pálido de fondo */
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        header {
+            background-color: #C6DFFF; /* Azul superior */
+            padding: 15px 20px;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+            color: #2C3E50;
+        }
+
+        /* --- CUERPO Y TARJETA --- */
+        .content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 5;
+        }
+
+        .register-card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 95%;
+            max-width: 550px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .register-card h2 {
+            font-size: 28px;
+            margin: 0 0 10px 0;
+            color: #1A237E;
+        }
+
+        .subtitle {
+            color: #757575;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        /* --- FORMULARIO RESPONSIVE --- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dos columnas en PC */
+            gap: 15px;
+            text-align: left;
+        }
+
+        /* En móviles (iPhone), todo a una sola columna */
+        @media (max-width: 500px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .full-width-mobile {
+                grid-column: span 1;
+            }
+            .register-card {
+                padding: 20px;
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        /* Ajuste para que en móvil el span 2 no rompa el diseño */
+        @media (max-width: 500px) {
+            .full-width {
+                grid-column: span 1;
+            }
+        }
+
+        .input-group label {
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #444;
+            font-size: 13px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E0E0E0;
+            border-radius: 12px;
+            font-size: 15px;
+            background-color: #FAFAFA;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        /* --- BOTONES --- */
+        .btn-container {
+            margin-top: 25px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #B9F6CA;
+            color: #1B5E20;
+            transition: 0.2s;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 15px;
+            color: #546E7A;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* --- DECORACIÓN --- */
+        .confetti-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .confetti {
+            position: absolute;
+            width: 10px; height: 10px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <header>
+            <h1>ElPapelillo</h1>
+        </header>
+
+        <div class="confetti-container" id="confetti-bg"></div>
+
+        <div class="content">
+            <div class="register-card">
+                <h2>Registro de Usuario</h2>
+                <p class="subtitle">Ingresa los datos del sistema</p>
+
+                <form id="registroForm" class="form-grid">
+                    <div class="input-group">
+                        <label>Nombre Completo</label>
+                        <input type="text" placeholder="Ej: Juan Pérez" required>
+                    </div>
+                    <div class="input-group">
+                        <label>DNI</label>
+                        <input type="text" placeholder="12345678X" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" placeholder="correo@ejemplo.com" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Teléfono</label>
+                        <input type="tel" placeholder="600000000">
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label>Dirección</label>
+                        <input type="text" placeholder="Calle Falsa 123">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" placeholder="********" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Rol</label>
+                        <select id="rolSelector">
+                            <option value="REPRESENTANTE">Representante</option>
+                            <option value="ADMIN">Administrador</option>
+                        </select>
+                    </div>
+
+                    <div class="btn-container full-width">
+                        <button type="submit" class="btn-submit">Finalizar Registro</button>
+                        <a href="pagina_iniciar_sesion.html" class="back-link">¿Ya tienes cuenta? Inicia sesión</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generador de Confeti de Fondo
+        const confettiBox = document.getElementById('confetti-bg');
+        const colors = ['#FF8A80', '#FF80AB', '#B39DDB', '#82B1FF', '#B9F6CA', '#FFFF8D'];
+        
+        for (let i = 0; i < 30; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + 'vw';
+            c.style.top = Math.random() * 100 + 'vh';
+            c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            c.style.transform = `rotate(${Math.random() * 360}deg)`;
+            if (Math.random() > 0.5) c.style.borderRadius = '50%';
+            confettiBox.appendChild(c);
+        }
+    </script>
+</body>
+</html>
