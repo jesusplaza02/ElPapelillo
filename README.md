@@ -1,7 +1,9 @@
 # ElPapelillo
 
 Este repositorio contiene el código fuente, la configuración de la base de datos y la documentación técnica del Trabajo de Fin de Grado (TFG) "ElPapelillo" desarrollado para la Universidad de Málaga (UMA).
+
 El Papelillo es una plataforma orientada a la gestión integral de concursos carnavalescos. El sistema permite la administración de usuarios (Administradores, Representantes), el registro de agrupaciones, la gestión de inscripciones a concursos y una trazabilidad completa mediante un sistema de logs de auditoría.
+
 --------------------------------------------------------------------------------------
 👥 Autor
 - Alumno: [Antonio Jesús Díaz Plaza]
