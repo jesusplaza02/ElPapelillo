@@ -1,0 +1,18 @@
+
+
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1; /* Lo ponemos muy alto para probar */
+}
+
+.confetti {
+    position: absolute;
+    width: 6px; /* Un poco más grandes para verlos */
+    height: 6px;
+    border: 1px solid rgba(0,0,0,0.1); /* Bordecito para que resalten */
+}

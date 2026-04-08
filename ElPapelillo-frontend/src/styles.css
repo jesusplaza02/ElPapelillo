@@ -1,1 +1,31 @@
-/* You can add global styles to this file, and also import other style files */
+/* src/styles.css */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #FCE4EC; /* El rosa pálido original */
+}
+
+.main-header {
+    background-color: #C6DFFF;
+    padding: 15px 30px;
+    position: relative;
+    z-index: 100; /* Siempre por encima del confeti */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.main-header h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #2C3E50;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.content-wrapper {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 70px); /* Restamos la altura aproximada del header */
+}/* You can add global styles to this file, and also import other style files */
