@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElPapelillo - Panel de Control Administrador</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        :root {
+            --primary-bg: #EAE3F7;
+            --white: #FFFFFF;
+            --blue-header: #83BEF8;
+            --blue-header-light: #B7D9FA;
+            --purple-icon-bg: #B885FF;
+            --text-dark: #333333;
+            --text-grey: #777777;
+            --border-color: #E0E0E0;
+            --blue-btn: #4196F5;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --success: #2ecc71;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- DECORACIÓN (SERPENTINAS) --- */
+        .confetti-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .confetti, .streamer {
+            position: absolute;
+            opacity: 0.3;
+            border-radius: 2px;
+        }
+
+        header {
+            background-color: var(--blue-header);
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1000;
+        }
+
+        main {
+            padding: 2rem 5%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        details {
+            background-color: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 1.5rem;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .summary-title { display: flex; align-items: center; gap: 1rem; }
+        
+        .summary-icon {
+            background-color: var(--purple-icon-bg);
+            color: white;
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+        }
+
+        .summary-subtitle {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-grey);
+            font-weight: 400;
+        }
+
+        .details-content {
+            padding: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* TABLAS */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        thead { background-color: var(--blue-header-light); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
+
+        /* BOTONES DE ACCIÓN EN TABLA */
+        .btn-action {
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 5px;
+            border-radius: 5px;
+            transition: 0.2s;
+        }
+        .btn-action:hover { background-color: #f0f0f0; transform: scale(1.1); }
+        .icon-edit { color: var(--blue-btn); }
+        .icon-delete { color: var(--danger); }
+        .icon-view { color: var(--purple-icon-bg); }
+
+        /* AUDITORIA */
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .activity-action-icon {
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* PAGINACIÓN */
+        .pagination-container {
+            display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 20px;
+        }
+
+        button.page-btn {
+            padding: 8px 15px; border-radius: 8px; border: 1px solid #ddd;
+            background: white; cursor: pointer; display: flex; align-items: center;
+        }
+
+        .btn-create { background-color: var(--blue-btn); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        .audit-filters select, .audit-filters input { padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+
+        
+            /* --- ESTILOS DEL MENÚ DE USUARIO --- */
+        .user-menu-container {
+            position: relative;
+            z-index: 100;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            border-radius: 30px;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 220px;
+            background: white;
+            z-index: 2000;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: none; /* Se activa con JS */
+            padding: 10px 0;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .dropdown-header {
+            padding: 10px 20px;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-header p { margin: 0; color: #333; }
+        .dropdown-header span { color: #888; font-size: 0.8rem; }
+
+        hr { border: 0; border-top: 1px solid #eee; margin: 10px 0; }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            text-decoration: none;
+            color: #444;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .logout-item {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="confetti-container" id="confetti-box"></div>
+
+    <header>
+        <h2 style="margin:0">ElPapelillo</h2>
+
+        <div class="user-menu-container">
+        <div class="user-profile" onclick="toggleMenu()" id="userProfileBtn">
+            <span class="material-symbols-outlined" style="font-size: 30px;">account_circle</span>
+            <span class="material-symbols-outlined" id="arrow">expand_more</span>
+        </div>
+
+        <div class="profile-dropdown" id="profileDropdown">
+            <div class="dropdown-header">
+                <p><strong>Juan Pérez</strong></p>
+                <span>admin_juan@uma.es</span>
+            </div>
+            <hr>
+            <a href="/perfil/editar" class="dropdown-item">
+                <span class="material-symbols-outlined">manage_accounts</span>
+                Mis Datos
+            </a>
+            <a href="/logout" class="dropdown-item logout-item">
+                <span class="material-symbols-outlined">logout</span>
+                Cerrar Sesión
+            </a>
+        </div>
+    </div>
+    </header>
+
+    <main>
+        <details>
+            <summary>
+                <div class="summary-title">
+                    <div class="summary-icon"><span class="material-symbols-outlined">trophy</span></div>
+                    <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos</span></div>
+                </div>
+                <span class="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div class="details-content">Panel de gestión de concursos en construcción...</div>
+        </details>
+
+        <details open>
+            <summary>
+                <div class="summary-title">
+                    <div class="summary-icon"><span class="material-symbols-outlined">group</span></div>
+                    <div>Gestión de Usuarios <span class="summary-subtitle">Administración de acceso y roles</span></div>
+                </div>
+                <span class="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div class="details-content">
+                <div style="display:flex; justify-content:space-between; margin-bottom:1rem">
+                    <input type="text" placeholder="Buscar usuario..." style="padding:10px; width:30%; border-radius:8px; border:1px solid #ddd">
+                    <button class="btn-create">Crear Usuario</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Carlos Rodríguez</td><td>carlos@ejemplo.com</td><td>Representante</td>
+                            <td>
+                                <button class="btn-action"><span class="material-symbols-outlined icon-view">visibility</span></button>
+                                <button class="btn-action"><span class="material-symbols-outlined icon-edit">edit</span></button>
+                                <button class="btn-action"><span class="material-symbols-outlined icon-delete">delete</span></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>María García</td><td>maria@ejemplo.com</td><td>Administrador</td>
+                            <td>
+                                <button class="btn-action"><span class="material-symbols-outlined icon-view">visibility</span></button>
+                                <button class="btn-action"><span class="material-symbols-outlined icon-edit">edit</span></button>
+                                <button class="btn-action"><span class="material-symbols-outlined icon-delete">delete</span></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination-container">
+                    <button class="page-btn" disabled>Anterior</button>
+                    <span>Página 1 de 5</span>
+                    <button class="page-btn">Siguiente</button>
+                </div>
+            </div>
+        </details>
+
+        <details>
+            <summary>
+                <div class="summary-title">
+                    <div class="summary-icon" style="background-color: #6c757d;"><span class="material-symbols-outlined">analytics</span></div>
+                    <div>Auditoría del Sistema <span class="summary-subtitle">Trazabilidad de acciones críticas</span></div>
+                </div>
+                <span class="material-symbols-outlined">expand_more</span>
+            </summary>
+            <div class="details-content">
+                <div class="audit-filters" style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <select style="flex:2">
+                        <option>Todos los tipos de auditoría</option>
+                        <option>Creación de usuario</option>
+                        <option>Borrado de usuario</option>
+                        <option>Actualización datos usuario</option>
+                        <option>Creación de concurso</option>
+                        <option>Borrado de concurso</option>
+                        <option>Aprobación inscripción agrupación</option>
+                        <option>Rechazo inscripción agrupación</option>
+                        <option>Aprobado documento agrupación</option>
+                        <option>Rechazo documento agrupación</option>
+                        <option>Subida documento fianza</option>
+                        <option>Descarga listados PDF</option>
+                        <option>Fallo sistema envío correo</option>
+                    </select>
+                    <input type="text" placeholder="Usuario responsable..." style="flex:1">
+                    <button style="background:#6c757d; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer">Filtrar</button>
+                </div>
+
+                <div class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-action-icon" style="background:#f8d7da; color:#721c24"><span class="material-symbols-outlined">mail_lock</span></div>
+                        <div class="activity-text-container">
+                            <p><span style="color:#d9534f; font-weight:bold">[ERROR]</span> Fallo envío correo credenciales a: nuevo_rep@uma.es</p>
+                            <span class="activity-time">Hoy - 14:20 | Sistema</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-action-icon" style="background:#d4edda; color:#155724"><span class="material-symbols-outlined">verified</span></div>
+                        <div class="activity-text-container">
+                            <p><strong>Admin María</strong> aprobó documento de fianza: Agrupación "Los Malagueños"</p>
+                            <span class="activity-time">Hoy - 12:10 | Documentación</span>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-action-icon" style="background:#cce5ff; color:#004085"><span class="material-symbols-outlined">picture_as_pdf</span></div>
+                        <div class="activity-text-container">
+                            <p><strong>Admin Juan</strong> generó descarga de listado PDF de agrupaciones inscritas</p>
+                            <span class="activity-time">Ayer - 17:45 | Reportes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pagination-container">
+                    <button class="page-btn" disabled>Anterior</button>
+                    <span>Página 1 de 12</span>
+                    <button class="page-btn">Siguiente</button>
+                </div>
+            </div>
+        </details>
+    </main>
+
+    <script>
+        const container = document.getElementById('confetti-box');
+        const colors = ['#B885FF', '#83BEF8', '#FFD700', '#FF69B4', '#4196F5'];
+        
+        for (let i = 0; i < 60; i++) {
+            const isStreamer = Math.random() > 0.5;
+            const item = document.createElement('div');
+            item.className = isStreamer ? 'streamer' : 'confetti';
+            item.style.width = isStreamer ? '4px' : '10px';
+            item.style.height = isStreamer ? '40px' : '10px';
+            item.style.left = Math.random() * 100 + 'vw';
+            item.style.top = Math.random() * 100 + 'vh';
+            item.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            item.style.transform = `rotate(${Math.random() * 360}deg)`;
+            container.appendChild(item);
+        }
+
+        // Función para mostrar/ocultar el menú de perfil
+        function toggleMenu() {
+            const dropdown = document.getElementById('profileDropdown');
+            const arrow = document.getElementById('arrow');
+            
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+            } else {
+                dropdown.style.display = 'block';
+                arrow.style.transform = 'rotate(180deg)';
+            }
+        }
+
+         // Cerrar el menú si se pincha fuera
+         window.onclick = function(event) {
+            if (!event.target.closest('.user-menu-container')) {
+                document.getElementById('profileDropdown').style.display = 'none';
+                document.getElementById('arrow').style.transform = 'rotate(0deg)';
+            }
+        }
+    </script>
+
+</body>
+</html>

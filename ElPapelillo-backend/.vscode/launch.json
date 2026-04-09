@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ElPapelilloApplication<elpapelillo>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "es.uma.ajdp.tfg.elpapelillo.ElPapelilloApplication",
+            "projectName": "elpapelillo",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
