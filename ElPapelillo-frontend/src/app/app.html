@@ -6,8 +6,24 @@
 
 <header class="main-header">
   <h1>ElPapelillo</h1>
+
+  @if (!esRutaAcceso) {
+    <div class="user-profile">
+      <div class="user-info" (click)="toggleMenu()">
+        <span class="user-name">Usuario</span>
+        <div class="user-avatar">
+          <i class="fas fa-user-circle"></i>
+        </div>
+      </div>
+
+      @if (menuAbierto) {
+        <div class="dropdown-menu">
+          <a routerLink="/perfil">Mi Perfil</a>
+          <a (click)="logout()">Cerrar Sesión</a>
+        </div>
+      }
+    </div>
+  }
 </header>
 
-<main class="content-wrapper">
-  <router-outlet></router-outlet>
-</main>
+<router-outlet></router-outlet>

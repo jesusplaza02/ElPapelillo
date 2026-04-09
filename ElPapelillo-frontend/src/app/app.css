@@ -1,18 +1,24 @@
-
-
+/* EL CONTENEDOR DE CONFETI */
 .confetti-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    pointer-events: none;
-    z-index: 1; /* Lo ponemos muy alto para probar */
+    pointer-events: none; /* Crucial: permite clickear lo que hay debajo */
+    z-index: 1;           /* Por debajo de las tarjetas y el header */
+    overflow: hidden;
 }
 
 .confetti {
     position: absolute;
-    width: 6px; /* Un poco más grandes para verlos */
+    width: 6px; 
     height: 6px;
-    border: 1px solid rgba(0,0,0,0.1); /* Bordecito para que resalten */
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* El main solo sirve para envolver el contenido si no es login */
+.content-wrapper {
+    position: relative;
+    z-index: 10;
 }

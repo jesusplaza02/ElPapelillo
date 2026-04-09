@@ -1,0 +1,32 @@
+<main>
+  <div class="top-bar">
+    <a routerLink="/agrupacion/nueva" class="btn-inscribir">Inscribir agrupación</a>
+  </div>
+
+  @for (agrup of agrupaciones; track agrup.id) {
+    <div class="card">
+      <div class="card-info">
+        <h2>{{ agrup.nombre }}</h2>
+        <div class="badges">
+          <span class="badge badge-tipo">{{ agrup.tipo }}</span>
+          <span class="badge" [ngClass]="agrup.estado === 'Aprobada' ? 'badge-aprobada' : 'badge-pendiente'">
+            {{ agrup.estado }}
+          </span>
+        </div>
+        <div class="details">
+          <p><strong>Concurso:</strong> {{ agrup.concurso }}</p>
+          <p><strong>Año:</strong> {{ agrup.anio }}</p>
+          <p><strong>Fianza:</strong> {{ agrup.fianzaEstado }}</p>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <a [routerLink]="['/gestion/participantes', agrup.id]" class="btn-action">Gestión de participantes</a>
+        <a [routerLink]="['/gestion/documentacion', agrup.id]" class="btn-action">Gestión de documentación</a>
+        @if (agrup.fianzaEstado === 'Pagada') {
+          <a href="#" class="btn-action btn-fianza">Recibo pago fianza</a>
+        }
+      </div>
+    </div>
+  }
+</main>

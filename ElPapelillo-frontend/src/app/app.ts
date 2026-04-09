@@ -1,23 +1,47 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Para el [ngStyle]
-import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router'; // Añadimos Router y NavigationEnd
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet], // Quitamos LoginComponent de aquí
+  imports: [CommonModule, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App implements OnInit {
   protected readonly title = signal('ElPapelillo-frontend');
   
-  // Arregla el error "Property 'confettis' does not exist"
+  // Variables para el control de la interfaz
+  esRutaAcceso = false;  // Esta es la que te faltaba y daba error
+  menuAbierto = false;   // Para el desplegable del perfil
+  
   confettis: any[] = [];
   colors = ['#FF8A80', '#FF80AB', '#B39DDB', '#82B1FF', '#B9F6CA', '#FFFF8D'];
 
+  constructor(private router: Router) {
+    // Detectamos la ruta actual para ocultar el header en login/registro
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      const url = event.urlAfterRedirects;
+      this.esRutaAcceso = url.includes('login') || url.includes('registro');
+    });
+  }
+
   ngOnInit() {
     this.generateConfetti();
+  }
+
+  // Lógica del menú de usuario
+  toggleMenu() {
+    this.menuAbierto = !this.menuAbierto;
+  }
+
+  logout() {
+    this.menuAbierto = false;
+    this.router.navigate(['/login']);
   }
 
   generateConfetti() {
