@@ -1,16 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterModule } from '@angular/router'; // Importamos RouterModule para soportar [routerLink] con parámetros
 
 @Component({
-  selector: 'app-gestion-agrupaciones-rep', // Nombre de la etiqueta HTML
+  selector: 'app-gestion-agrupaciones-rep',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  /* IMPORTANTE: Usamos RouterModule en lugar de solo RouterLink 
+     para que las rutas con parámetros como agrup.id funcionen correctamente.
+  */
+  imports: [CommonModule, RouterModule],
   templateUrl: './gestion-agrupaciones-rep.html', 
   styleUrl: './gestion-agrupaciones-rep.css' 
 })
 export class GestionAgrupacionesRepComponent {
   
+  // Datos de prueba para verificar que el @for y el CSS funcionan
   agrupaciones = [
     { 
       id: 1, 
@@ -32,7 +36,12 @@ export class GestionAgrupacionesRepComponent {
     }
   ];
 
-  constructor() {}
+  constructor() {
+    
+  }
 
-  // Aquí podrás añadir funciones más adelante, como borrar o editar
+  /* Futuras funciones:
+     descargarRecibo(id: number) { ... }
+     eliminarAgrupacion(id: number) { ... }
+  */
 }
