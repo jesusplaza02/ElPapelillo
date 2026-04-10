@@ -1,0 +1,144 @@
+<div class="confetti-container" id="confetti-box"></div>
+
+<header>
+  <h2 style="margin:0">ElPapelillo</h2>
+
+  <div class="user-menu-container">
+    <div class="user-profile" (click)="toggleMenu()">
+      <span class="material-symbols-outlined" style="font-size: 30px;">account_circle</span>
+      <span class="material-symbols-outlined" [style.transform]="isMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)'">expand_more</span>
+    </div>
+
+    <div class="profile-dropdown" [style.display]="isMenuOpen ? 'block' : 'none'">
+      <div class="dropdown-header">
+        <p><strong>Juan Pérez</strong></p>
+        <span>admin_juan@uma.es</span>
+      </div>
+      <hr>
+      <a routerLink="/perfil/editar" class="dropdown-item">
+        <span class="material-symbols-outlined">manage_accounts</span>
+        Mis Datos
+      </a>
+      <a routerLink="/login" class="dropdown-item logout-item">
+        <span class="material-symbols-outlined">logout</span>
+        Cerrar Sesión
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <details>
+    <summary>
+      <div class="summary-title">
+        <div class="summary-icon"><span class="material-symbols-outlined">trophy</span></div>
+        <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos</span></div>
+      </div>
+      <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content">
+      <p>Panel de gestión de concursos en construcción...</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>
+      <div class="summary-title">
+        <div class="summary-icon"><span class="material-symbols-outlined">group</span></div>
+        <div>Gestión de Usuarios <span class="summary-subtitle">Administración de acceso y roles</span></div>
+      </div>
+      <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content">
+      <div class="table-controls">
+        <input type="text" placeholder="Buscar usuario...">
+        <button class="btn-create">Crear Usuario</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of usuarios; track user.email) {
+            <tr>
+              <td>{{ user.nombre }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.rol }}</td>
+              <td>
+                <button class="btn-action"><span class="material-symbols-outlined icon-view">visibility</span></button>
+                <button class="btn-action"><span class="material-symbols-outlined icon-edit">edit</span></button>
+                <button class="btn-action"><span class="material-symbols-outlined icon-delete">delete</span></button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      
+      <div class="pagination-container">
+        <button class="page-btn" disabled>Anterior</button>
+        <span>Página 1 de 5</span>
+        <button class="page-btn">Siguiente</button>
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>
+      <div class="summary-title">
+        <div class="summary-icon" style="background-color: #6c757d;"><span class="material-symbols-outlined">analytics</span></div>
+        <div>Auditoría del Sistema <span class="summary-subtitle">Trazabilidad de acciones críticas</span></div>
+      </div>
+      <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content">
+      
+      <div class="audit-filters">
+        <select style="flex:1.5">
+          <option>Todos los tipos de auditoría</option>
+          <option>Gestión de Usuarios (Creación/Borrado/Update)</option>
+          <option>Gestión de Concursos</option>
+          <option>Inscripciones y Documentos</option>
+          <option>Fianzas y Reportes</option>
+          <option>Fallos del Sistema</option>
+        </select>
+
+        <input type="date" class="audit-date-filter" style="flex:1">
+
+        <input type="text" placeholder="Usuario responsable..." style="flex:1">
+        
+        <button class="btn-filter">
+          <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">filter_alt</span>
+          Filtrar
+        </button>
+      </div>
+
+      <div class="activity-list">
+        @for (log of logs; track log.msg) {
+          <div class="activity-item">
+            <div class="activity-action-icon" [ngClass]="log.tipo">
+              <span class="material-symbols-outlined">{{ log.icon }}</span>
+            </div>
+            <div class="activity-info">
+              <span class="activity-msg">{{ log.msg }}</span>
+              <div class="activity-meta">
+                <span class="activity-date">
+                  <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">calendar_month</span> 
+                  {{ log.fecha }}
+                </span>
+                <span>•</span>
+                <span>{{ log.time }}</span>
+                <span>•</span>
+                <span class="activity-category">{{ log.cat }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </details>
+</main>
