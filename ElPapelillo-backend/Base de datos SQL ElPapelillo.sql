@@ -23,7 +23,6 @@ CREATE TABLE Administrador (
 CREATE TABLE Representante (
     idUsuario INT PRIMARY KEY,
     contacto_emergencia VARCHAR(20),
-    numeroAcreditacion VARCHAR(50),
     CONSTRAINT fk_repre_usuario FOREIGN KEY (idUsuario) REFERENCES Usuario(idUsuario) ON DELETE CASCADE
 );
 
