@@ -26,11 +26,14 @@
         <div class="form-field">
           <label>Seleccionar Concurso Activo</label>
           <select name="idConcurso" [(ngModel)]="concursoSeleccionado" required class="form-input-styled">
-            <option [ngValue]="null" disabled selected>Seleccione de la lista...</option>
+            <option [ngValue]="null" disabled>Seleccione concurso...</option>
             @for (c of concursosActivos; track c.idConcurso) {
-              <option [ngValue]="c">{{ c.nombre }}</option>
+            <option [ngValue]="c">{{ c.nombre }}</option>
+            } @empty {
+              <option disabled>No hay concursos activos</option>
             }
-          </select>
+        </select>
+          
         </div>
 
         <div class="form-field">
@@ -64,15 +67,32 @@
           <h2>{{ agrup.nombre }}</h2>
           <div class="badges">
             <span class="badge badge-categoria">{{ agrup.categoria }}</span>
-            <span class="badge badge-pendiente">{{ agrup.estadoInscripcion }}</span>
+            <span class="badge" 
+              [ngClass]="{
+              'badge-aprobada': agrup.estadoInscripcion?.toUpperCase() === 'APROBADO' || agrup.estadoInscripcion?.toUpperCase() === 'APROBADA',
+              'badge-rechazada': agrup.estadoInscripcion?.toUpperCase() === 'RECHAZADO' || agrup.estadoInscripcion?.toUpperCase() === 'RECHAZADA',
+              'badge-pendiente': agrup.estadoInscripcion?.toUpperCase() === 'PENDIENTE'
+              }">
+              {{ agrup.estadoInscripcion }}
+          </span>
           </div>
           <div class="details">
             <p><strong>Concurso:</strong> {{ agrup.concurso?.nombre || 'COAC Málaga' }}</p>
+            <p><strong>año:</strong> {{ agrup.anio || 'N/A' }}</p>
+            <p><strong>Fianza:</strong> {{ agrup.fianza ? 'Pagada' : 'Pendiente' }}</p>
           </div>
         </div>
-        <div class="card-actions">
-          <a class="btn-action">Gestión de participantes</a>
-        </div>
+       <div class="card-actions">
+        <a class="btn-action">Gestión de participantes</a>
+
+        <a class="btn-action">Gestión de documentación</a>
+
+        @if (agrup.fianza?.pagada) {
+        <a class="btn-action btn-fianza">
+          <i class="fas fa-file-invoice-dollar"></i> Recibo de pago de fianza
+        </a>
+        }
+</div>
       </div>
     } @empty {
       <div class="empty-state">No hay agrupaciones registradas.</div>
