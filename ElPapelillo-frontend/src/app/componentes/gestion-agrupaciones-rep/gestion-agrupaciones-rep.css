@@ -135,3 +135,87 @@
     padding: 50px;
     color: #888;
 }
+
+/* Contenedor del formulario para que no flote sobre las tarjetas */
+.inscripcion-card {
+    background: white;
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    margin-top: 20px;
+}
+
+.separator {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 20px 0 30px 0;
+}
+
+/* Rejilla del formulario */
+.grid-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas */
+    gap: 25px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-field label {
+    font-weight: 700;
+    color: #444;
+    font-size: 0.95rem;
+}
+
+.form-field input, .form-field select {
+    padding: 15px 20px;
+    border-radius: 20px;
+    border: 1px solid #f0f0f0;
+    background: #fcfcfc;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+}
+
+.form-field input:focus, .form-field select:focus {
+    border-color: #b2dfdb;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(178, 223, 219, 0.2);
+}
+
+/* Alineación de botones */
+.form-actions {
+    grid-column: 1 / span 2; /* Ocupa las dos columnas */
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-cancel {
+    background: #fff0f0;
+    color: #d32f2f;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-finalizar {
+    background: #b2dfdb;
+    color: #00695c;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-finalizar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

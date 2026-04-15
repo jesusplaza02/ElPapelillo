@@ -1,49 +1,82 @@
 <main class="content-wrapper">
-  <div class="top-bar">
-    <a routerLink="/agrupacion/nueva" class="btn-inscribir">
-      + Inscribir agrupación
-    </a>
+
+  <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <button (click)="toggleFormulario(!mostrandoFormulario)" class="btn-inscribir" style="border: none; cursor: pointer;">
+      {{ mostrandoFormulario ? '✕ Cerrar formulario' : '+ Inscribir agrupación' }}
+    </button>
   </div>
 
-  @for (agrup of agrupaciones; track agrup.idAgrupacion) {
-    <div class="card">
-      <div class="card-info">
-        <h2>{{ agrup.nombre }}</h2>
+  @if (mostrandoFormulario) {
+    <div class="inscripcion-card" style="margin-bottom: 40px; border-left: 5px solid #b2dfdb; animation: slideDown 0.3s ease-out;">
+      <h2 style="margin-top: 0;">Nueva Inscripción</h2>
+      <p style="color: #666; margin-bottom: 20px;">Rellena los datos para la nueva agrupación:</p>
+
+      <form #f="ngForm" (ngSubmit)="enviarFormulario(f)" class="grid-form">
         
-       <div class="badges">
-  @if (agrup.tipo || agrup.agrupacionCanto?.tipo || agrup.agrupacionDioses?.tipo) {
-    <span class="badge badge-tipo">
-      {{ agrup.tipo || agrup.agrupacionCanto?.tipo || agrup.agrupacionDioses?.tipo }}
-    </span>
+        <div class="form-field">
+          <label>Nombre de la Agrupación</label>
+          <input type="text" name="nombre" ngModel required placeholder="Ej: Los Majaretas" class="form-input-styled">
+        </div>
+
+        <div class="form-field">
+          <label>Nombre última participación</label>
+          <input type="text" name="nombreUltimaParticipacion" ngModel placeholder="Ej: Los del año pasado" class="form-input-styled">
+        </div>
+
+        <div class="form-field">
+          <label>Seleccionar Concurso Activo</label>
+          <select name="idConcurso" [(ngModel)]="concursoSeleccionado" required class="form-input-styled">
+            <option [ngValue]="null" disabled selected>Seleccione de la lista...</option>
+            @for (c of concursosActivos; track c.idConcurso) {
+              <option [ngValue]="c">{{ c.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Categoría</label>
+          <select name="categoria" ngModel required class="form-input-styled">
+            <option value="ADULTO">Adulto</option>
+            <option value="JUVENIL">Juvenil</option>
+            <option value="INFANTIL">Infantil</option>
+          </select>
+        </div>
+
+        <div class="form-actions" style="grid-column: 1 / span 2; display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" (click)="toggleFormulario(false)" class="btn-cancel" style="border:none; cursor:pointer;">Cancelar</button>
+          <button type="submit" class="btn-inscribir" [disabled]="!f.valid" style="border:none; cursor:pointer;">
+            Finalizar Inscripción
+          </button>
+        </div>
+      </form>
+    </div>
+    <hr style="margin-bottom: 40px; border: 0; border-top: 1px solid #eee;">
   }
 
-  <span class="badge badge-categoria">{{ agrup.categoria }}</span>
-  
-  <span class="badge" 
-        [ngClass]="{
-          'badge-aprobada': agrup.estadoInscripcion === 'APROBADA' || agrup.estadoInscripcion === 'APROBADO',
-          'badge-pendiente': agrup.estadoInscripcion === 'PENDIENTE',
-          'badge-rechazada': agrup.estadoInscripcion?.includes('RECHAZADO')
-        }">
-    {{ agrup.estadoInscripcion }}
-  </span>
-</div>
+  <div class="cards-grid">
+    @if (loading) {
+      <p>Cargando tus agrupaciones...</p>
+    }
 
-        <div class="details">
-          <p><strong>Concurso:</strong> {{ agrup.concurso?.nombre || 'COAC Málaga 2026' }}</p>
-          <p><strong>Año:</strong> {{ agrup.anio }}</p>
-          <p><strong>Fianza:</strong> 
-            <span [style.color]="agrup.fianza?.pagada ? '#2e7d32' : '#fbc02d'" style="font-weight: bold;">
-              {{ agrup.fianza?.pagada ? 'PAGADA' : 'PENDIENTE' }}
-            </span>
-          </p>
+    @for (agrup of agrupaciones; track trackByAgrupacionId) {
+      <div class="card">
+        <div class="card-info">
+          <h2>{{ agrup.nombre }}</h2>
+          <div class="badges">
+            <span class="badge badge-categoria">{{ agrup.categoria }}</span>
+            <span class="badge badge-pendiente">{{ agrup.estadoInscripcion }}</span>
+          </div>
+          <div class="details">
+            <p><strong>Concurso:</strong> {{ agrup.concurso?.nombre || 'COAC Málaga' }}</p>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a class="btn-action">Gestión de participantes</a>
         </div>
       </div>
+    } @empty {
+      <div class="empty-state">No hay agrupaciones registradas.</div>
+    }
+  </div>
 
-      <div class="card-actions">
-        <a [routerLink]="['/gestion/participantes', agrup.idAgrupacion]" class="btn-action">Gestión de participantes</a>
-        <a [routerLink]="['/gestion/documentacion', agrup.idAgrupacion]" class="btn-action">Gestión de documentación</a>
-      </div>
-    </div>
-  }
 </main>

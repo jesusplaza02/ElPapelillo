@@ -5,10 +5,11 @@ export interface Agrupacion {
   estadoInscripcion: string;
   categoria: string;
   tipo: string;
-  // Usamos any para simplificar el acceso a las propiedades internas en el HTML
+  nombreUltimaParticipacion?: string; 
   concurso: any; 
   fianza: any;
-
+  // Objetos para que el HTML acceda a modalidad/director/drag
   agrupacionCanto?: any;
+  agrupacionDrag?: any;
   agrupacionDioses?: any;
 }
