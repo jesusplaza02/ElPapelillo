@@ -223,3 +223,43 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+
+
+@media (max-width: 768px) {
+    /* El contenedor del formulario ocupa casi todo el ancho */
+    .inscripcion-card {
+        padding: 20px;
+        margin: 10px;
+        border-radius: 20px;
+    }
+
+    /* La rejilla pasa de 2 columnas a 1 sola */
+    .grid-form {
+        grid-template-columns: 1fr !important; 
+        gap: 15px;
+    }
+
+    /* Los botones de abajo se ponen uno debajo del otro */
+    .form-actions {
+        grid-column: 1;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .form-actions button {
+        width: 100%; /* Botones a lo ancho del móvil */
+        padding: 15px;
+    }
+
+    /* Ajuste para que los inputs no se vean tan grandes */
+    .form-field input, .form-field select {
+        font-size: 16px; /* Evita que el iPhone haga zoom automático */
+        padding: 12px;
+    }
+
+    /* Título un poco más pequeño en móvil */
+    .inscripcion-card h2 {
+        font-size: 1.3rem;
+    }
+}
