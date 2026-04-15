@@ -32,6 +32,7 @@ public class EmailService {
     @Autowired
     private AdministradorRepository administradorRepository;
 
+    @SuppressWarnings("deprecation")
     @Async // Para que no bloquee el registro
     @Retryable(
         value = { MailException.class }, 

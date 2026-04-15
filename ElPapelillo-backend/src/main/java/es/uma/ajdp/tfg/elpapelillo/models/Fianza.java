@@ -6,20 +6,22 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "fianzas")
+@Table(name = "fianza")
 @Data
 @NoArgsConstructor
 public class Fianza {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idFianza")
+    private Long idFianza;
 
     private Double importe;
     private LocalDateTime fechaPago;
-    private String justificanteUrl; // Para guardar la ruta al PDF del banco
+    private String rutaRecibo; // Para guardar la ruta
+    private Boolean pagada;
 
     @OneToOne
-    @JoinColumn(name = "agrupacion_id")
+    @JoinColumn(name = "idAgrupacion")
     private Agrupacion agrupacion;
 }

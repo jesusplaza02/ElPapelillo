@@ -11,4 +11,5 @@ export const routes: Routes = [
   { path: 'registro', component: RegistroComponent },
   { path: 'panel-representante', component: GestionAgrupacionesRepComponent },
   { path: 'panel-control-administrador', component: PanelControlAdministradorComponent },
+  
 ];

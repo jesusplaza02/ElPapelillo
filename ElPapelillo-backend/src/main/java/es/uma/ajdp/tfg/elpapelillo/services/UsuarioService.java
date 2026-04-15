@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,7 +35,7 @@ public class UsuarioService {
     @Autowired
     private EmailService emailService;
 
-    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    // private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // REGISTRAR USUARIO 
     public Usuario registrarUsuario(Usuario usuario) throws Exception {
@@ -48,8 +48,9 @@ public class UsuarioService {
             throw new Exception("El correo electrónico ya está registrado.");
         }
 
-        String passCifrada = passwordEncoder.encode(usuario.getPassword());
-        usuario.setPassword(passCifrada);
+        // String passCifrada = passwordEncoder.encode(usuario.getPassword());
+        // usuario.setPassword(passCifrada);
+        usuario.setPassword("");
         usuario.setActivo(true);
 
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
@@ -64,12 +65,12 @@ public class UsuarioService {
     }
 
     // BUSCAR POR ID 
-    public Optional<Usuario> buscarPorId(Long id) {
+    public Optional<Usuario> buscarPorId(Integer id) {
         return usuarioRepository.findById(id);
     }
 
     // ACTUALIZAR
-    public Usuario actualizar(Long id, Usuario datosNuevos, Long idEjecutor) throws Exception {
+    public Usuario actualizar(Integer id, Usuario datosNuevos, Integer idEjecutor) throws Exception {
         Usuario objetivo = usuarioRepository.findById(id)
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));
         
@@ -90,7 +91,7 @@ public class UsuarioService {
     }
 
     // BORRADO LÓGICO
-    public void eliminarUsuarioLogico(Long idABorrar, Long idEjecutor) throws Exception {
+    public void eliminarUsuarioLogico(Integer idABorrar, Integer idEjecutor) throws Exception {
         Usuario ejecutor = usuarioRepository.findById(idEjecutor)
                 .orElseThrow(() -> new Exception("Error: El usuario ejecutor no existe."));
 
@@ -123,14 +124,14 @@ public class UsuarioService {
         registrarLog(ejecutor.getEmail(), "BORRADO_LOGICO", "Desactivado usuario: " + objetivo.getEmail());}
     // --- MÉTODOS AUXILIARES ---
 
-    public boolean validarCredenciales(String correo, String passwordSinCifrar) {
+    /*public boolean validarCredenciales(String correo, String passwordSinCifrar) {
         Optional<Usuario> userOpt = usuarioRepository.findByEmail(correo);
         if (userOpt.isPresent()) {
             Usuario user = userOpt.get();
             return passwordEncoder.matches(passwordSinCifrar, user.getPassword()) && user.isActivo();
         }
         return false;
-    }
+    }*/
 
     private boolean validarDNI(String dni) {
         if (dni == null || !dni.matches("^[0-9]{8}[A-Z]$")) return false;

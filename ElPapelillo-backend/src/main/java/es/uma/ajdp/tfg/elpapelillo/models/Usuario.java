@@ -3,25 +3,27 @@ package es.uma.ajdp.tfg.elpapelillo.models;
 import java.time.LocalDate;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 
 @Entity
-@Table(name = "usuarios")
-@Data
+@Table(name = "usuario")
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE) // Todos a una sola tabla
-@DiscriminatorColumn(
-    name = "rol",                           
-    discriminatorType = DiscriminatorType.STRING 
-)
+@Inheritance(strategy = InheritanceType.JOINED)
+
+
 public class Usuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idUsuario")
+    private Integer idUsuario;
 
     @Column(unique = true, nullable = false)
     private String email;
@@ -40,11 +42,14 @@ public class Usuario {
     @Column(nullable = false)
     private String direccion;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean activo = true;
 
-    @Column(name = "fecha_registro", nullable = false)
+    //@Column( nullable = false)
     private LocalDate fechaRegistro;
+
+    @Column(nullable = false)
+    private String rol;
 
     @PrePersist
     protected void onCreate() {
@@ -52,6 +57,6 @@ public class Usuario {
     }
 
     public String getRol() {
-    return this.getClass().getAnnotation(DiscriminatorValue.class).value();
+        return this.rol;
     }
 }

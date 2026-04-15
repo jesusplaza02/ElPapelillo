@@ -9,28 +9,27 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "agrupaciones_dioses")
+@Table(name = "agrupaciondioses")
+@PrimaryKeyJoinColumn(name = "idAgrupacion")
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class AgrupacionDioses extends Agrupacion {
 
-    private String tallerCostura;
-    private String maquillador;
-    private String peluquero;
+    private String diseñador;
+    private String modelo;
     private ModalidadDioses modalidad;
 
     public AgrupacionDioses(String nombre, String nombreUltimaParticipacion, Integer anio, CategoriaAgrupacion categoria, 
-                       EstadoAdministrativo estadoInscripcion, Representante representante, String taller, String maquillador, String peluquero, ModalidadDioses modalidad) {
+                       EstadoAdministrativo estadoInscripcion, Representante representante, String diseñador, String modelo, ModalidadDioses modalidad) {
         this.setNombre(nombre);
         this.setNombreUltimaParticipacion(nombreUltimaParticipacion);
         this.setAnio(anio);
         this.setCategoria(categoria);
         this.setEstadoInscripcion(estadoInscripcion);
         this.setRepresentante(representante);
-        this.tallerCostura = taller;
-        this.maquillador = maquillador;
-        this.peluquero = peluquero;
+        this.diseñador = diseñador;
+        this.modelo = modelo;
         this.modalidad = modalidad;
     }
 }

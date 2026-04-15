@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@DiscriminatorValue("ADMIN") 
+@Table(name = "administrador")
+@Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Administrador extends Usuario {

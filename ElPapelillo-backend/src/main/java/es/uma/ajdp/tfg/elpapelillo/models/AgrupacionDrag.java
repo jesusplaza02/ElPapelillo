@@ -8,15 +8,16 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "agrupaciones_drag")
+@Table(name = "agrupaciondrag")
+@PrimaryKeyJoinColumn(name = "idAgrupacion")
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class AgrupacionDrag extends Agrupacion {
 
-    private String nombreArtistico;
-    private String diseñadorGala;
-    private String coreografo;
+    private String nombreArtisticoDrag;
+    private String diseñador;
+
 
     public AgrupacionDrag(String nombre, String nombreUltimaParticipacion, Integer anio, CategoriaAgrupacion categoria, 
                        EstadoAdministrativo estadoInscripcion, Representante representante, String nombreArtistico, String diseñador) {
@@ -26,7 +27,7 @@ public class AgrupacionDrag extends Agrupacion {
         this.setCategoria(categoria);
         this.setEstadoInscripcion(estadoInscripcion);
         this.setRepresentante(representante);
-        this.nombreArtistico = nombreArtistico;
-        this.diseñadorGala = diseñador;
+        this.nombreArtisticoDrag = nombreArtistico;
+        this.diseñador = diseñador;
     }
 }

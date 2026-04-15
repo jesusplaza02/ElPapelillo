@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "logs_sistema")
+@Table(name = "registroactividad")
 @Data
 @NoArgsConstructor
 public class LogAuditoria {

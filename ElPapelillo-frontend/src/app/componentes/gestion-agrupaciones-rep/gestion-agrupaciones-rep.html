@@ -1,31 +1,48 @@
-<main>
+<main class="content-wrapper">
   <div class="top-bar">
-    <a routerLink="/agrupacion/nueva" class="btn-inscribir">Inscribir agrupación</a>
+    <a routerLink="/agrupacion/nueva" class="btn-inscribir">
+      + Inscribir agrupación
+    </a>
   </div>
 
-  @for (agrup of agrupaciones; track agrup.id) {
+  @for (agrup of agrupaciones; track agrup.idAgrupacion) {
     <div class="card">
       <div class="card-info">
         <h2>{{ agrup.nombre }}</h2>
-        <div class="badges">
-          <span class="badge badge-tipo">{{ agrup.tipo }}</span>
-          <span class="badge" [ngClass]="agrup.estado === 'Aprobada' ? 'badge-aprobada' : 'badge-pendiente'">
-            {{ agrup.estado }}
-          </span>
-        </div>
+        
+       <div class="badges">
+  @if (agrup.tipo || agrup.agrupacionCanto?.tipo || agrup.agrupacionDioses?.tipo) {
+    <span class="badge badge-tipo">
+      {{ agrup.tipo || agrup.agrupacionCanto?.tipo || agrup.agrupacionDioses?.tipo }}
+    </span>
+  }
+
+  <span class="badge badge-categoria">{{ agrup.categoria }}</span>
+  
+  <span class="badge" 
+        [ngClass]="{
+          'badge-aprobada': agrup.estadoInscripcion === 'APROBADA' || agrup.estadoInscripcion === 'APROBADO',
+          'badge-pendiente': agrup.estadoInscripcion === 'PENDIENTE',
+          'badge-rechazada': agrup.estadoInscripcion?.includes('RECHAZADO')
+        }">
+    {{ agrup.estadoInscripcion }}
+  </span>
+</div>
+
         <div class="details">
-          <p><strong>Concurso:</strong> {{ agrup.concurso }}</p>
+          <p><strong>Concurso:</strong> {{ agrup.concurso?.nombre || 'COAC Málaga 2026' }}</p>
           <p><strong>Año:</strong> {{ agrup.anio }}</p>
-          <p><strong>Fianza:</strong> {{ agrup.fianzaEstado }}</p>
+          <p><strong>Fianza:</strong> 
+            <span [style.color]="agrup.fianza?.pagada ? '#2e7d32' : '#fbc02d'" style="font-weight: bold;">
+              {{ agrup.fianza?.pagada ? 'PAGADA' : 'PENDIENTE' }}
+            </span>
+          </p>
         </div>
       </div>
 
       <div class="card-actions">
-        <a [routerLink]="['/gestion/participantes', agrup.id]" class="btn-action">Gestión de participantes</a>
-        <a [routerLink]="['/gestion/documentacion', agrup.id]" class="btn-action">Gestión de documentación</a>
-        @if (agrup.fianzaEstado === 'Pagada') {
-          <a href="#" class="btn-action btn-fianza">Recibo pago fianza</a>
-        }
+        <a [routerLink]="['/gestion/participantes', agrup.idAgrupacion]" class="btn-action">Gestión de participantes</a>
+        <a [routerLink]="['/gestion/documentacion', agrup.idAgrupacion]" class="btn-action">Gestión de documentación</a>
       </div>
     </div>
   }

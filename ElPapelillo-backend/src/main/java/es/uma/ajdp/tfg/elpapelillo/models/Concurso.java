@@ -7,10 +7,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoConcurso;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
 
 @Entity
-@Table(name = "concursos")
+@Table(name = "concurso")
 @Data
 @NoArgsConstructor
 public class Concurso {
@@ -25,10 +26,15 @@ public class Concurso {
     private LocalDate fechaFin;
     private LocalDate fechaInicioInscripcion;
     private LocalDate fechaFinInscripcion;
+    
+
 
     // Usamos @Enumerated para que en la BD se guarde el texto del Enum
     @Enumerated(EnumType.STRING)
     private TipoConcurso tipoConcurso;
+
+    @Enumerated(EnumType.STRING)
+    private EstadoConcurso estadoConcurso;
 
     @ManyToMany(mappedBy = "concursos")
     private List<Administrador> administradores = new ArrayList<>();
@@ -36,11 +42,13 @@ public class Concurso {
     @OneToMany(mappedBy = "concurso", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Agrupacion> agrupaciones = new ArrayList<>();
 
+    
     public Concurso(String nombre, LocalDate fechaInicio, LocalDate fechaFin, 
-                    TipoConcurso tipo) {
-        this.nombre = nombre;
-        this.fechaInicio = fechaInicio;
-        this.fechaFin = fechaFin;
-        this.tipoConcurso = tipo;
+                TipoConcurso tipo, EstadoConcurso estado) {
+    this.nombre = nombre;
+    this.fechaInicio = fechaInicio;
+    this.fechaFin = fechaFin;
+    this.tipoConcurso = tipo;
+    this.estadoConcurso = estado;
     }
 }

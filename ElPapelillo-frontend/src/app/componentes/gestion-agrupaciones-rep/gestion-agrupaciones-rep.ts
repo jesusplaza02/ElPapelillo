@@ -1,47 +1,55 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router'; // Importamos RouterModule para soportar [routerLink] con parámetros
+import { RouterModule } from '@angular/router';
+import { AgrupacionService } from './gestion-agrupaciones-rep.service';
+import { Agrupacion } from './gestion-agrupaciones-rep.model';
 
 @Component({
   selector: 'app-gestion-agrupaciones-rep',
   standalone: true,
-  /* IMPORTANTE: Usamos RouterModule en lugar de solo RouterLink 
-     para que las rutas con parámetros como agrup.id funcionen correctamente.
-  */
-  imports: [CommonModule, RouterModule],
-  templateUrl: './gestion-agrupaciones-rep.html', 
-  styleUrl: './gestion-agrupaciones-rep.css' 
+  imports: [CommonModule, RouterModule], 
+  templateUrl: './gestion-agrupaciones-rep.html',
+  styleUrl: './gestion-agrupaciones-rep.css'
 })
-export class GestionAgrupacionesRepComponent {
+export class GestionAgrupacionesRepComponent implements OnInit {
   
-  // Datos de prueba para verificar que el @for y el CSS funcionan
-  agrupaciones = [
-    { 
-      id: 1, 
-      nombre: 'Los Papelillos Reales', 
-      tipo: 'Chirigota', 
-      estado: 'Aprobada', 
-      concurso: 'Málaga 2026', 
-      anio: 2026, 
-      fianzaEstado: 'Pagada' 
-    },
-    { 
-      id: 2, 
-      nombre: 'La Cantera', 
-      tipo: 'Comparsa', 
-      estado: 'Pendiente', 
-      concurso: 'Málaga 2026', 
-      anio: 2026, 
-      fianzaEstado: 'Pendiente' 
-    }
-  ];
+  // Inicializamos como array vacío para evitar errores en el template
+  agrupaciones: Agrupacion[] = [];
+  loading: boolean = true; // Para saber si está cargando
 
-  constructor() {
-    
+  constructor(
+    private agrupacionService: AgrupacionService,
+    private cdr: ChangeDetectorRef // Inyectamos el detector de cambios
+  ) {}
+
+  ngOnInit(): void {
+    this.obtenerDatosDeBD();
   }
 
-  /* Futuras funciones:
-     descargarRecibo(id: number) { ... }
-     eliminarAgrupacion(id: number) { ... }
-  */
+  obtenerDatosDeBD() {
+    const idRepresentante = 1; 
+    this.loading = true;
+
+    this.agrupacionService.getAgrupacionesPorRepresentante(idRepresentante).subscribe({
+      next: (data) => {
+        // Asignamos los datos recibidos
+        this.agrupaciones = data;
+        this.loading = false;
+        
+        console.log('Datos cargados correctamente:', this.agrupaciones);
+        
+        // Forzamos a Angular a que revise la vista tras el refresco
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.loading = false;
+        console.error('Error al conectar con el servidor:', err);
+      }
+    });
+  }
+
+  // Función de ayuda para el @for (mejora el rendimiento al refrescar)
+  trackByAgrupacionId(index: number, agrup: Agrupacion): number {
+    return agrup.idAgrupacion;
+  }
 }

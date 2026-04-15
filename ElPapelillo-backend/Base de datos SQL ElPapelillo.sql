@@ -5,13 +5,14 @@ USE elpapelillo_db;
 CREATE TABLE Usuario (
     idUsuario INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(100) NOT NULL UNIQUE,
-    contraseña VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     nombre VARCHAR(100),
     telefono VARCHAR(20),
     direccion VARCHAR(255),
     rol VARCHAR(50),
     DNI VARCHAR(20) UNIQUE,
-    fechaRegistro DATETIME DEFAULT CURRENT_TIMESTAMP
+    fechaRegistro DATETIME DEFAULT CURRENT_TIMESTAMP,
+    activo BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE Administrador (
@@ -33,8 +34,8 @@ CREATE TABLE Concurso (
     fechaFin DATE,
     fechaInicioInscripcion DATE,
     fechaFinInscripcion DATE,
-    tipoConcurso ENUM('Canto', 'Drag', 'Dioses', 'Otro'),
-    estadoConcurso ENUM('Activo', 'Histórico')
+    tipoConcurso ENUM('CANTO', 'DRAG', 'DIOSES', 'OTRO'),
+    estadoConcurso ENUM('ACTIVO', 'HISTORICO')
 );
 
 CREATE TABLE Agrupacion (
@@ -43,16 +44,16 @@ CREATE TABLE Agrupacion (
     idConcurso INT NOT NULL,
     nombre VARCHAR(100),
     nombreUltimaParticipacion VARCHAR(100),
-    año YEAR,
-    categoria ENUM('Adulto', 'Juvenil', 'Infantil'),
-    estadoInscripcion ENUM('Aprobado', 'Pendiente', 'Rechazado'),
+    anio YEAR,
+    categoria ENUM('ADULTO', 'JUVENIL', 'INFANTIL'),
+    estadoInscripcion ENUM('APROBADO', 'PENDIENTE', 'RECHAZADO'),
     CONSTRAINT fk_agrupa_repre FOREIGN KEY (idRepresentante) REFERENCES Representante(idUsuario) ON DELETE SET NULL,
     CONSTRAINT fk_agrupa_concurso FOREIGN KEY (idConcurso) REFERENCES Concurso(idConcurso)
 );
 
 CREATE TABLE AgrupacionCanto (
     idAgrupacion INT PRIMARY KEY,
-    modalidad ENUM('Romancero', 'Murga', 'Comparsa', 'Cuarteto', 'Coro'),
+    modalidad ENUM('ROMANCERO', 'MURGA', 'COMPARSA', 'CUARTETO', 'CORO'),
     autorMusica VARCHAR(100),
     autorLetra VARCHAR(100),
     direccion VARCHAR(255),
@@ -61,7 +62,7 @@ CREATE TABLE AgrupacionCanto (
 
 CREATE TABLE AgrupacionDioses (
     idAgrupacion INT PRIMARY KEY,
-    modalidad ENUM('Dios', 'Diosa'),
+    modalidad ENUM('DIOS', 'DIOSA'),
     modelo VARCHAR(100),
     diseñador VARCHAR(100),
     CONSTRAINT fk_dioses_agrupa FOREIGN KEY (idAgrupacion) REFERENCES Agrupacion(idAgrupacion) ON DELETE CASCADE
@@ -86,7 +87,7 @@ CREATE TABLE Participante (
     nombre VARCHAR(100),
     dni VARCHAR(20),
     fechaNacimiento DATE,
-    rol ENUM('Voz', 'Guitarra', 'Caja', 'Bombo', 'Maquilladora', 'Ayudante de escena', 'Montador', 'Otro'),
+    rol ENUM('VOZ', 'GUITARRA', 'CAJA', 'BOMBO', 'MAQUILLADORA', 'AYUDANTE DE ESCENA', 'MONTADOR', 'OTRO'),
     CONSTRAINT fk_parti_agrupa FOREIGN KEY (idAgrupacion) REFERENCES Agrupacion(idAgrupacion)
 );
 
@@ -95,7 +96,7 @@ CREATE TABLE Documento (
     idAgrupacion INT NOT NULL,
     nombreArchivo VARCHAR(255),
     rutaArchivo VARCHAR(255),
-    estado ENUM('Aprobado', 'Pendiente', 'Rechazado'),
+    estado ENUM('APROBADO', 'PENDIENTE', 'RECHAZADO'),
     fechaSubida DATETIME,
     mensajeRechazo TEXT,
     CONSTRAINT fk_doc_agrupa FOREIGN KEY (idAgrupacion) REFERENCES Agrupacion(idAgrupacion)

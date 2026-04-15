@@ -24,7 +24,7 @@ public class UsuarioController {
 
     // BUSCAR UN USUARIO ESPECÍFICO POR ID
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<Usuario> obtenerPorId(@PathVariable Integer id) {
         return usuarioService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -34,8 +34,8 @@ public class UsuarioController {
     // El idAdmin se usa para saber quién ejecutó la acción y guardarlo en el log
     @DeleteMapping("/{id}/desactivar")
     public ResponseEntity<String> desactivarUsuario(
-            @PathVariable Long id, 
-            @RequestParam Long idAdmin) {
+            @PathVariable Integer id, 
+            @RequestParam Integer idAdmin) {
         try {
             usuarioService.eliminarUsuarioLogico(id, idAdmin);
             return ResponseEntity.ok("Usuario desactivado con éxito. La acción ha sido registrada.");
@@ -48,9 +48,9 @@ public class UsuarioController {
     // ACTUALIZAR DATOS DE USUARIO
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarUsuario(
-            @PathVariable Long id, 
+            @PathVariable Integer id, 
             @RequestBody Usuario datosNuevos,
-            @RequestParam Long idEjecutor) {
+            @RequestParam Integer idEjecutor) {
         try {
             Usuario actualizado = usuarioService.actualizar(id, datosNuevos, idEjecutor);
             return ResponseEntity.ok(actualizado);

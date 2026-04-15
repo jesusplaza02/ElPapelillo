@@ -2,51 +2,73 @@ package es.uma.ajdp.tfg.elpapelillo.models;
 
 import es.uma.ajdp.tfg.elpapelillo.models.enums.CategoriaAgrupacion;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoAdministrativo;
+import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
-@Table(name = "agrupaciones")
-@Inheritance(strategy = InheritanceType.JOINED) // Estrategia para tablas separadas pero unidas por ID
-@Data
+@Table(name = "agrupacion")
+@Inheritance(strategy = InheritanceType.JOINED)
+
+@Getter
+@Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Agrupacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "idAgrupacion")
+    private Integer idAgrupacion;
 
+    @Column(name = "nombre", nullable = false)
     private String nombre;
+
+    @Column(name = "nombreUltimaParticipacion")
     private String nombreUltimaParticipacion;
-    private Integer anio; 
+
+    @Column(name = "anio") 
+    private Integer anio;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "categoria")
     private CategoriaAgrupacion categoria;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "tipoConcurso")
+    private TipoConcurso tipoConcurso;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estadoInscripcion") // Coincide con 'estadoInscripcion' en la BD
     private EstadoAdministrativo estadoInscripcion;
 
-    // Relación con el Representante (Muchos a Uno)
     @ManyToOne
-    @JoinColumn(name = "representante_id")
+    @JoinColumn(name = "idRepresentante")
+    @JsonBackReference
     private Representante representante;
 
-    // Relación con los Documentos (DNI, autorizaciones...)
+    @ManyToOne
+    @JoinColumn(name = "idConcurso")
+    @JsonIgnoreProperties("agrupaciones")
+    private Concurso concurso;
+
     @OneToMany(mappedBy = "agrupacion", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("agrupacion")
     private List<Documento> documentos;
 
-    // Relación con los Participantes
     @OneToMany(mappedBy = "agrupacion", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("agrupacion")
     private List<Participante> participantes;
 
-    // Relación 1 a 1 con la Fianza
     @OneToOne(mappedBy = "agrupacion", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("agrupacion")
     private Fianza fianza;
-
-    // Relación con el Concurso 
-    @ManyToOne
-    @JoinColumn(name = "concurso_id") // Nombre de la columna en la BD
-    private Concurso concurso;
 }
