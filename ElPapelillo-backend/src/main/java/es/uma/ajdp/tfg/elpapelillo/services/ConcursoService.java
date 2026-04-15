@@ -15,9 +15,9 @@ public class ConcursoService {
 
     public List<Concurso> findActivos() {
         // Opción A: Si tienes columna estado en la BD
-        return concursoRepository.findByEstadoConcurso(EstadoConcurso.ACTIVO);
+        //return concursoRepository.findByEstadoConcurso(EstadoConcurso.ACTIVO);
         
         // Opción B: Si aún no tienes estados y quieres probar que el select cargue algo:
-        // return concursoRepository.findAll(); 
+        return concursoRepository.findAll(); 
     }
 }
