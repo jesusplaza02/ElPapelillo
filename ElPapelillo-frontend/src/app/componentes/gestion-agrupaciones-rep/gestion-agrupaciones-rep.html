@@ -25,7 +25,7 @@
 
         <div class="form-field">
           <label>Seleccionar Concurso Activo</label>
-          <select name="idConcurso" [(ngModel)]="concursoSeleccionado" required class="form-input-styled">
+          <select name="concurso" [(ngModel)]="concursoSeleccionado" (ngModelChange)="onConcursoChange()" required class="form-input-styled">
             <option [ngValue]="null" disabled selected>Seleccione concurso...</option>
             @for (c of concursosActivos; track c.idConcurso) {
               <option [ngValue]="c">{{ c.nombre }}</option>
@@ -44,9 +44,53 @@
           </select>
         </div>
 
+        @if (anioCalculado) {
+          <div class="form-field">
+            <label>Año de inscripción (Auto)</label>
+            <input type="text" [value]="anioCalculado" readonly class="form-input-styled" style="background: #e0f2f1; font-weight: bold;">
+          </div>
+        }
+
+        @if (tipoDerivado === 'CANTO') {
+          <div class="form-field">
+            <label>Autor Letra</label>
+            <input type="text" name="autorLetra" ngModel required class="form-input-styled">
+          </div>
+          <div class="form-field">
+            <label>Autor Música</label>
+            <input type="text" name="autorMusica" ngModel required class="form-input-styled">
+          </div>
+          <div class="form-field">
+            <label>Dirección</label>
+            <input type="text" name="direccion" ngModel required class="form-input-styled">
+          </div>
+        }
+
+        @if (tipoDerivado === 'DRAG') {
+          <div class="form-field">
+            <label>Nombre Artístico Drag</label>
+            <input type="text" name="nombreArtisticoDrag" ngModel required class="form-input-styled">
+          </div>
+          <div class="form-field">
+            <label>Diseñador/a</label>
+            <input type="text" name="disenador" ngModel required class="form-input-styled">
+          </div>
+        }
+
+        @if (tipoDerivado === 'DIOSES') {
+          <div class="form-field">
+            <label>Modelo</label>
+            <input type="text" name="modelo" ngModel required class="form-input-styled">
+          </div>
+          <div class="form-field">
+            <label>Diseñador/a</label>
+            <input type="text" name="disenador" ngModel required class="form-input-styled">
+          </div>
+        }
+
         <div class="form-actions" style="grid-column: 1 / span 2; display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
           <button type="button" (click)="toggleFormulario(false)" class="btn-cancel" style="border:none; cursor:pointer;">Cancelar</button>
-          <button type="submit" class="btn-inscribir" [disabled]="!f.valid" style="border:none; cursor:pointer;">
+          <button type="submit" class="btn-inscribir" [disabled]="!f.valid || !concursoSeleccionado" style="border:none; cursor:pointer;">
             Finalizar Inscripción
           </button>
         </div>
