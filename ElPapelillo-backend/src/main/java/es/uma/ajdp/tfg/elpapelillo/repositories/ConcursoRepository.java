@@ -7,8 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
+
 @Repository
 public interface ConcursoRepository extends JpaRepository<Concurso, Integer> {
     // Si en tu base de datos la tabla concursos tiene una columna 'estado'
     List<Concurso> findByEstadoConcurso(EstadoConcurso estado);
+
 }

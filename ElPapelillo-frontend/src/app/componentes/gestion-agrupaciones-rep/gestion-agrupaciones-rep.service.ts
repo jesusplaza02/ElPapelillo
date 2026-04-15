@@ -19,8 +19,8 @@ export class AgrupacionService {
     return this.http.get<any[]>('http://localhost:8080/api/concursos/activos');
   }
 
-  // Guardar nueva agrupación (POST)
+  // En gestion-agrupaciones-rep.service.ts
   crearAgrupacion(agrupacion: any): Observable<any> {
-    return this.http.post<any>(this.API_URL, agrupacion);
+    return this.http.post('http://localhost:8080/api/agrupaciones', agrupacion);
   }
 }

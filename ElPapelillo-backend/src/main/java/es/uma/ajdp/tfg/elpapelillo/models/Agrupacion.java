@@ -5,9 +5,9 @@ import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoAdministrativo;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
+
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 
@@ -18,11 +18,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Table(name = "agrupacion")
 @Inheritance(strategy = InheritanceType.JOINED)
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Agrupacion {
+public abstract class Agrupacion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

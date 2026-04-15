@@ -94,34 +94,27 @@ export class GestionAgrupacionesRepComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  enviarFormulario(formulario: NgForm) {
-    if (formulario.valid && this.concursoSeleccionado) {
-      
-      // Construimos el objeto final para el Backend respetando las tablas unidas
-      const payload: any = {
-        ...formulario.value,
-        anio: this.anioCalculado,                 // Calculado automáticamente
-        idConcurso: this.concursoSeleccionado.idConcurso,
-        tipoConcurso: this.tipoDerivado,          // Heredado del concurso
-        idRepresentante: 1,                       // Estático temporalmente
-        estadoInscripcion: 'PENDIENTE'            // Valor por defecto
-      };
+ enviarFormulario(formulario: NgForm) {
+  if (formulario.valid && this.concursoSeleccionado) {
+    const payload = { /* ... tus datos ... */ };
 
-      this.agrupacionService.crearAgrupacion(payload).subscribe({
-        next: () => {
-          alert('¡Agrupación inscrita correctamente!');
-          this.toggleFormulario(false);
-          this.cargarDatos(1); // Recargar lista
-        },
-        error: (err) => {
-          console.error('Error al guardar la inscripción:', err);
-          alert('Hubo un error al procesar la inscripción en el servidor.');
-        }
-      });
-    } else {
-      alert('Por favor, rellena todos los campos obligatorios.');
-    }
+    this.agrupacionService.crearAgrupacion(payload).subscribe({
+      next: () => {
+        alert('¡Inscripción realizada!');
+        
+        // 1. Primero cerramos el formulario
+        this.toggleFormulario(false);
+        
+        // 2. Usamos setTimeout para que Angular descanse un milisegundo 
+        // antes de recargar la lista y evitar el error NG0100
+        setTimeout(() => {
+          this.cargarDatos(1);
+        }, 0);
+      },
+      error: (err) => console.error('Error:', err)
+    });
   }
+}
 
   /**
    * Optimización para el renderizado del @for en el listado
