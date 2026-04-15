@@ -16,19 +16,19 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class AgrupacionDioses extends Agrupacion {
 
-    private String diseñador;
+    private String disenador;
     private String modelo;
     private ModalidadDioses modalidad;
 
     public AgrupacionDioses(String nombre, String nombreUltimaParticipacion, Integer anio, CategoriaAgrupacion categoria, 
-                       EstadoAdministrativo estadoInscripcion, Representante representante, String diseñador, String modelo, ModalidadDioses modalidad) {
+                       EstadoAdministrativo estadoInscripcion, Representante representante, String disenador, String modelo, ModalidadDioses modalidad) {
         this.setNombre(nombre);
         this.setNombreUltimaParticipacion(nombreUltimaParticipacion);
         this.setAnio(anio);
         this.setCategoria(categoria);
         this.setEstadoInscripcion(estadoInscripcion);
         this.setRepresentante(representante);
-        this.diseñador = diseñador;
+        this.disenador = disenador;
         this.modelo = modelo;
         this.modalidad = modalidad;
     }

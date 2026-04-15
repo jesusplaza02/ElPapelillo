@@ -16,11 +16,11 @@ import lombok.NoArgsConstructor;
 public class AgrupacionDrag extends Agrupacion {
 
     private String nombreArtisticoDrag;
-    private String diseñador;
+    private String disenador;
 
 
     public AgrupacionDrag(String nombre, String nombreUltimaParticipacion, Integer anio, CategoriaAgrupacion categoria, 
-                       EstadoAdministrativo estadoInscripcion, Representante representante, String nombreArtistico, String diseñador) {
+                       EstadoAdministrativo estadoInscripcion, Representante representante, String nombreArtistico, String disenador) {
         this.setNombre(nombre);
         this.setNombreUltimaParticipacion(nombreUltimaParticipacion);
         this.setAnio(anio);
@@ -28,6 +28,6 @@ public class AgrupacionDrag extends Agrupacion {
         this.setEstadoInscripcion(estadoInscripcion);
         this.setRepresentante(representante);
         this.nombreArtisticoDrag = nombreArtistico;
-        this.diseñador = diseñador;
+        this.disenador = disenador;
     }
 }
