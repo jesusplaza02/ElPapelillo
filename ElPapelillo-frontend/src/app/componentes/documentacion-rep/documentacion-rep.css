@@ -1,0 +1,119 @@
+.main-container {
+  margin-top: 40px;
+  padding: 50px;
+  background-color: #FCE4EC;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 850px;
+  margin: 0 auto 25px auto;
+}
+
+.doc-header h1 {
+  color: #334155;
+  font-size: 24px;
+  font-weight: 600;
+  position: relative;
+  z-index: 10;
+}
+
+.btn-upload {
+  background-color: #cbd5e1; /* Azul grisáceo suave */
+  border: none;
+  padding: 10px 25px;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s;
+  position: relative;
+  z-index: 10;
+}
+
+.btn-upload:hover {
+  background-color: #94a3b8;
+}
+
+.doc-card-container {
+  background: white;
+  border-radius: 20px;
+  padding: 20px 40px;
+  max-width: 850px;
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+  position: relative;
+  z-index: 10;
+} 
+
+.doc-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.doc-item:last-child {
+  border-bottom: none;
+}
+
+.doc-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.icon-box {
+  background-color: #fee2e2; /* Fondo rosa suave */
+  color: #ef4444; /* Rojo icono */
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  font-size: 22px;
+}
+
+.doc-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 16px;
+}
+
+.doc-date {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Estilos de los Badges (Estados) */
+.status-badge {
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.state-approved {
+  background-color: #ecfdf5;
+  color: #10b981;
+}
+
+.state-pending {
+  background-color: #fffbeb;
+  color: #f59e0b;
+}
+
+.state-rejected {
+  background-color: #fef2f2;
+  color: #ef4444;
+}

@@ -1,0 +1,30 @@
+<div class="main-container">
+  <div class="doc-header">
+    <h1>Documentación</h1>
+    <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)">
+    <button class="btn-upload" (click)="fileInput.click()">
+      <i class="fas fa-upload"></i> Subir
+    </button>
+  </div>
+
+  <div class="doc-card-container">
+    <div class="doc-item clickable" 
+         *ngFor="let doc of listaDocs" 
+         (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
+      
+      <div class="doc-left">
+        <div class="icon-box">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div class="doc-info">
+          <span class="doc-name">{{ doc.nombre }}</span>
+          <span class="doc-date">{{ doc.tipo || 'Archivo' }}</span>
+        </div>
+      </div>
+
+      <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
+          {{ getTextoEstado(doc.estado) }}
+      </div>
+    </div>
+</div>
+</div>

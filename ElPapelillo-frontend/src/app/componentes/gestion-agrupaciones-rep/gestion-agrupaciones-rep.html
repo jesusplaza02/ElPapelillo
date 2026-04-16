@@ -129,7 +129,7 @@
         
         <div class="card-actions">
           <a class="btn-action">Gestión de participantes</a>
-          <a class="btn-action">Gestión de documentación</a>
+          <a [routerLink]="['/documentacion-agrupacion-rep', agrup.idAgrupacion]" class="btn-action">Gestión de documentación</a>
 
           @if (agrup.fianza?.pagada) {
             <a class="btn-action btn-fianza">
