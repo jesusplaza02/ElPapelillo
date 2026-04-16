@@ -1,25 +1,44 @@
+/* --- CONTENEDOR PRINCIPAL --- */
+/* --- CONTENEDOR PRINCIPAL CORREGIDO --- */
 .main-container {
-  margin-top: 40px;
-  padding: 50px;
+  margin-top: 0;
+  /* Usamos padding-top individual para que no lo pise nadie */
+  padding-top: 100px !important; 
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 50px;
+  
   background-color: #FCE4EC;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box; /* Esto asegura que el padding no rompa el tamaño */
+  
+  /* Aseguramos que el contenido fluya hacia abajo */
+  display: block; 
+  overflow-y: auto;
 }
 
+/* Fuerza al cuerpo de la página a permitir scroll */
+html, body {
+  height: auto !important;
+  overflow: auto !important;
+}
+/* --- CABECERA --- */
 .doc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 850px;
+  max-width: 850px; /* Alineado con las tarjetas */
   margin: 0 auto 25px auto;
+  position: relative;
+  z-index: 10;
 }
 
 .doc-header h1 {
   color: #334155;
   font-size: 24px;
   font-weight: 600;
-  position: relative;
-  z-index: 10;
+  margin: 0;
 }
 
 .btn-upload {
@@ -29,19 +48,106 @@
   border-radius: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.3s;
-  position: relative;
-  z-index: 10;
+  transition: all 0.3s ease;
 }
 
 .btn-upload:hover {
   background-color: #94a3b8;
+  transform: translateY(-2px);
 }
 
+/* --- FORMULARIO DE SUBIDA (DESPLEGABLE) --- */
+.upload-form-card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  max-width: 850px;
+  margin: 0 auto 30px auto; /* Centrado igual que la lista */
+  border-left: 6px solid #F48FB1; /* Detalle rosa fuerte */
+  animation: fadeIn 0.4s ease-out;
+  position: relative;
+  z-index: 10;
+}
+
+.upload-form-card h3 {
+  margin-top: 0;
+  color: #1e293b;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.form-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  flex: 1;
+  min-width: 220px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #475569;
+  font-size: 14px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  background-color: #f8fafc;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #F48FB1;
+  background-color: white;
+}
+
+.file-input-custom {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-confirm {
+  background-color: #4CAF50; /* Verde éxito */
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.btn-confirm:hover:not(:disabled) {
+  background-color: #43a047;
+}
+
+.btn-confirm:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* --- LISTA DE DOCUMENTOS --- */
 .doc-card-container {
   background: white;
   border-radius: 20px;
-  padding: 20px 40px;
+  padding: 10px 40px;
   max-width: 850px;
   margin: 0 auto;
   box-shadow: 0 10px 25px rgba(0,0,0,0.03);
@@ -55,6 +161,15 @@
   align-items: center;
   padding: 20px 0;
   border-bottom: 1px solid #f1f5f9;
+  transition: transform 0.2s;
+}
+
+.doc-item.clickable {
+  cursor: pointer;
+}
+
+.doc-item.clickable:hover {
+  transform: scale(1.01);
 }
 
 .doc-item:last-child {
@@ -68,7 +183,7 @@
 }
 
 .icon-box {
-  background-color: #fee2e2; /* Fondo rosa suave */
+  background-color: #fee2e2; /* Rosa suave */
   color: #ef4444; /* Rojo icono */
   width: 50px;
   height: 50px;
@@ -90,17 +205,20 @@
   font-size: 16px;
 }
 
-.doc-date {
+.doc-type-label {
   color: #64748b;
-  font-size: 14px;
+  font-size: 13px;
+  margin-top: 2px;
 }
 
-/* Estilos de los Badges (Estados) */
+/* --- BADGES DE ESTADO --- */
 .status-badge {
   padding: 8px 20px;
   border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 140px;
+  text-align: center;
 }
 
 .state-approved {
@@ -116,4 +234,10 @@
 .state-rejected {
   background-color: #fef2f2;
   color: #ef4444;
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

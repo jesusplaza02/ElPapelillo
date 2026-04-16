@@ -7,8 +7,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+
 public interface AgrupacionRepository extends JpaRepository<Agrupacion, Integer> {
     @Query("SELECT a FROM Agrupacion a WHERE a.representante.id = :id")
     List<Agrupacion> findByRepresentanteId(@Param("id") Integer id);
     //List<Agrupacion> findByRepresentante_IdUsuario(Integer idABorrar);
+
 }

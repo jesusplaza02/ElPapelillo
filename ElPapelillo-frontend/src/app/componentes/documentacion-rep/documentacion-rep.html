@@ -1,30 +1,57 @@
 <div class="main-container">
   <div class="doc-header">
     <h1>Documentación</h1>
-    <input type="file" #fileInput style="display: none" (change)="onFileSelected($event)">
-    <button class="btn-upload" (click)="fileInput.click()">
-      <i class="fas fa-upload"></i> Subir
+    <button class="btn-upload" (click)="toggleFormulario()">
+      <i class="fas" [class.fa-plus]="!mostrarForm" [class.fa-times]="mostrarForm"></i> 
+      {{ mostrarForm ? ' Cancelar' : ' Subir Documento' }}
     </button>
   </div>
 
-  <div class="doc-card-container">
-    <div class="doc-item clickable" 
-         *ngFor="let doc of listaDocs" 
-         (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
+  <div class="upload-form-card" *ngIf="mostrarForm">
+    <h3>Nueva Carga de Documento</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nombre para mostrar</label>
+        <input type="text" [(ngModel)]="nuevoDocNombre" placeholder="Ej: Certificado ignifugidad papelillos" class="form-control">
+      </div>
       
+      <div class="form-group">
+        <label>Tipo de documento</label>
+        <select [(ngModel)]="nuevoDocTipo" class="form-control">
+          <option value="DNI">DNI / Identificación</option>
+          <option value="REPERTORIO">Repertorio (Letras)</option>
+          <option value="AUTORIZACION">Autorización Menores</option>
+          <option value="OTROS">Otros</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Seleccionar archivo</label>
+        <input type="file" (change)="prepararArchivo($event)" class="file-input-custom">
+      </div>
+    </div>
+    
+    <div class="form-actions">
+      <button class="btn-confirm" (click)="confirmarSubida()" [disabled]="!archivoSeleccionado">
+        <i class="fas fa-cloud-upload-alt"></i> Confirmar y Guardar
+      </button>
+    </div>
+  </div>
+
+  <div class="doc-card-container">
+    <div class="doc-item clickable" *ngFor="let doc of listaDocs" (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
       <div class="doc-left">
         <div class="icon-box">
           <i class="fas fa-file-alt"></i>
         </div>
         <div class="doc-info">
           <span class="doc-name">{{ doc.nombre }}</span>
-          <span class="doc-date">{{ doc.tipo || 'Archivo' }}</span>
+          <span class="doc-type-label">{{ doc.tipo || 'Archivo General' }}</span>
         </div>
       </div>
-
       <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
           {{ getTextoEstado(doc.estado) }}
       </div>
     </div>
-</div>
+  </div>
 </div>
