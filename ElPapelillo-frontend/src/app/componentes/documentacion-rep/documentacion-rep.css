@@ -213,7 +213,8 @@ html, body {
 
 /* --- BADGES DE ESTADO --- */
 .status-badge {
-  padding: 8px 20px;
+  margin-top: 12px;
+  padding: 8px 20px; 
   border-radius: 20px;
   font-size: 13px;
   font-weight: 600;
@@ -240,4 +241,38 @@ html, body {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.error-container {
+  background-color: #fee2e2; /* Rojo muy suave */
+  color: #b91c1c; /* Texto rojo oscuro */
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #f87171;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: shake 0.2s ease-in-out 0s 2; /* Un pequeño temblor para llamar la atención */
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(5px); }
+  50% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+
+.revision-comment {
+  background-color: #fff3cd; /* Amarillo suave tipo post-it */
+  color: #856404;
+  padding: 8px;
+  border-left: 4px solid #ffeeba;
+  margin-top: 5px;
+  font-size: 0.9em;
+  font-style: italic;
+  border-radius: 4px;
 }

@@ -1,21 +1,18 @@
 package es.uma.ajdp.tfg.elpapelillo.controllers;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path; // CORRECTO: Para manejo de archivos
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.uma.ajdp.tfg.elpapelillo.repositories.*;
-import es.uma.ajdp.tfg.elpapelillo.models.Agrupacion;
-import es.uma.ajdp.tfg.elpapelillo.models.Documento;
+import es.uma.ajdp.tfg.elpapelillo.models.*;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoAdministrativo;
 import es.uma.ajdp.tfg.elpapelillo.services.DocumentoService;
 
@@ -33,67 +30,98 @@ public class DocumentoController {
     @Autowired
     private AgrupacionRepository agrupacionRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private LogAuditoriaRepository logAuditoriaRepository;
+
     @PostMapping("/upload")
     public ResponseEntity<?> subirArchivo(
             @RequestParam("file") MultipartFile file,
             @RequestParam("idAgrupacion") Integer idAgrupacion,
             @RequestParam("nombreDoc") String nombreDoc,
-            @RequestParam("tipo") String tipo) {
+            @RequestParam("tipo") String tipo,
+            @RequestParam("usuarioId") Integer usuarioId) {
+
+        // --- VALIDACIÓN RF21: Solo PDF y máximo 5MB ---
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("application/pdf")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\": \"Solo se permiten archivos en formato PDF.\"}");
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("{\"error\": \"El archivo supera el límite de 5MB.\"}");
+        }
 
         try {
-            // 1. Limpiamos el nombre del archivo para el sistema de archivos
+            // 1. Gestión de archivo físico
             String filenameOriginal = file.getOriginalFilename();
-            String nombreFisicoLimpio = (filenameOriginal != null) 
-                ? filenameOriginal.replaceAll("\\s+", "_") 
-                : "archivo_" + System.currentTimeMillis();
+            String nombreFisicoLimpio = (filenameOriginal != null)
+                    ? System.currentTimeMillis() + "_" + filenameOriginal.replaceAll("\\s+", "_")
+                    : "doc_" + System.currentTimeMillis() + ".pdf";
 
-            // 2. Definimos y creamos la carpeta 'archivos' si no existe
             Path rutaDirectorio = Paths.get("archivos");
             if (!Files.exists(rutaDirectorio)) {
                 Files.createDirectories(rutaDirectorio);
             }
 
-            // 3. Guardamos físicamente el archivo en el disco
             Path rutaArchivo = rutaDirectorio.resolve(nombreFisicoLimpio);
             Files.copy(file.getInputStream(), rutaArchivo, StandardCopyOption.REPLACE_EXISTING);
 
-            // 4. Creamos el objeto Documento para la Base de Datos
+            // 2. Crear y configurar la entidad Documento
             Documento doc = new Documento();
-            
-            // Usamos el nombre y tipo recibidos desde el formulario de Angular
-            doc.setNombre(nombreDoc); 
-            doc.setTipo(tipo); 
-            
-            // Guardamos la ruta relativa para acceder luego
-            doc.setUrlArchivo("archivos/" + nombreFisicoLimpio); 
-            
-            // Usamos el Enum correspondiente
+            doc.setNombre(nombreDoc);
+            doc.setTipo(tipo);
+            doc.setUrlArchivo("archivos/" + nombreFisicoLimpio);
             doc.setEstado(EstadoAdministrativo.PENDIENTE);
 
-            if (idAgrupacion == null) {
-                return ResponseEntity.badRequest().body("{\"error\": \"El ID de agrupación no puede ser nulo\"}");
-            }
-            // Buscamos la agrupación por su ID para establecer la relación
             Optional<Agrupacion> agrup = agrupacionRepository.findById(idAgrupacion);
             if (agrup.isPresent()) {
                 doc.setAgrupacion(agrup.get());
             } else {
-                return ResponseEntity.badRequest().body("{\"error\": \"No se encontró la agrupación con ID: " + idAgrupacion + "\"}");
+                Files.deleteIfExists(rutaArchivo);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("{\"error\": \"Agrupación no encontrada.\"}");
             }
 
-            // Guardamos el registro en la BD
+            // Guardar documento en BD
             documentoRepository.save(doc);
 
-            return ResponseEntity.ok().body("{\"message\": \"Archivo subido y registrado con éxito\"}");
+            // --- LÓGICA DE AUDITORÍA RF22: Registro de acciones administrativas ---
+            usuarioRepository.findById(usuarioId).ifPresent(user -> {
+                if ("ADMIN".equalsIgnoreCase(user.getRol()) || "SUPERADMIN".equalsIgnoreCase(user.getRol())) {
+
+                    // Cast a Administrador ya que LogAuditoria requiere esta relación específica
+                    Administrador admin = (Administrador) user;
+
+                    // Creamos el log (Asegúrate de tener el constructor en LogAuditoria)
+                    LogAuditoria log = new LogAuditoria(
+                            admin,
+                            "ADJUNTAR",
+                            "El administrador adjuntó el documento: " + nombreDoc + " a la agrupación ID: " + idAgrupacion
+                    );
+
+                    logAuditoriaRepository.save(log);
+                }
+            });
+
+            return ResponseEntity.ok().body("{\"message\": \"Archivo subido con éxito\"}");
 
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("{\"error\": \"Error técnico al guardar el archivo: " + e.getMessage() + "\"}");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("{\"error\": \"Error al procesar el archivo: " + e.getMessage() + "\"}");
         }
     }
 
     @GetMapping("/agrupacion/{id}")
-    public ResponseEntity<List<Documento>> listarPorAgrupacion(@PathVariable Long id) {
-        List<Documento> docs = documentoService.listarPorAgrupacion(id);
+    public ResponseEntity<List<Documento>> listarPorAgrupacion(@PathVariable Integer id) {
+        if (id == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        List<Documento> docs = documentoService.listarPorAgrupacion(id.longValue());
         return ResponseEntity.ok(docs);
     }
 }

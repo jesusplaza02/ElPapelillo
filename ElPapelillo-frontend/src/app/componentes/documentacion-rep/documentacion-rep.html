@@ -12,13 +12,13 @@
     <div class="form-grid">
       <div class="form-group">
         <label>Nombre para mostrar</label>
-        <input type="text" [(ngModel)]="nuevoDocNombre" placeholder="Ej: Certificado ignifugidad papelillos" class="form-control">
+        <input type="text" [(ngModel)]="nuevoDocNombre" placeholder="Ej: Certificado ignifugidad" class="form-control">
       </div>
       
       <div class="form-group">
         <label>Tipo de documento</label>
         <select [(ngModel)]="nuevoDocTipo" class="form-control">
-          <option value="DNI">DNI / Identificación</option>
+          <option value="DNI">Identificación / DNIs</option>
           <option value="REPERTORIO">Repertorio (Letras)</option>
           <option value="AUTORIZACION">Autorización Menores</option>
           <option value="OTROS">Otros</option>
@@ -26,11 +26,15 @@
       </div>
 
       <div class="form-group">
-        <label>Seleccionar archivo</label>
-        <input type="file" (change)="prepararArchivo($event)" class="file-input-custom">
+        <label>Seleccionar archivo (PDF máx 5MB)</label>
+        <input type="file" (change)="prepararArchivo($event)" class="file-input-custom" accept="application/pdf">
       </div>
     </div>
     
+    <div *ngIf="mensajeError" class="error-container">
+      <i class="fas fa-exclamation-circle"></i> {{ mensajeError }}
+    </div>
+
     <div class="form-actions">
       <button class="btn-confirm" (click)="confirmarSubida()" [disabled]="!archivoSeleccionado">
         <i class="fas fa-cloud-upload-alt"></i> Confirmar y Guardar
@@ -39,18 +43,24 @@
   </div>
 
   <div class="doc-card-container">
-    <div class="doc-item clickable" *ngFor="let doc of listaDocs" (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
-      <div class="doc-left">
-        <div class="icon-box">
-          <i class="fas fa-file-alt"></i>
+    <div class="doc-item" *ngFor="let doc of listaDocs">
+      <div class="doc-main-content clickable" (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
+        <div class="doc-left">
+          <div class="icon-box">
+            <i class="fas fa-file-pdf"></i>
+          </div>
+          <div class="doc-info">
+            <span class="doc-name">{{ doc.nombre }}</span>
+            <span class="doc-type-label">{{ doc.tipo || 'Archivo General' }}</span>
+          </div>
         </div>
-        <div class="doc-info">
-          <span class="doc-name">{{ doc.nombre }}</span>
-          <span class="doc-type-label">{{ doc.tipo || 'Archivo General' }}</span>
+        <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
+            {{ getTextoEstado(doc.estado) }}
         </div>
       </div>
-      <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
-          {{ getTextoEstado(doc.estado) }}
+
+      <div *ngIf="doc.comentarioRevision" class="revision-comment">
+        <strong>Nota del revisor:</strong> {{ doc.comentarioRevision }}
       </div>
     </div>
   </div>

@@ -19,6 +19,8 @@ public class Documento {
     private String nombre;
     private String tipo; // Ejemplo: "DNI", "AUTORIZACION_MENOR"
     private String urlArchivo;
+    private String comentarioRevision;
+
 
     @Enumerated(EnumType.STRING)
     private EstadoAdministrativo estado;
