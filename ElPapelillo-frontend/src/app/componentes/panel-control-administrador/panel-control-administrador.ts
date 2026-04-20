@@ -72,19 +72,28 @@ export class PanelControlAdministradorComponent implements OnInit {
       logsResponse: this.auditoriaService.getLogs()
     }).subscribe({
       next: (resultados) => {
+        // Filtrar usuarios activos
         this.usuarios = resultados.usuariosResponse.filter((u: any) => u.activo !== 0 && u.activo !== false);
         this.usuariosFiltrados = [...this.usuarios];
 
+        // Mapear Logs con corrección de Fecha para el Filtro
         this.logs = resultados.logsResponse.map(log => {
           const fechaObj = new Date(log.fecha);
           const identificador = log.idUsuario || log.id_usuario || log.usuario_id;
+          
+          // Ajuste para evitar desfase de día por zona horaria al usar toISOString
+          const year = fechaObj.getFullYear();
+          const month = String(fechaObj.getMonth() + 1).padStart(2, '0');
+          const day = String(fechaObj.getDate()).padStart(2, '0');
+          const fechaIsoManual = `${year}-${month}-${day}`;
+
           return {
             tipo: this.mapearTipoLog(log.accion), 
             icon: this.mapearIconoLog(log.accion), 
             msg: log.descripcion,
             idUsuario: identificador, 
             fecha: fechaObj.toLocaleDateString('es-ES'),
-            fechaIso: fechaObj.toISOString().split('T')[0],
+            fechaIso: fechaIsoManual, // Formato YYYY-MM-DD para comparar con el input date
             time: fechaObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
             cat: this.mapearCategoria(log.accion)
           };
@@ -176,44 +185,47 @@ export class PanelControlAdministradorComponent implements OnInit {
   }
 
   confirmarBorrado(): void {
-  if (this.usuarioABorrar) {
-    const idAdmin = localStorage.getItem('idUsuario') || '1';
-    const idABorrar = this.usuarioABorrar.idUsuario; // Guardamos el ID
-    const userAny = this.usuarioABorrar as any;
-    const updateData = { ...this.usuarioABorrar, activo: false, DNI: userAny.DNI || userAny.dni };
-    
-    // 1. Cierre instantáneo del modal
-    this.mostrarModalBorrado = false;
+    if (this.usuarioABorrar) {
+      const idAdmin = localStorage.getItem('idUsuario') || '1';
+      const idABorrar = this.usuarioABorrar.idUsuario;
+      const userAny = this.usuarioABorrar as any;
+      const updateData = { ...this.usuarioABorrar, activo: false, DNI: userAny.DNI || userAny.dni };
+      
+      // 1. Cerramos la ventana YA
+      this.mostrarModalBorrado = false;
 
-    // 2. BORRADO REACTIVO: Lo quitamos de la lista local antes de que responda el servidor
-    this.usuarios = this.usuarios.filter(u => u.idUsuario !== idABorrar);
-    this.usuariosFiltrados = this.usuariosFiltrados.filter(u => u.idUsuario !== idABorrar);
+      // 2. Borrado "Optimista": Lo quitamos de la lista local al instante
+      this.usuarios = this.usuarios.filter(u => u.idUsuario !== idABorrar);
+      this.usuariosFiltrados = this.usuariosFiltrados.filter(u => u.idUsuario !== idABorrar);
 
-    // 3. Ejecutamos la petición al servidor en segundo plano
-    this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, Number(idAdmin)).subscribe({
-      next: () => { 
-        this.usuarioABorrar = null;
-        // Opcional: cargarDatosSincronizados() por si hubo otros cambios, 
-        // pero el usuario ya no está en la lista gracias al filtro de arriba.
-      },
-      error: () => {
-        alert('Error al eliminar en el servidor. La lista se restaurará.');
-        this.cargarDatosSincronizados(); // Si falla, lo volvemos a traer
-      }
-    });
+      // 3. Ejecutamos en el servidor
+      this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, Number(idAdmin)).subscribe({
+        next: () => { 
+          this.usuarioABorrar = null;
+          // Ya no hace falta cargarDatosSincronizados() porque ya lo filtramos localmente
+        },
+        error: () => {
+          alert('Error al eliminar');
+          this.cargarDatosSincronizados(); // Si falla, restauramos la lista real
+        }
+      });
+    }
   }
-}
 
+  // --- FILTRADO DE AUDITORÍA ---
   filtrarLogs(): void {
     this.logsFiltrados = this.logs.filter(log => {
       const cumpleCat = this.filtroCategoria === 'Todos' || log.cat === this.filtroCategoria;
+      // Comparación estricta de strings YYYY-MM-DD
       const cumpleFecha = !this.filtroFecha || log.fechaIso === this.filtroFecha;
       return cumpleCat && cumpleFecha;
     });
   }
 
   limpiarFiltros(): void {
-    this.filtroCategoria = 'Todos'; this.filtroFecha = ''; this.filtrarLogs();
+    this.filtroCategoria = 'Todos'; 
+    this.filtroFecha = ''; 
+    this.filtrarLogs();
   }
 
   getNombreResponsable(id: any): string {
@@ -225,7 +237,14 @@ export class PanelControlAdministradorComponent implements OnInit {
     return a?.includes('BORRADO') ? 'error' : a?.includes('CREAR') ? 'success' : 'info'; 
   }
   private mapearIconoLog(a: string): string { return a?.includes('USUARIO') ? 'person' : 'settings'; }
-  private mapearCategoria(a: string): string { return a?.includes('USUARIO') ? 'Usuarios' : 'Sistema'; }
+  
+  private mapearCategoria(a: string): string { 
+    const accion = a?.toUpperCase() || '';
+    if (accion.includes('USUARIO')) return 'Usuarios';
+    if (accion.includes('DOCUMENTO')) return 'Documentación';
+    if (accion.includes('CONCURSO')) return 'Concursos';
+    return 'Sistema'; 
+  }
 
   logout(): void { localStorage.removeItem('rol'); }
   toggleMenu(): void { this.isMenuOpen = !this.isMenuOpen; }
