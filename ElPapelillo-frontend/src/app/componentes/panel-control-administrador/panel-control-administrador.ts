@@ -53,9 +53,16 @@ export class PanelControlAdministradorComponent implements OnInit {
     this.cargarDatosSincronizados();
   }
 
+  // --- MÉTODOS RESTAURADOS DE PERMISOS ---
   get rolesDisponibles(): string[] {
     const miRol = this.rolSesionActual?.toUpperCase();
     return miRol === 'SUPERADMIN' ? ['REPRESENTANTE', 'ADMINISTRADOR'] : ['REPRESENTANTE'];
+  }
+
+  puedeGestionar(u: Usuario): boolean {
+    const rolFila = u.rol?.toUpperCase(); 
+    const miRol = this.rolSesionActual?.toUpperCase();
+    return rolFila === 'ADMINISTRADOR' ? miRol === 'SUPERADMIN' : true;
   }
 
   cargarDatosSincronizados(): void {
@@ -64,7 +71,6 @@ export class PanelControlAdministradorComponent implements OnInit {
       logsResponse: this.auditoriaService.getLogs()
     }).subscribe({
       next: (resultados) => {
-        // Filtramos para que la tabla solo muestre los activos
         this.usuarios = resultados.usuariosResponse.filter((u: any) => u.activo !== 0 && u.activo !== false);
         this.usuariosFiltrados = [...this.usuarios];
 
@@ -91,72 +97,63 @@ export class PanelControlAdministradorComponent implements OnInit {
   // --- LÓGICA DE BÚSQUEDA ---
   buscarUsuarios(): void {
     const termino = this.terminoBusqueda.toLowerCase().trim();
-    
     if (!termino) {
       this.usuariosFiltrados = [...this.usuarios];
       return;
     }
-
-    this.usuariosFiltrados = this.usuarios.filter(u => 
-      (u.nombre && u.nombre.toLowerCase().includes(termino)) ||
-      (u.email && u.email.toLowerCase().includes(termino)) ||
-      (u.DNI && u.DNI.toLowerCase().includes(termino))
-    );
+    this.usuariosFiltrados = this.usuarios.filter(u => {
+      const user = u as any; 
+      return (user.nombre && user.nombre.toLowerCase().includes(termino)) ||
+             (user.email && user.email.toLowerCase().includes(termino)) ||
+             (user.dni && user.dni.toLowerCase().includes(termino)) ||
+             (user.DNI && user.DNI.toLowerCase().includes(termino));
+    });
   }
 
-  // --- LÓGICA DE BOTONES Y FORMULARIO ---
-
+  // --- LÓGICA DE FORMULARIO ---
   abrirModalRegistro(): void {
     this.modoFormulario = 'crear';
-    this.mostrandoFormulario = !this.mostrandoFormulario;
-    if (!this.mostrandoFormulario) this.resetForm();
+    this.resetForm();
+    this.mostrandoFormulario = true;
   }
 
   verDetalles(u: Usuario): void {
     this.modoFormulario = 'ver';
-    this.nuevoUsuario = { ...u };
+    this.prepararUsuarioParaFormulario(u);
     this.mostrandoFormulario = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   editar(u: Usuario): void {
     this.modoFormulario = 'editar';
-    this.nuevoUsuario = { ...u }; 
+    this.prepararUsuarioParaFormulario(u);
     this.mostrandoFormulario = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  private prepararUsuarioParaFormulario(u: Usuario): void {
+    this.nuevoUsuario = { ...u };
+    const userAny = u as any; 
+    const rol = userAny.rol?.toUpperCase() || '';
+    this.nuevoUsuario.rol = rol;
+
+    if (rol === 'REPRESENTANTE') {
+      this.nuevoUsuario.contacto_emergencia = userAny.contacto_emergencia || userAny.telefono_emergencia || '';
+    } else if (rol === 'ADMINISTRADOR') {
+      this.nuevoUsuario.cargo = userAny.cargo || '';
+    }
+  }
+
   guardarFormulario(): void {
     if (this.modoFormulario === 'crear') {
-      console.log("Creando usuario:", this.nuevoUsuario);
       this.usuarioService.crearUsuario(this.nuevoUsuario).subscribe({
-        next: (usuarioCreado) => {
-          this.usuarios.push(usuarioCreado); 
-          this.buscarUsuarios(); // Refrescamos la vista
-          this.mostrandoFormulario = false;
-          this.resetForm();
-        },
-        error: (err) => {
-          console.error("Error al crear:", err);
-          alert('Error al crear el usuario');
-        }
+        next: () => { this.cargarDatosSincronizados(); this.mostrandoFormulario = false; },
+        error: () => alert('Error al crear')
       });
     } else if (this.modoFormulario === 'editar') {
-      console.log("Actualizando usuario:", this.nuevoUsuario);
       this.usuarioService.actualizarUsuario(this.nuevoUsuario).subscribe({
-        next: (usuarioActualizado) => {
-          const index = this.usuarios.findIndex(u => u.idUsuario === usuarioActualizado.idUsuario);
-          if (index !== -1) {
-            this.usuarios[index] = usuarioActualizado;
-          }
-          this.buscarUsuarios(); // Refrescamos la vista
-          this.mostrandoFormulario = false;
-          this.resetForm();
-        },
-        error: (err) => {
-          console.error("Error al actualizar:", err);
-          alert('Error al actualizar el usuario');
-        }
+        next: () => { this.cargarDatosSincronizados(); this.mostrandoFormulario = false; },
+        error: () => alert('Error al actualizar')
       });
     }
   }
@@ -168,99 +165,49 @@ export class PanelControlAdministradorComponent implements OnInit {
     };
   }
 
-  // --- LÓGICA DEL MODAL DE BORRADO ---
-
+  // --- LÓGICA DE BORRADO ---
   eliminar(u: Usuario): void {
     this.usuarioABorrar = { ...u };
     this.mostrarModalBorrado = true;
   }
 
-  cerrarModalBorrado(): void {
-    this.mostrarModalBorrado = false;
-    this.usuarioABorrar = null;
-  }
+  cerrarModalBorrado(): void { this.mostrarModalBorrado = false; }
 
   confirmarBorrado(): void {
     if (this.usuarioABorrar) {
-      const idLimpio = String(this.usuarioABorrar.idUsuario).split(':')[0];
-      const idAdminLogueado = localStorage.getItem('idUsuario') || '1';
-
-      const datosParaEnviar = {
-        ...this.usuarioABorrar,
-        idUsuario: Number(idLimpio), 
-        activo: false,               
-        DNI: this.usuarioABorrar.dni, 
-        email: this.usuarioABorrar.email
-      };
-
-      this.usuarioService.actualizarUsuarioConEjecutor(
-        Number(idLimpio), 
-        datosParaEnviar, 
-        Number(idAdminLogueado)
-      ).subscribe({
-        next: () => {
-          this.usuarios = this.usuarios.filter(u => String(u.idUsuario).split(':')[0] !== idLimpio);
-          this.buscarUsuarios(); // Refrescamos la vista
-          this.cerrarModalBorrado();
-        },
-        error: (err) => {
-          console.error('Error:', err);
-          alert('Error: El servidor no reconoce la petición. Revisa los logs.');
-        }
+      const idAdmin = localStorage.getItem('idUsuario') || '1';
+      const updateData = { ...this.usuarioABorrar, activo: false, DNI: this.usuarioABorrar.dni };
+      
+      this.usuarioService.actualizarUsuarioConEjecutor(this.usuarioABorrar.idUsuario, updateData, Number(idAdmin)).subscribe({
+        next: () => { this.cargarDatosSincronizados(); this.cerrarModalBorrado(); },
+        error: () => alert('Error al eliminar')
       });
     }
   }
 
-  // --- LÓGICA DE FILTROS DE AUDITORÍA ---
-
+  // --- AUDITORÍA Y UTILIDADES ---
   filtrarLogs(): void {
     this.logsFiltrados = this.logs.filter(log => {
-      const cumpleCategoria = this.filtroCategoria === 'Todos' || log.cat === this.filtroCategoria;
+      const cumpleCat = this.filtroCategoria === 'Todos' || log.cat === this.filtroCategoria;
       const cumpleFecha = !this.filtroFecha || log.fechaIso === this.filtroFecha;
-      return cumpleCategoria && cumpleFecha;
+      return cumpleCat && cumpleFecha;
     });
   }
 
   limpiarFiltros(): void {
-    this.filtroCategoria = 'Todos'; 
-    this.filtroFecha = ''; 
-    this.filtrarLogs();
+    this.filtroCategoria = 'Todos'; this.filtroFecha = ''; this.filtrarLogs();
   }
 
-  // --- OTRAS FUNCIONES ---
-
-  puedeGestionar(u: Usuario): boolean {
-    const rolFila = u.rol?.toUpperCase(); const miRol = this.rolSesionActual?.toUpperCase();
-    return rolFila === 'ADMINISTRADOR' ? miRol === 'SUPERADMIN' : true;
+  getNombreResponsable(id: any): string {
+    const u = this.usuarios.find(user => user.idUsuario == id);
+    return u ? u.nombre : 'Sistema';
   }
 
-  getNombreResponsable(idUsuario: any): string {
-    if (!idUsuario) return 'Sistema';
-    const usuario = this.usuarios.find(u => u.idUsuario == idUsuario);
-    return usuario ? usuario.nombre : 'Sistema';
+  private mapearTipoLog(a: string): string { 
+    return a?.includes('BORRADO') ? 'error' : a?.includes('CREAR') ? 'success' : 'info'; 
   }
-
-  private mapearTipoLog(accion: string): string {
-    const a = accion?.toUpperCase() || '';
-    if (a.includes('BORRADO') || a.includes('ERROR')) return 'error';
-    if (a.includes('APROBACIÓN') || a.includes('CREAR')) return 'success';
-    return 'info';
-  }
-  
-  private mapearIconoLog(accion: string): string {
-    const a = accion?.toUpperCase() || '';
-    if (a.includes('USUARIO')) return 'person';
-    if (a.includes('DOC')) return 'description';
-    return 'settings';
-  }
-  
-  private mapearCategoria(accion: string): string {
-    const a = accion?.toUpperCase() || '';
-    if (a.includes('USUARIO')) return 'Usuarios';
-    if (a.includes('DOC')) return 'Documentación';
-    if (a.includes('CONCURSO')) return 'Concursos';
-    return 'Sistema';
-  }
+  private mapearIconoLog(a: string): string { return a?.includes('USUARIO') ? 'person' : 'settings'; }
+  private mapearCategoria(a: string): string { return a?.includes('USUARIO') ? 'Usuarios' : 'Sistema'; }
 
   logout(): void { localStorage.removeItem('rol'); }
   toggleMenu(): void { this.isMenuOpen = !this.isMenuOpen; }
