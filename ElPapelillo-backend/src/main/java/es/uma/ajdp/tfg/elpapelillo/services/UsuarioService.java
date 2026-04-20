@@ -1,5 +1,7 @@
 package es.uma.ajdp.tfg.elpapelillo.services;
 
+import es.uma.ajdp.tfg.elpapelillo.models.Administrador; // Importante añadir esto
+import es.uma.ajdp.tfg.elpapelillo.models.Representante; // Importante añadir esto
 import es.uma.ajdp.tfg.elpapelillo.models.Agrupacion;
 import es.uma.ajdp.tfg.elpapelillo.models.LogAuditoria;
 import es.uma.ajdp.tfg.elpapelillo.models.Usuario;
@@ -43,14 +45,15 @@ public class UsuarioService {
             throw new Exception("El DNI introducido no es válido (algoritmo incorrecto).");
         }
 
-        // Importante: verificar que el método en el repo se llame findByEmail o findByCorreo
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             throw new Exception("El correo electrónico ya está registrado.");
         }
 
-        // String passCifrada = passwordEncoder.encode(usuario.getPassword());
-        // usuario.setPassword(passCifrada);
-        usuario.setPassword("");
+        // Asignamos el DNI como contraseña provisional si no viene ninguna
+        if (usuario.getPassword() == null || usuario.getPassword().isEmpty()) {
+            usuario.setPassword(usuario.getDNI());
+        }
+
         usuario.setActivo(true);
 
         Usuario usuarioGuardado = usuarioRepository.save(usuario);
@@ -59,7 +62,7 @@ public class UsuarioService {
         return usuarioGuardado;
     }
 
-    // OBTENER TODOS hacer cargas parciales para mostrar diferentes mostrar diferentes páginas 
+    // OBTENER TODOS 
     public List<Usuario> obtenerTodos() {
         return usuarioRepository.findAll();
     }
@@ -70,10 +73,10 @@ public class UsuarioService {
     }
 
     public List<Usuario> buscarActivosPorNombre(String nombre) {
-    return usuarioRepository.findByNombreContainingIgnoreCaseAndActivoTrue(nombre);
-}
+        return usuarioRepository.findByNombreContainingIgnoreCaseAndActivoTrue(nombre);
+    }
 
-    // ACTUALIZAR
+    // ACTUALIZAR (¡Corregido para mapear TODOS los campos!)
     public Usuario actualizar(Integer id, Usuario datosNuevos, Integer idEjecutor) throws Exception {
         Usuario objetivo = usuarioRepository.findById(id)
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));
@@ -81,11 +84,31 @@ public class UsuarioService {
         Usuario ejecutor = usuarioRepository.findById(idEjecutor)
                 .orElseThrow(() -> new Exception("Ejecutor no válido"));
 
-        // Actualizamos campos básicos
+        // 1. Actualizamos todos los campos base
         objetivo.setNombre(datosNuevos.getNombre());
         objetivo.setTelefono(datosNuevos.getTelefono());
         objetivo.setDireccion(datosNuevos.getDireccion());
+        objetivo.setEmail(datosNuevos.getEmail());
+        objetivo.setDNI(datosNuevos.getDNI());
         
+        // ¡ESTO ARREGLA EL BORRADO LÓGICO DESDE EL FRONTEND!
+        if (datosNuevos.isActivo() != objetivo.isActivo()) { // O getActivo() dependiendo de tus getters
+            objetivo.setActivo(datosNuevos.isActivo());
+        }
+
+        // 2. Actualizamos campos específicos usando casting seguro
+        if ("ADMINISTRADOR".equalsIgnoreCase(objetivo.getRol()) && datosNuevos instanceof Administrador) {
+            Administrador adminObj = (Administrador) objetivo;
+            Administrador adminNuevos = (Administrador) datosNuevos;
+            adminObj.setCargo(adminNuevos.getCargo());
+        } 
+        else if ("REPRESENTANTE".equalsIgnoreCase(objetivo.getRol()) && datosNuevos instanceof Representante) {
+            Representante repObj = (Representante) objetivo;
+            Representante repNuevos = (Representante) datosNuevos;
+            // *NOTA: Cambia 'getContactoEmergencia' por tu getter real si se llama distinto (ej. getContacto_emergencia)
+            repObj.setContacto_emergencia(repNuevos.getContacto_emergencia()); 
+        }
+
         Usuario actualizado = usuarioRepository.save(objetivo);
 
         // Registro de Auditoría
@@ -94,7 +117,7 @@ public class UsuarioService {
         return actualizado;
     }
 
-    // BORRADO LÓGICO
+    // BORRADO LÓGICO (Este método está perfecto por si algún día llamas directo al Delete del backend)
     public void eliminarUsuarioLogico(Integer idABorrar, Integer idEjecutor) throws Exception {
         Usuario ejecutor = usuarioRepository.findById(idEjecutor)
                 .orElseThrow(() -> new Exception("Error: El usuario ejecutor no existe."));
@@ -107,14 +130,12 @@ public class UsuarioService {
         }
 
         if ("REPRESENTANTE".equals(objetivo.getRol())) {
-            // Buscamos todas las agrupaciones asociadas a este representante
             List<Agrupacion> agrupacionesAsociadas = agrupacionRepository.findByRepresentanteId(idABorrar);
             
             if (!agrupacionesAsociadas.isEmpty()) {
                 for (Agrupacion agrupacion : agrupacionesAsociadas) {
-                    agrupacion.setRepresentante(null); // Dejamos la agrupación "huérfana"
+                    agrupacion.setRepresentante(null); 
                 }
-                // Guardamos los cambios en las agrupaciones
                 agrupacionRepository.saveAll(agrupacionesAsociadas);
                 log.info("Se han dejado huérfanas {} agrupaciones del representante {}", 
                          agrupacionesAsociadas.size(), objetivo.getEmail());
@@ -124,18 +145,10 @@ public class UsuarioService {
         objetivo.setActivo(false);
         usuarioRepository.save(objetivo);
         
-        // Registro de Auditoría
-        registrarLog(ejecutor.getEmail(), "BORRADO_LOGICO", "Desactivado usuario: " + objetivo.getEmail());}
+        registrarLog(ejecutor.getEmail(), "BORRADO_LOGICO", "Desactivado usuario: " + objetivo.getEmail());
+    }
+    
     // --- MÉTODOS AUXILIARES ---
-
-    /*public boolean validarCredenciales(String correo, String passwordSinCifrar) {
-        Optional<Usuario> userOpt = usuarioRepository.findByEmail(correo);
-        if (userOpt.isPresent()) {
-            Usuario user = userOpt.get();
-            return passwordEncoder.matches(passwordSinCifrar, user.getPassword()) && user.isActivo();
-        }
-        return false;
-    }*/
 
     private boolean validarDNI(String dni) {
         if (dni == null || !dni.matches("^[0-9]{8}[A-Z]$")) return false;
@@ -145,11 +158,10 @@ public class UsuarioService {
         int indice = Integer.parseInt(numeros) % 23;
         return letrasValidas.charAt(indice) == letraEntrada;
     }
-
     
     private void registrarLog(String email, String accion, String desc) {
         LogAuditoria log = new LogAuditoria();
-        log.setAdministrador(administradorRepository.findByEmail(email)); // Asocia el log al admin que hizo la acción
+        log.setAdministrador(administradorRepository.findByEmail(email)); 
         log.setAccion(accion);
         log.setDescripcion(desc);
         logAuditoriaRepository.save(log);
