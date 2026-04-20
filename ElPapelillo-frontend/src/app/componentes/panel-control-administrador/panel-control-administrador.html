@@ -68,17 +68,13 @@
             <div class="form-group">
               <label>Rol</label>
               <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver'">
-                
                 @if (rolesDisponibles.includes('ADMINISTRADOR') || modoFormulario !== 'crear') {
                   <option value="ADMINISTRADOR">Administrador</option>
                 }
-                
                 <option value="REPRESENTANTE">Representante</option>
-                
                 @if (modoFormulario !== 'crear') {
                   <option value="PARTICIPANTE">Participante</option>
                 }
-                
               </select>
             </div>
 
@@ -123,19 +119,10 @@
                 <td><span class="badge" [ngClass]="user.rol">{{ user.rol }}</span></td>
                 <td class="actions-cell">
                   <button class="btn-action view" (click)="verDetalles(user)"><span class="material-symbols-outlined">visibility</span></button>
-                  
                   @if (puedeGestionar(user)) {
                     <button class="btn-action edit" (click)="editar(user)"><span class="material-symbols-outlined">edit</span></button>
                     <button class="btn-action delete" (click)="eliminar(user)"><span class="material-symbols-outlined">delete</span></button>
                   }
-                </td>
-              </tr>
-            }
-
-            @if (usuariosFiltrados.length === 0) {
-              <tr>
-                <td colspan="4" style="text-align: center; color: #777; padding: 2rem;">
-                  No se encontraron usuarios que coincidan con la búsqueda.
                 </td>
               </tr>
             }
@@ -196,7 +183,7 @@
 @if (mostrarModalBorrado) {
   <div class="modal-overlay">
     <div class="modal-content">
-      <span class="material-symbols-outlined warning-large">warning</span>
+      <span class="material-symbols-outlined warning-large" style="color: #f59e0b; font-size: 48px;">warning</span>
       <h3>Confirmar Eliminación</h3>
       <p>¿Estás seguro de que deseas dar de baja a: <br><strong>{{ usuarioABorrar?.nombre }}</strong>?</p>
       <div class="modal-buttons">

@@ -17,6 +17,7 @@ import { PanelControlAdministradorAuditoriaService } from './panel-control-admin
 })
 export class PanelControlAdministradorComponent implements OnInit {
   isMenuOpen = false;
+  borradoExitoso: boolean = false;
   
   // VARIABLES DE TABLA Y BÚSQUEDA
   usuarios: Usuario[] = [];
@@ -53,7 +54,7 @@ export class PanelControlAdministradorComponent implements OnInit {
     this.cargarDatosSincronizados();
   }
 
-  // --- MÉTODOS RESTAURADOS DE PERMISOS ---
+  // --- MÉTODOS DE PERMISOS ---
   get rolesDisponibles(): string[] {
     const miRol = this.rolSesionActual?.toUpperCase();
     return miRol === 'SUPERADMIN' ? ['REPRESENTANTE', 'ADMINISTRADOR'] : ['REPRESENTANTE'];
@@ -94,7 +95,6 @@ export class PanelControlAdministradorComponent implements OnInit {
     });
   }
 
-  // --- LÓGICA DE BÚSQUEDA ---
   buscarUsuarios(): void {
     const termino = this.terminoBusqueda.toLowerCase().trim();
     if (!termino) {
@@ -106,11 +106,10 @@ export class PanelControlAdministradorComponent implements OnInit {
       return (user.nombre && user.nombre.toLowerCase().includes(termino)) ||
              (user.email && user.email.toLowerCase().includes(termino)) ||
              (user.dni && user.dni.toLowerCase().includes(termino)) ||
-             (user.DNI && user.DNI.toLowerCase().includes(termino));
+             (user['DNI'] && user['DNI'].toLowerCase().includes(termino));
     });
   }
 
-  // --- LÓGICA DE FORMULARIO ---
   abrirModalRegistro(): void {
     this.modoFormulario = 'crear';
     this.resetForm();
@@ -171,21 +170,40 @@ export class PanelControlAdministradorComponent implements OnInit {
     this.mostrarModalBorrado = true;
   }
 
-  cerrarModalBorrado(): void { this.mostrarModalBorrado = false; }
-
-  confirmarBorrado(): void {
-    if (this.usuarioABorrar) {
-      const idAdmin = localStorage.getItem('idUsuario') || '1';
-      const updateData = { ...this.usuarioABorrar, activo: false, DNI: this.usuarioABorrar.dni };
-      
-      this.usuarioService.actualizarUsuarioConEjecutor(this.usuarioABorrar.idUsuario, updateData, Number(idAdmin)).subscribe({
-        next: () => { this.cargarDatosSincronizados(); this.cerrarModalBorrado(); },
-        error: () => alert('Error al eliminar')
-      });
-    }
+  cerrarModalBorrado(): void { 
+    this.mostrarModalBorrado = false; 
+    this.usuarioABorrar = null;
   }
 
-  // --- AUDITORÍA Y UTILIDADES ---
+  confirmarBorrado(): void {
+  if (this.usuarioABorrar) {
+    const idAdmin = localStorage.getItem('idUsuario') || '1';
+    const idABorrar = this.usuarioABorrar.idUsuario; // Guardamos el ID
+    const userAny = this.usuarioABorrar as any;
+    const updateData = { ...this.usuarioABorrar, activo: false, DNI: userAny.DNI || userAny.dni };
+    
+    // 1. Cierre instantáneo del modal
+    this.mostrarModalBorrado = false;
+
+    // 2. BORRADO REACTIVO: Lo quitamos de la lista local antes de que responda el servidor
+    this.usuarios = this.usuarios.filter(u => u.idUsuario !== idABorrar);
+    this.usuariosFiltrados = this.usuariosFiltrados.filter(u => u.idUsuario !== idABorrar);
+
+    // 3. Ejecutamos la petición al servidor en segundo plano
+    this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, Number(idAdmin)).subscribe({
+      next: () => { 
+        this.usuarioABorrar = null;
+        // Opcional: cargarDatosSincronizados() por si hubo otros cambios, 
+        // pero el usuario ya no está en la lista gracias al filtro de arriba.
+      },
+      error: () => {
+        alert('Error al eliminar en el servidor. La lista se restaurará.');
+        this.cargarDatosSincronizados(); // Si falla, lo volvemos a traer
+      }
+    });
+  }
+}
+
   filtrarLogs(): void {
     this.logsFiltrados = this.logs.filter(log => {
       const cumpleCat = this.filtroCategoria === 'Todos' || log.cat === this.filtroCategoria;
