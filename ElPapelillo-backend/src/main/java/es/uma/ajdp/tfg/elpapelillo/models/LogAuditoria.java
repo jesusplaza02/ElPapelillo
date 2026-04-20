@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "logauditoria")
 @Data
@@ -17,6 +19,7 @@ public class LogAuditoria {
 
     @ManyToOne
     @JoinColumn(name = "administrador_id")
+    @JsonIgnore
     private Administrador administrador; // Quién hizo la acción
 
     private String accion;       // Ejemplo: "CREAR_AGRUPACION", "SUBIR_DNI"

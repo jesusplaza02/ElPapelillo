@@ -2,6 +2,11 @@ package es.uma.ajdp.tfg.elpapelillo.models;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,14 +15,21 @@ import lombok.AllArgsConstructor;
 
 @Entity
 @Table(name = "usuario")
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-
-
+/* CONFIGURACIÓN DE JACKSON PARA EVITAR RECURSIVIDAD Y ERRORES DE HERENCIA:
+   1. Definimos que el JSON incluya un campo "type" para diferenciar Admin de Representante.
+   2. Ignoramos propiedades de Hibernate que suelen romper el parseo en el Frontend.
+*/
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = Administrador.class, name = "administrador"),
+    @JsonSubTypes.Type(value = Representante.class, name = "representante")
+})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Usuario {
 
     @Id
@@ -29,23 +41,24 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore // SEGURIDAD: Impide que la contraseña se envíe al Frontend
     private String password;
 
     @Column(nullable = false)
     private String DNI;
 
-    //Datos que deberán ser cifrados
     @Column(nullable = false)
     private String nombre;
+
     @Column(nullable = false)
     private String telefono;
+
     @Column(nullable = false)
     private String direccion;
 
     @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean activo = true;
 
-    //@Column( nullable = false)
     private LocalDate fechaRegistro;
 
     @Column(nullable = false)
@@ -53,10 +66,11 @@ public class Usuario {
 
     @PrePersist
     protected void onCreate() {
-        this.fechaRegistro = LocalDate.now(); // Se guarda la fecha del servidor al crear el registro
+        this.fechaRegistro = LocalDate.now();
     }
 
-    public String getRol() {
-        return this.rol;
-    }
+    /* NOTA: Se ha eliminado el getRol() manual. 
+       Lombok ya genera 'getRol()' automáticamente gracias a @Getter.
+       Tener ambos puede causar duplicidad en el JSON.
+    */
 }

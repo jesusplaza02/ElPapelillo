@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@CrossOrigin(origins = "http://localhost:4200")
 public class UsuarioController {
 
     @Autowired
@@ -28,6 +29,16 @@ public class UsuarioController {
         return usuarioService.buscarPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/buscar-activos/{nombre}")
+    @CrossOrigin(origins = "http://localhost:4200")
+        public ResponseEntity<List<Usuario>> buscarActivosPorNombre(@PathVariable String nombre) {
+        List<Usuario> usuarios = usuarioService.buscarActivosPorNombre(nombre);
+    
+        // Si no hay resultados, devolvemos una lista vacía con estatus 200
+        // Esto evita errores de parseo en el Frontend
+        return ResponseEntity.ok(usuarios);
     }
 
     // ACCIÓN DE ADMIN: BORRADO LÓGICO (DESACTIVAR)

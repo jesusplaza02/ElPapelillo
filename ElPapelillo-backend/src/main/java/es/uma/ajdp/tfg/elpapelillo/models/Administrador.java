@@ -3,14 +3,19 @@ package es.uma.ajdp.tfg.elpapelillo.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "administrador")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class Administrador extends Usuario {
@@ -21,6 +26,7 @@ public class Administrador extends Usuario {
     // 1. Relación con Logs: 1 Admin -> Muchos Logs
     // mappedBy debe coincidir con el nombre del atributo en la clase LogSistema
     @OneToMany(mappedBy = "administrador", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<LogAuditoria> logs = new ArrayList<>();
 
     // 2. Relación con Concursos: Muchos Admin <-> Muchos Concursos
@@ -30,6 +36,7 @@ public class Administrador extends Usuario {
         joinColumns = @JoinColumn(name = "administrador_id"),
         inverseJoinColumns = @JoinColumn(name = "concurso_id")
     )
+    @JsonIgnore
     private List<Concurso> concursos = new ArrayList<>();
 
     public Administrador(String email, String password, String nombre, String dni, String telefono, String direccion, String cargo) {

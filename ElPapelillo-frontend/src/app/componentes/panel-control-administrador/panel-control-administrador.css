@@ -1,4 +1,6 @@
-/* --- 1. VARIABLES Y CONFIGURACIÓN BASE --- */
+/* ==========================================================================
+   1. VARIABLES Y CONFIGURACIÓN BASE
+   ========================================================================== */
 :host {
     display: block;
     --primary-bg: #EAE3F7;
@@ -11,20 +13,13 @@
     --border-color: #E0E0E0;
     --blue-btn: #4196F5;
     --danger: #e74c3c;
+    --success: #1e8e3e;
+    --warning: #ff9800;
 }
 
-/* --- 2. FONDO Y CAPAS (Z-INDEX) --- */
-.confetti-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none; /* Los clics pasan a través hacia los botones */
-    z-index: 1;           /* Fondo */
-    overflow: hidden;
-}
-
+/* ==========================================================================
+   2. ESTRUCTURA
+   ========================================================================== */
 header {
     background-color: var(--blue-header);
     padding: 0 5%;
@@ -35,41 +30,38 @@ header {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     position: sticky;
     top: 0;
-    z-index: 2000; /* Siempre por encima del confeti */
+    z-index: 2000;
 }
 
 main {
-    padding: 2rem 5%;
+    padding: 2rem 5% 8rem 5%;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
     position: relative;
-    z-index: 1000; /* Contenido por encima del confeti */
+    z-index: 1000;
 }
 
-/* --- 3. TARJETAS Y DESPLEGABLES --- */
+/* ==========================================================================
+   3. TARJETAS Y DESPLEGABLES (DETAILS)
+   ========================================================================== */
 details {
     background-color: var(--white);
     border-radius: 20px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     overflow: hidden;
-    position: relative;
-    z-index: 1010;
+    margin-bottom: 1rem;
 }
 
 summary {
     padding: 1.5rem;
-    list-style: none;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
     font-size: 1.2rem;
     font-weight: 600;
-    transition: background 0.3s;
 }
-
-summary:hover { background-color: #fafafa; }
 
 .summary-title { display: flex; align-items: center; gap: 1rem; }
 
@@ -83,7 +75,7 @@ summary:hover { background-color: #fafafa; }
 
 .summary-subtitle {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-grey);
     font-weight: 400;
 }
@@ -91,358 +83,313 @@ summary:hover { background-color: #fafafa; }
 .details-content {
     padding: 2rem;
     border-top: 1px solid var(--border-color);
-    background-color: var(--white);
 }
 
-/* --- 4. GESTIÓN DE USUARIOS (TABLA Y BUSCADOR) --- */
+/* ==========================================================================
+   4. FORMULARIO DE USUARIO
+   ========================================================================== */
+.user-form-container {
+    background-color: #fdfbff;
+    border: 2px solid var(--primary-bg);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 10px 25px rgba(184, 133, 255, 0.1);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Solo afecta a los .form-group dentro del formulario principal */
+.form-grid .form-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+}
+
+.form-grid .form-group label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-grey);
+    text-transform: uppercase;
+}
+
+.form-grid .form-group input, 
+.form-grid .form-group select {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+/* ==========================================================================
+   5. BOTONES
+   ========================================================================== */
+
+/* Botón Crear Usuario (El que está arriba de la tabla) */
+.btn-create {
+    background: linear-gradient(135deg, var(--blue-btn), #357abd);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-create:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(65, 150, 245, 0.3);
+}
+
+/* Botones de Acción de la Tabla (Ojo, Editar, Borrar) */
+.actions-cell {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-action {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-action span { font-size: 20px; }
+
+.btn-action.view { color: var(--blue-btn); }
+.btn-action.view:hover { background-color: var(--blue-btn); color: white; border-color: var(--blue-btn); }
+
+.btn-action.edit { color: var(--warning); }
+.btn-action.edit:hover { background-color: var(--warning); color: white; border-color: var(--warning); }
+
+.btn-action.delete { color: var(--danger); }
+.btn-action.delete:hover { background-color: var(--danger); color: white; border-color: var(--danger); }
+
+/* Botones de Guardar y Cancelar */
+.btn-save {
+    background-color: var(--blue-btn);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    background-color: #f1f1f1;
+    color: #666;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   6. TABLA
+   ========================================================================== */
 .table-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
-    gap: 15px;
 }
 
 .table-controls input {
-    padding: 12px 12px 12px 40px; /* Espacio para la lupa */
-    width: 300px;
+    padding: 12px 15px;
     border-radius: 10px;
     border: 1px solid #ddd;
-    font-size: 14px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='20' viewBox='0 -960 960 960' width='20' fill='%23777'%3E%3Cpath d='M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 12px center;
-    outline: none;
+    width: 250px;
 }
 
 table { width: 100%; border-collapse: collapse; }
-th { background-color: #f8fbff; padding: 15px; text-align: left; font-weight: 700; }
-td { padding: 15px; border-bottom: 1px solid #f0f0f0; }
+th { text-align: left; padding: 15px; color: var(--text-grey); border-bottom: 2px solid #f0f0f0; }
+td { padding: 15px; border-bottom: 1px solid #f9f9f9; }
 
-.btn-create {
-    background-color: var(--blue-btn);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-create:hover { background-color: #357abd; transform: translateY(-2px); }
-
-/* --- 5. AUDITORÍA (FILTROS Y ACTIVIDAD) --- */
-
-/* Contenedor de los filtros */
+/* ==========================================================================
+   7. AUDITORÍA (FILTROS Y LOGS AISLADOS)
+   ========================================================================== */
 .audit-filters {
     display: flex;
-    gap: 15px;
-    margin-bottom: 20px;
-    align-items: center;
-    background-color: #f9f9f9;
-    padding: 15px;
-    border-radius: 12px;
+    gap: 20px;
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 15px;
+    margin-bottom: 1.5rem;
+    align-items: flex-end; 
 }
 
-.audit-filters select, 
-.audit-filters input {
-    padding: 10px 15px;
+/* Aislamos los form-group de la auditoría para que no se rompan */
+.audit-filters .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.audit-filters .form-group label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--text-grey);
+    text-transform: none; /* Quitamos las mayúsculas del formulario principal */
+}
+
+.audit-filters input,
+.audit-filters select {
+    padding: 10px;
     border-radius: 8px;
     border: 1px solid #ddd;
-    font-size: 14px;
-    outline: none;
-    background-color: white;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.btn-filter {
-    background-color: #6c757d;
+.btn-filter-clear {
+    background-color: #e74c3c;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 0 15px; /* Ajuste para mantener alineación vertical */
     border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.btn-filter:hover {
-    background-color: #495057;
-    transform: translateY(-1px);
-}
-
-/* Items de la lista de actividad */
-.activity-item {
     display: flex;
     align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    height: 42px; 
+}
+
+/* Estructura de los Logs */
+.activity-item {
+    display: flex;
+    align-items: flex-start; /* Alineación arriba para evitar desajustes si hay mucho texto */
     gap: 1.2rem;
     padding: 1.2rem;
     border-bottom: 1px solid #f5f5f5;
-    transition: background 0.2s;
 }
 
-.activity-item:hover {
-    background-color: #fafafa;
-}
-
-.activity-info {
-    flex-grow: 1;
-}
-
-.activity-msg {
-    display: block;
-    font-weight: 500;
-    color: var(--text-dark);
-    margin-bottom: 4px;
-}
-
-.activity-meta {
-    font-size: 0.85rem;
-    color: var(--text-grey);
-    display: flex;
-    gap: 15px;
-}
-
-/* Iconos circulares de estado */
 .activity-action-icon {
     width: 45px;
-    min-width: 45px;
     height: 45px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 20px;
+    flex-shrink: 0;
 }
 
-/* --- COLORES POR TIPO DE AUDITORÍA --- */
+/* Colores Auditoría */
+.activity-action-icon.Usuarios { background-color: #e8f0fe; color: #1a73e8; }
+.activity-action-icon.Sistema { background-color: #fdecea; color: #d93025; }
+.activity-action-icon.Concursos { background-color: #fff4e5; color: #ff9800; }
 
-.error { 
-    background-color: #fdecea; 
-    color: #d93025; /* Rojo para fallos, borrados y rechazos */
+.activity-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.success { 
-    background-color: #e6f4ea; 
-    color: #1e8e3e; /* Verde para aprobaciones y creaciones */
-}
-
-.info { 
-    background-color: #e8f0fe; 
-    color: #1a73e8; /* Azul para actualizaciones, subidas y descargas */
-}
-
-.auth-event {
-    background-color: #f3e5f5; 
-    color: #7b1fa2; /* Morado para gestión de usuarios/auth */
-}
-
-.activity-text-container p {
+/* Titulo en Negrita */
+.activity-msg {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--text-dark);
 }
 
-.activity-time {
-    font-size: 0.8rem;
-    color: var(--text-grey);
-}
-/* --- 6. MENÚ DE USUARIO --- */
-.user-menu-container { position: relative; }
-
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 5px 15px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: background 0.3s;
+.activity-msg strong {
+    font-weight: bold;
 }
 
-.user-profile:hover { background: rgba(255, 255, 255, 0.3); }
-
-.profile-dropdown {
-    position: absolute;
-    top: 55px;
-    right: 0;
-    width: 220px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    padding: 10px 0;
-    z-index: 3000;
-}
-
-.dropdown-item {
+.activity-meta {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 20px;
-    text-decoration: none;
-    color: #444;
-}
-
-.dropdown-item:hover { background-color: #f5f5f5; }
-
-/* --- 7. ACCIONES Y OTROS --- */
-.btn-action {
-    cursor: pointer;
-    border: none;
-    background: none;
-    padding: 5px;
-    border-radius: 5px;
-}
-
-.icon-edit { color: var(--blue-btn); }
-.icon-delete { color: var(--danger); }
-.icon-view { color: var(--purple-icon-bg); }
-
-.pagination-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.page-btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    background: white;
-    cursor: pointer;
-}
----------
-.activity-meta {
     font-size: 0.85rem;
     color: var(--text-grey);
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Espacio entre fecha, hora y categoría */
-    margin-top: 4px;
+    flex-wrap: wrap;
 }
 
-.activity-date {
+/* El Rectangulito para el autor */
+.user-tag {
+    background-color: #f0f4f8;
+    color: #546e7a;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #cfd8dc;
     font-weight: 600;
-    color: #555; /* Un tono un poco más oscuro para que resalte la fecha */
-    display: flex;
+    font-size: 0.75rem;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
 }
 
-.activity-category {
-    background-color: #f0f0f0;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.user-tag span {
+    font-size: 14px;
 }
 
----------
-.audit-date-filter {
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-family: inherit;
-    color: var(--text-dark);
-    cursor: pointer;
-    background-color: white;
+/* ==========================================================================
+   8. MODAL Y MENÚ
+   ========================================================================== */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;
+    z-index: 5000; backdrop-filter: blur(4px);
 }
 
-.audit-date-filter:focus {
-    border-color: var(--blue-btn);
-    outline: none;
-    box-shadow: 0 0 5px rgba(65, 150, 245, 0.2);
+.modal-content {
+    background: white; padding: 2.5rem; border-radius: 20px;
+    text-align: center; max-width: 400px; width: 90%;
 }
 
-/* Ajuste para que el selector de fecha no rompa el diseño en pantallas pequeñas */
+.btn-confirm-delete {
+    background-color: var(--danger); color: white; border: none;
+    padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold;
+}
+
+.user-profile {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+
+.profile-dropdown {
+    position: absolute; top: 60px; right: 0; width: 200px;
+    background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    padding: 10px 0;
+}
+
+.dropdown-item {
+    display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+    text-decoration: none; color: var(--text-dark);
+}
+
+/* ==========================================================================
+   9. RESPONSIVO
+   ========================================================================== */
 @media (max-width: 768px) {
-    .audit-filters {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
-
-/* --- 8. RESPONSIVE DESIGN (MÓVIL) --- */
-
-@media (max-width: 768px) {
-    /* Ajustes generales de espaciado */
-    main {
-        padding: 1rem 3%;
-        gap: 1rem;
-    }
-
-    header {
-        padding: 0 3%;
-    }
-
-    /* 1. Ajuste de los Buscadores y Filtros */
-    .table-controls, .audit-filters {
-        flex-direction: column;
-        align-items: stretch; /* Ocupan todo el ancho */
-        gap: 10px;
-    }
-
-    .table-controls input, 
-    .audit-filters select, 
-    .audit-filters input,
-    .btn-create,
-    .btn-filter {
-        width: 100% !important; /* Forzamos ancho completo */
-        flex: none;
-    }
-
-    /* 2. El truco para las TABLAS en móvil */
-    /* Hacemos que la tabla tenga scroll horizontal para no romper el diseño */
-    .details-content {
-        padding: 1rem;
-        overflow-x: auto;
-    }
-
-    table {
-        min-width: 600px; /* Asegura que los datos no se aplasten */
-    }
-
-    /* 3. Ajuste de los títulos de los desplegables */
-    .summary-title {
-        font-size: 1rem;
-    }
-
-    .summary-subtitle {
-        font-size: 0.8rem;
-    }
-
-    .summary-icon {
-        padding: 5px;
-    }
-
-    /* 4. Ajuste de la Auditoría */
-    .activity-item {
-        padding: 1rem 0;
-        gap: 0.8rem;
-    }
-
-    .activity-meta {
-        flex-wrap: wrap; /* Si no cabe la fecha y la hora, saltan de línea */
-        gap: 5px 10px;
-    }
-
-    /* 5. Menú de usuario */
-    .profile-dropdown {
-        width: 180px;
-        right: 0;
-    }
-}
-
-/* Ajuste extra para móviles muy pequeños */
-@media (max-width: 480px) {
-    header h2 {
-        font-size: 1.2rem;
-    }
-    
-    .user-profile span:last-child {
-        display: none; /* Ocultamos el texto "expand_more" si hay poco espacio */
-    }
+    .audit-filters { flex-direction: column; align-items: stretch; }
+    .table-controls { flex-direction: column; gap: 10px; }
+    .table-controls input { width: 100%; }
 }

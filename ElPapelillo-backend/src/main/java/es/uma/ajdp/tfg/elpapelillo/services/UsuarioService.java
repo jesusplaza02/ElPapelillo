@@ -69,6 +69,10 @@ public class UsuarioService {
         return usuarioRepository.findById(id);
     }
 
+    public List<Usuario> buscarActivosPorNombre(String nombre) {
+    return usuarioRepository.findByNombreContainingIgnoreCaseAndActivoTrue(nombre);
+}
+
     // ACTUALIZAR
     public Usuario actualizar(Integer id, Usuario datosNuevos, Integer idEjecutor) throws Exception {
         Usuario objetivo = usuarioRepository.findById(id)

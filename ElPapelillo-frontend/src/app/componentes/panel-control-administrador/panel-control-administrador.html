@@ -1,27 +1,17 @@
 <div class="confetti-container" id="confetti-box"></div>
 
 <header>
-  <h2 style="margin:0">ElPapelillo</h2>
-
+  <h2 class="brand-logo">ElPapelillo</h2>
   <div class="user-menu-container">
     <div class="user-profile" (click)="toggleMenu()">
-      <span class="material-symbols-outlined" style="font-size: 30px;">account_circle</span>
+      <span class="material-symbols-outlined">account_circle</span>
       <span class="material-symbols-outlined" [style.transform]="isMenuOpen ? 'rotate(180deg)' : 'rotate(0deg)'">expand_more</span>
     </div>
-
-    <div class="profile-dropdown" [style.display]="isMenuOpen ? 'block' : 'none'">
-      <div class="dropdown-header">
-        <p><strong>Juan Pérez</strong></p>
-        <span>admin_juan@uma.es</span>
-      </div>
+    <div class="profile-dropdown" *ngIf="isMenuOpen">
+      <div class="dropdown-header"><p><strong>Administrador</strong></p></div>
       <hr>
-      <a routerLink="/perfil/editar" class="dropdown-item">
-        <span class="material-symbols-outlined">manage_accounts</span>
-        Mis Datos
-      </a>
-      <a routerLink="/login" class="dropdown-item logout-item">
-        <span class="material-symbols-outlined">logout</span>
-        Cerrar Sesión
+      <a (click)="logout()" routerLink="/login" class="dropdown-item logout-item">
+        <span class="material-symbols-outlined">logout</span> Cerrar Sesión
       </a>
     </div>
   </div>
@@ -31,17 +21,21 @@
   <details>
     <summary>
       <div class="summary-title">
-        <div class="summary-icon"><span class="material-symbols-outlined">trophy</span></div>
-        <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos</span></div>
+        <div class="summary-icon trophy-icon"><span class="material-symbols-outlined">trophy</span></div>
+        <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos y bases</span></div>
       </div>
       <span class="material-symbols-outlined">expand_more</span>
     </summary>
     <div class="details-content">
-      <p>Panel de gestión de concursos en construcción...</p>
+      <div class="table-controls">
+        <input type="text" placeholder="Buscar concurso...">
+        <button class="btn-create">Nuevo Concurso</button>
+      </div>
+      <p class="empty-state">No hay concursos registrados.</p>
     </div>
   </details>
 
-  <details>
+  <details open>
     <summary>
       <div class="summary-title">
         <div class="summary-icon"><span class="material-symbols-outlined">group</span></div>
@@ -49,40 +43,89 @@
       </div>
       <span class="material-symbols-outlined">expand_more</span>
     </summary>
+
     <div class="details-content">
       <div class="table-controls">
         <input type="text" placeholder="Buscar usuario...">
-        <button class="btn-create">Crear Usuario</button>
+        <button class="btn-create" (click)="mostrandoFormulario = false; resetForm()" *ngIf="mostrandoFormulario">
+          Cerrar Formulario
+        </button>
+        <button class="btn-create" (click)="abrirModalRegistro()" *ngIf="!mostrandoFormulario">
+          Crear Usuario
+        </button>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (user of usuarios; track user.email) {
-            <tr>
-              <td>{{ user.nombre }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.rol }}</td>
-              <td>
-                <button class="btn-action"><span class="material-symbols-outlined icon-view">visibility</span></button>
-                <button class="btn-action"><span class="material-symbols-outlined icon-edit">edit</span></button>
-                <button class="btn-action"><span class="material-symbols-outlined icon-delete">delete</span></button>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-      
-      <div class="pagination-container">
-        <button class="page-btn" disabled>Anterior</button>
-        <span>Página 1 de 5</span>
-        <button class="page-btn">Siguiente</button>
+
+      @if (mostrandoFormulario) {
+        <div class="user-form-container">
+          <h3 class="form-title">
+            {{ modoFormulario === 'crear' ? 'Nuevo Registro de Usuario' : (modoFormulario === 'editar' ? 'Editar Usuario' : 'Detalles del Usuario') }}
+          </h3>
+          
+          <form (ngSubmit)="guardarFormulario()" class="form-grid">
+            <div class="form-group"><label>Nombre</label><input type="text" [(ngModel)]="nuevoUsuario.nombre" name="n" [disabled]="modoFormulario === 'ver'"></div>
+            <div class="form-group"><label>DNI</label><input type="text" [(ngModel)]="nuevoUsuario.dni" name="d" [disabled]="modoFormulario === 'ver'"></div>
+            <div class="form-group"><label>Teléfono</label><input type="text" [(ngModel)]="nuevoUsuario.telefono" name="t" [disabled]="modoFormulario === 'ver'"></div>
+            <div class="form-group"><label>Email</label><input type="email" [(ngModel)]="nuevoUsuario.email" name="e" [disabled]="modoFormulario === 'ver'"></div>
+            
+            <div class="form-group">
+              <label>Rol</label>
+              <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver'">
+                <option value="Administrador">Administrador</option>
+                <option value="Representante">Representante</option>
+                <option value="Participante">Participante</option>
+              </select>
+            </div>
+
+            <div class="form-group"><label>Dirección</label><input type="text" [(ngModel)]="nuevoUsuario.direccion" name="dir" [disabled]="modoFormulario === 'ver'"></div>
+
+            @if (nuevoUsuario.rol === 'Representante') {
+              <div class="form-group">
+                <label>Teléfono de Emergencia</label>
+                <input type="text" [(ngModel)]="nuevoUsuario.telefonoEmergencia" name="telemer" [disabled]="modoFormulario === 'ver'">
+              </div>
+            }
+
+            @if (nuevoUsuario.rol === 'Administrador') {
+              <div class="form-group">
+                <label>Cargo</label>
+                <input type="text" [(ngModel)]="nuevoUsuario.cargo" name="cargo" [disabled]="modoFormulario === 'ver'">
+              </div>
+            }
+            
+            <div class="form-actions">
+              @if (modoFormulario !== 'ver') {
+                <button type="submit" class="btn-save">
+                  {{ modoFormulario === 'crear' ? 'Guardar' : 'Actualizar' }}
+                </button>
+              }
+              @if (modoFormulario === 'crear') {
+                <button type="button" (click)="mostrandoFormulario = false; resetForm()" class="btn-cancel">
+                  Cancelar
+                </button>
+              }
+            </div>
+          </form>
+        </div>
+      }
+
+      <div class="table-responsive">
+        <table>
+          <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
+          <tbody>
+            @for (user of usuarios; track user.idUsuario) {
+              <tr>
+                <td><strong>{{ user.nombre }}</strong></td>
+                <td>{{ user.email }}</td>
+                <td><span class="badge" [ngClass]="user.rol">{{ user.rol }}</span></td>
+                <td class="actions-cell">
+                  <button class="btn-action view" (click)="verDetalles(user)"><span class="material-symbols-outlined">visibility</span></button>
+                  <button class="btn-action edit" (click)="editar(user)"><span class="material-symbols-outlined">edit</span></button>
+                  <button class="btn-action delete" (click)="eliminar(user)"><span class="material-symbols-outlined">delete</span></button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
     </div>
   </details>
@@ -90,50 +133,48 @@
   <details>
     <summary>
       <div class="summary-title">
-        <div class="summary-icon" style="background-color: #6c757d;"><span class="material-symbols-outlined">analytics</span></div>
-        <div>Auditoría del Sistema <span class="summary-subtitle">Trazabilidad de acciones críticas</span></div>
+        <div class="summary-icon audit-icon"><span class="material-symbols-outlined">analytics</span></div>
+        <div>Auditoría del Sistema <span class="summary-subtitle">Trazabilidad por usuario responsable</span></div>
       </div>
       <span class="material-symbols-outlined">expand_more</span>
     </summary>
     <div class="details-content">
       
       <div class="audit-filters">
-        <select style="flex:1.5">
-          <option>Todos los tipos de auditoría</option>
-          <option>Gestión de Usuarios (Creación/Borrado/Update)</option>
-          <option>Gestión de Concursos</option>
-          <option>Inscripciones y Documentos</option>
-          <option>Fianzas y Reportes</option>
-          <option>Fallos del Sistema</option>
-        </select>
-
-        <input type="date" class="audit-date-filter" style="flex:1">
-
-        <input type="text" placeholder="Usuario responsable..." style="flex:1">
-        
-        <button class="btn-filter">
-          <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">filter_alt</span>
-          Filtrar
+        <div class="filter-group">
+          <label>Categoría</label>
+          <select [(ngModel)]="filtroCategoria" (change)="filtrarLogs()">
+            <option value="Todos">Todos los tipos</option>
+            <option value="Usuarios">Usuarios</option>
+            <option value="Documentación">Documentación</option>
+            <option value="Concursos">Concursos</option>
+            <option value="Sistema">Sistema</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Fecha</label>
+          <input type="date" [(ngModel)]="filtroFecha" (change)="filtrarLogs()">
+        </div>
+        <button (click)="limpiarFiltros()" class="btn-filter-clear">
+          <span class="material-symbols-outlined">filter_alt_off</span> Limpiar
         </button>
       </div>
 
       <div class="activity-list">
-        @for (log of logs; track log.msg) {
+        @for (log of logsFiltrados; track $index) {
           <div class="activity-item">
-            <div class="activity-action-icon" [ngClass]="log.tipo">
-              <span class="material-symbols-outlined">{{ log.icon }}</span>
-            </div>
+            <div class="activity-action-icon" [ngClass]="log.tipo"><span class="material-symbols-outlined">{{ log.icon }}</span></div>
             <div class="activity-info">
-              <span class="activity-msg">{{ log.msg }}</span>
+              
+              <p class="activity-msg"><strong>{{ log.msg }}</strong></p>
+              
               <div class="activity-meta">
-                <span class="activity-date">
-                  <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">calendar_month</span> 
-                  {{ log.fecha }}
+                <span class="date-text"><span class="material-symbols-outlined" style="font-size: 14px;">calendar_month</span> {{ log.fecha }} • {{ log.time }}</span>
+                
+                <span class="tag-badge">{{ log.cat }}</span>
+                <span class="tag-badge">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">person</span> {{ getNombreResponsable(log.idUsuario) }}
                 </span>
-                <span>•</span>
-                <span>{{ log.time }}</span>
-                <span>•</span>
-                <span class="activity-category">{{ log.cat }}</span>
               </div>
             </div>
           </div>
@@ -141,4 +182,18 @@
       </div>
     </div>
   </details>
+  
+  @if (mostrarModalBorrado) {
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <span class="material-symbols-outlined warning-large">warning</span>
+        <h3>Confirmar Eliminación</h3>
+        <p>¿Estás seguro de que deseas dar de baja a: <br><strong>{{ usuarioABorrar?.nombre }}</strong>?</p>
+        <div class="modal-buttons">
+          <button (click)="cerrarModalBorrado()" class="btn-cancel">Cancelar</button>
+          <button (click)="confirmarBorrado()" class="btn-confirm-delete">Sí, eliminar</button>
+        </div>
+      </div>
+    </div>
+  }
 </main>

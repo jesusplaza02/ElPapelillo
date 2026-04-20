@@ -20,4 +20,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     // Para listar solo los usuarios que no han sido borrados 
     List<Usuario> findByActivoTrue();
+
+    List<Usuario> findByNombreContainingIgnoreCaseAndActivoTrue(String nombre);
 }
