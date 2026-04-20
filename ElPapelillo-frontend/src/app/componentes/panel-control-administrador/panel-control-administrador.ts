@@ -17,27 +17,31 @@ import { PanelControlAdministradorAuditoriaService } from './panel-control-admin
 })
 export class PanelControlAdministradorComponent implements OnInit {
   isMenuOpen = false;
+  
+  // VARIABLES DE TABLA Y BÚSQUEDA
   usuarios: Usuario[] = [];
+  usuariosFiltrados: Usuario[] = [];
+  terminoBusqueda: string = '';
+
+  // VARIABLES DE AUDITORÍA
   logs: any[] = [];
   logsFiltrados: any[] = [];
+  filtroCategoria: string = 'Todos';
+  filtroFecha: string = '';
+
   rolSesionActual: string | null = '';
   
   // VARIABLES DEL FORMULARIO
   mostrandoFormulario = false;
   modoFormulario: 'crear' | 'editar' | 'ver' = 'crear';
-  
-  // VARIABLES DE FILTROS DE AUDITORÍA
-  filtroCategoria: string = 'Todos';
-  filtroFecha: string = '';
-
-  // VARIABLES DEL MODAL DE BORRADO
-  mostrarModalBorrado = false;
-  usuarioABorrar: any = null;
-
   nuevoUsuario: any = {
     nombre: '', email: '', dni: '', direccion: '', 
     telefono: '', rol: 'REPRESENTANTE', contacto_emergencia: '', cargo: '', activo: true 
   };
+
+  // VARIABLES DEL MODAL DE BORRADO
+  mostrarModalBorrado = false;
+  usuarioABorrar: any = null;
 
   constructor(
     private usuarioService: PanelControlAdministradorUsuarioService,
@@ -62,6 +66,7 @@ export class PanelControlAdministradorComponent implements OnInit {
       next: (resultados) => {
         // Filtramos para que la tabla solo muestre los activos
         this.usuarios = resultados.usuariosResponse.filter((u: any) => u.activo !== 0 && u.activo !== false);
+        this.usuariosFiltrados = [...this.usuarios];
 
         this.logs = resultados.logsResponse.map(log => {
           const fechaObj = new Date(log.fecha);
@@ -81,6 +86,22 @@ export class PanelControlAdministradorComponent implements OnInit {
       },
       error: (err) => console.error("Error al cargar:", err)
     });
+  }
+
+  // --- LÓGICA DE BÚSQUEDA ---
+  buscarUsuarios(): void {
+    const termino = this.terminoBusqueda.toLowerCase().trim();
+    
+    if (!termino) {
+      this.usuariosFiltrados = [...this.usuarios];
+      return;
+    }
+
+    this.usuariosFiltrados = this.usuarios.filter(u => 
+      (u.nombre && u.nombre.toLowerCase().includes(termino)) ||
+      (u.email && u.email.toLowerCase().includes(termino)) ||
+      (u.DNI && u.DNI.toLowerCase().includes(termino))
+    );
   }
 
   // --- LÓGICA DE BOTONES Y FORMULARIO ---
@@ -111,6 +132,7 @@ export class PanelControlAdministradorComponent implements OnInit {
       this.usuarioService.crearUsuario(this.nuevoUsuario).subscribe({
         next: (usuarioCreado) => {
           this.usuarios.push(usuarioCreado); 
+          this.buscarUsuarios(); // Refrescamos la vista
           this.mostrandoFormulario = false;
           this.resetForm();
         },
@@ -127,6 +149,7 @@ export class PanelControlAdministradorComponent implements OnInit {
           if (index !== -1) {
             this.usuarios[index] = usuarioActualizado;
           }
+          this.buscarUsuarios(); // Refrescamos la vista
           this.mostrandoFormulario = false;
           this.resetForm();
         },
@@ -148,7 +171,7 @@ export class PanelControlAdministradorComponent implements OnInit {
   // --- LÓGICA DEL MODAL DE BORRADO ---
 
   eliminar(u: Usuario): void {
-    this.usuarioABorrar = { ...u }; // Creamos un clon para evitar modificar la tabla visual antes de enviar a BD
+    this.usuarioABorrar = { ...u };
     this.mostrarModalBorrado = true;
   }
 
@@ -158,41 +181,35 @@ export class PanelControlAdministradorComponent implements OnInit {
   }
 
   confirmarBorrado(): void {
-  if (this.usuarioABorrar) {
-    // 1. Limpiamos el ID: nos aseguramos de que sea SOLO un número (ej: 1, no "1:1")
-    const idLimpio = String(this.usuarioABorrar.idUsuario).split(':')[0];
-    const idAdminLogueado = localStorage.getItem('idUsuario') || '1';
+    if (this.usuarioABorrar) {
+      const idLimpio = String(this.usuarioABorrar.idUsuario).split(':')[0];
+      const idAdminLogueado = localStorage.getItem('idUsuario') || '1';
 
-    // 2. Preparamos el objeto exacto que Java espera (con MAYÚSCULAS)
-    const datosParaEnviar = {
-      ...this.usuarioABorrar,
-      idUsuario: Number(idLimpio), // Forzamos que sea número
-      activo: false,               // Borrado lógico
-      DNI: this.usuarioABorrar.dni, // Mapeo para Java
-      email: this.usuarioABorrar.email
-    };
+      const datosParaEnviar = {
+        ...this.usuarioABorrar,
+        idUsuario: Number(idLimpio), 
+        activo: false,               
+        DNI: this.usuarioABorrar.dni, 
+        email: this.usuarioABorrar.email
+      };
 
-    console.log('Enviando borrado lógico para ID:', idLimpio);
-
-    // 3. Usamos el método que ya tienes en el servicio
-    this.usuarioService.actualizarUsuarioConEjecutor(
-      Number(idLimpio), 
-      datosParaEnviar, 
-      Number(idAdminLogueado)
-    ).subscribe({
-      next: () => {
-        console.log('Borrado éxito en BD');
-        // Quitamos de la tabla visualmente
-        this.usuarios = this.usuarios.filter(u => String(u.idUsuario).split(':')[0] !== idLimpio);
-        this.cerrarModalBorrado();
-      },
-      error: (err) => {
-        console.error('Error 400 detectado:', err);
-        alert('Error: El servidor no reconoce la petición. Revisa los logs.');
-      }
-    });
+      this.usuarioService.actualizarUsuarioConEjecutor(
+        Number(idLimpio), 
+        datosParaEnviar, 
+        Number(idAdminLogueado)
+      ).subscribe({
+        next: () => {
+          this.usuarios = this.usuarios.filter(u => String(u.idUsuario).split(':')[0] !== idLimpio);
+          this.buscarUsuarios(); // Refrescamos la vista
+          this.cerrarModalBorrado();
+        },
+        error: (err) => {
+          console.error('Error:', err);
+          alert('Error: El servidor no reconoce la petición. Revisa los logs.');
+        }
+      });
+    }
   }
-}
 
   // --- LÓGICA DE FILTROS DE AUDITORÍA ---
 

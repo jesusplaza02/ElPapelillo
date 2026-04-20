@@ -46,7 +46,12 @@
 
     <div class="details-content">
       <div class="table-controls">
-        <input type="text" placeholder="Buscar usuario...">
+        <input 
+          type="text" 
+          placeholder="Buscar por nombre, email o DNI..." 
+          [(ngModel)]="terminoBusqueda" 
+          (input)="buscarUsuarios()">
+        
         <button class="btn-create" (click)="mostrandoFormulario = false; resetForm()" *ngIf="mostrandoFormulario">
           Cerrar Formulario
         </button>
@@ -112,7 +117,7 @@
         <table>
           <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
           <tbody>
-            @for (user of usuarios; track user.idUsuario) {
+            @for (user of usuariosFiltrados; track user.idUsuario) {
               <tr>
                 <td><strong>{{ user.nombre }}</strong></td>
                 <td>{{ user.email }}</td>
@@ -121,6 +126,14 @@
                   <button class="btn-action view" (click)="verDetalles(user)"><span class="material-symbols-outlined">visibility</span></button>
                   <button class="btn-action edit" (click)="editar(user)"><span class="material-symbols-outlined">edit</span></button>
                   <button class="btn-action delete" (click)="eliminar(user)"><span class="material-symbols-outlined">delete</span></button>
+                </td>
+              </tr>
+            }
+
+            @if (usuariosFiltrados.length === 0) {
+              <tr>
+                <td colspan="4" style="text-align: center; color: #777; padding: 2rem;">
+                  No se encontraron usuarios que coincidan con la búsqueda.
                 </td>
               </tr>
             }
