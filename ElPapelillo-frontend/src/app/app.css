@@ -8,7 +8,7 @@
     width: 100vw;
     height: 100vh;
     /* Bajamos un poco el nivel para que el menú esté por encima */
-    z-index: 3; 
+    z-index: 1; 
     pointer-events: none; 
     overflow: hidden;
 }

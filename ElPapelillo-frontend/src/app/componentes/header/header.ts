@@ -43,4 +43,31 @@ export class HeaderComponent implements OnInit {
       this.router.navigate(['/editar-usuario', id]);
     }
   }
+
+  redirigirAlPanel() {
+  // 1. Forzamos la lectura del valor actual en el momento del click
+  const rol = localStorage.getItem('rolUsuario');
+  
+  // LOG DE SEGURIDAD: Abre la consola (F12) y dime qué sale aquí
+  console.log("VALOR DEL ROL EN STORAGE:", rol);
+
+  if (!rol) {
+    console.error("No se encontró el rol. ¿Hiciste login correctamente?");
+    this.router.navigate(['/login']);
+    return;
+  }
+
+  // 2. Limpieza de strings (evita errores por espacios o comillas)
+  const rolLimpio = rol.trim().toUpperCase();
+
+  // 3. Navegación
+  if (rolLimpio === 'ADMINISTRADOR') {
+    this.router.navigate(['panel-control-administrador']);
+  } else if (rolLimpio === 'REPRESENTANTE') {
+    this.router.navigate(['/panel-representante']);
+  } else {
+    console.warn("Rol no coincide con las opciones. Valor:", rolLimpio);
+    this.router.navigate(['/login']); // Por defecto al home
+  }
+}
 }

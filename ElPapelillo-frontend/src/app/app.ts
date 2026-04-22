@@ -2,6 +2,7 @@ import { Component, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router'; 
 import { filter } from 'rxjs/operators';
+import { HeaderComponent } from "./componentes/header/header";
 
 @Component({
   selector: 'app-root',
@@ -62,21 +63,44 @@ export class App implements OnInit {
     this.router.navigate(['/login']);
   }
 
-  // Navegar a editar (suponiendo que la ruta existe)
-  // Dentro de tu clase App
+  redirigirAlPanel() {
+  // 1. Leemos el rol que guardamos en el login
+  const rol = localStorage.getItem('rolUsuario');
+  
+  // LOG de control para que veas en la consola qué está pasando
+  console.log("Intentando redirigir. Rol en memoria:", rol);
+
+  if (!rol) {
+    // Si no hay rol, es que no está logueado o hubo un error, al login de cabeza
+    this.router.navigate(['/login']);
+    return;
+  }
+
+  const rolLimpio = rol.trim().toUpperCase();
+
+  // 2. Navegación según el rol
+  if (rolLimpio === 'ADMINISTRADOR') {
+    this.router.navigate(['/panel-control-administrador']);
+  } else if (rolLimpio === 'REPRESENTANTE') {
+    this.router.navigate(['/panel-representante']);
+  } else {
+    // Por si acaso el rol es algo raro, vamos al login
+    console.warn("Rol no reconocido:", rolLimpio);
+    this.router.navigate(['/login']);
+  }
+}
+
+  // ESTA ES LA QUE TE FALTA PARA "MI PERFIL"
   irAEditar() {
     const id = localStorage.getItem('idUsuario');
+    console.log("Intentando editar usuario con ID:", id);
     
     if (id) {
-      console.log('Navegando a editar usuario con ID:', id);
-      this.menuAbierto = false; // Cerramos el desplegable
-      
-      // Navegamos a la ruta. Asegúrate de que en tus rutas se llame exactamente así
+      // Cerramos el menú antes de irnos
+      // (si tienes una variable menuAbierto = false; ponla aquí)
       this.router.navigate(['/editar-usuario', id]);
     } else {
-      console.error('No se ha encontrado el ID del usuario en el localStorage');
-      // Opcional: podrías mandar al usuario al login si esto falla
-      this.router.navigate(['/login']);
+      console.error("No se encontró el ID del usuario en el storage");
     }
   }
 
@@ -93,4 +117,6 @@ export class App implements OnInit {
       });
     }
   }
+
+  
 }

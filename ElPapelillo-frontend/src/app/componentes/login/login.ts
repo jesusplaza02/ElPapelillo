@@ -76,6 +76,10 @@ export class LoginComponent implements OnInit {
           localStorage.setItem('nombreUsuario', res.nombre);
         }
 
+        if (res.rol) {
+          localStorage.setItem('rolUsuario', res.rol.toString().toUpperCase().trim());
+        }
+
         // 2. PROCESADO DEL ROL
         const rolUsuario = (res.rol || '').toUpperCase().trim(); 
         console.log('Rol detectado:', rolUsuario);

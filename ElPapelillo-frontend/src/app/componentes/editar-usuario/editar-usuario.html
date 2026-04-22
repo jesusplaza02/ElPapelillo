@@ -7,7 +7,7 @@
       
       <div class="form-group">
         <label>Nombre Completo *</label>
-        <input type="text" [(ngModel)]="usuario.nombreUsuario" name="nombreUsuario" required>
+        <input type="text" [(ngModel)]="usuario.nombre" name="nombre" required>
       </div>
 
       <div class="form-group">
@@ -22,8 +22,8 @@
 
       @if (usuario.rol === 'REPRESENTANTE') {
         <div class="form-group">
-          <label>Teléfono de Emergencia *</label>
-          <input type="text" [(ngModel)]="usuario.telefonoEmergencia" name="telefonoEmergencia" required>
+          <label>Contacto de Emergencia *</label>
+          <input type="text" [(ngModel)]="usuario.contacto_emergencia" name="contacto_emergencia" required>
         </div>
       }
 
@@ -41,9 +41,7 @@
 
       <div class="actions">
         <button type="button" class="btn-cancel" (click)="cancelar()">Cancelar</button>
-        <button type="submit" class="btn-save" [disabled]="editForm.invalid">
-          Actualizar Datos
-        </button>
+        <button type="submit" class="btn-save" [disabled]="editForm.invalid">Actualizar Datos</button>
       </div>
     </form>
   </div>

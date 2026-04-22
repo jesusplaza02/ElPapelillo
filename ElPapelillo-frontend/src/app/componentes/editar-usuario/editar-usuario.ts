@@ -12,15 +12,16 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
   styleUrl: './editar-usuario.css'
 })
 export class EditarUsuarioComponent implements OnInit {
-  // Objeto que almacenará los datos del usuario
   usuario: any = {
-    nombreUsuario: '',
+    idUsuario: null,    // Importante: Coincide con @Column(name = "idUsuario")
+    nombre: '',
     email: '',
     telefono: '',
     direccion: '',
-    telefonoEmergencia: '', // Solo para representantes
-    cargo: '',              // Solo para administradores
-    rol: ''
+    contacto_emergencia: '', 
+    cargo: '',              
+    rol: '',
+    type: ''            // Necesario por @JsonTypeInfo de tu Java
   };
   
   id: string | null = null;
@@ -30,14 +31,11 @@ export class EditarUsuarioComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef // Necesario para forzar la actualización de la vista
+    private cdr: ChangeDetectorRef 
   ) {}
 
   ngOnInit() {
-    // Obtenemos el ID de la URL
     this.id = this.route.snapshot.paramMap.get('id');
-    console.log('ID del usuario a editar:', this.id);
-
     if (this.id) {
       this.cargarUsuario();
     }
@@ -47,47 +45,54 @@ export class EditarUsuarioComponent implements OnInit {
     this.http.get(`http://localhost:8080/api/usuarios/${this.id}`)
       .subscribe({
         next: (res: any) => {
-          console.log('Datos de la BD:', res);
+          console.log('Datos cargados de Java:', res);
           this.usuario = res;
 
-          // ESTO ES LO QUE FALTA: Mapear los nombres de la BD a tu objeto
-          if (res.nombre_usuario) this.usuario.nombreUsuario = res.nombre_usuario;
-          if (res.telefono_emergencia) this.usuario.telefonoEmergencia = res.telefono_emergencia;
-          
+          // Mapeo por si el JSON de Representante trae 'telefono_emergencia'
+          if (res.telefono_emergencia) {
+            this.usuario.contacto_emergencia = res.telefono_emergencia;
+          }
+
           this.cdr.detectChanges(); 
         },
-        error: (err) => console.error(err)
+        error: (err) => console.error('Error al cargar:', err)
       });
   }
 
   actualizar() {
-    if (!this.id) return;
+  if (!this.id) return;
 
-    // Enviamos los datos actualizados al backend
-    this.http.put(`http://localhost:8080/api/usuarios/${this.id}`, this.usuario)
-      .subscribe({
-        next: (response) => {
-          this.mensajeExito = true;
-          
-          // Actualizamos el nombre en localStorage por si cambió (para el Header)
-          localStorage.setItem('nombreUsuario', this.usuario.nombreUsuario);
-          
-          console.log('Usuario actualizado correctamente');
-          
-          // Redirigimos a la página principal tras 2 segundos
-          setTimeout(() => {
-            this.router.navigate(['/home']); 
-          }, 2000);
-        },
-        error: (err) => {
-          console.error('Error al actualizar el usuario:', err);
-          alert('Hubo un error al guardar los cambios.');
-        }
-      });
-  }
+  const idEjecutor = this.id; 
+  const url = `http://localhost:8080/api/usuarios/${this.id}?idEjecutor=${idEjecutor}`;
 
+  this.http.put(url, this.usuario)
+    .subscribe({
+      next: (response) => {
+        this.mensajeExito = true;
+        
+        // ACTUALIZACIÓN SEGURA: 
+        // Solo cambiamos el nombre, mantenemos el token y el resto de datos
+        localStorage.setItem('nombreUsuario', this.usuario.nombre);
+        
+        console.log('Actualizado con éxito. Redirigiendo a Home...');
+        
+        // Redirige a /home. Asegúrate de que esta ruta existe en tu app-routing.ts
+        setTimeout(() => {
+          this.router.navigate(['/panel-representante']); 
+        }, 2000);
+      },
+      error: (err) => {
+        console.error('Error al actualizar:', err);
+        // Si aquí recibes un 401 o 403, es cuando te echa al Login
+      }
+    });
+}
+
+  // --- EL MÉTODO CANCELAR QUE TE FALTABA ---
   cancelar() {
-    // Volver a la pantalla anterior
-    window.history.back();
+    // Te devuelve a la página anterior (Home o el listado)
+    this.router.navigate(['/panel-representante']);
+    // O si prefieres volver atrás exactamente a la última página:
+    // window.history.back();
   }
 }
