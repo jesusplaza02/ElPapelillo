@@ -95,3 +95,65 @@
     display: block;
     margin-top: 10px;
 }
+
+/* Contenedor del error */
+.error-box {
+  background-color: #FDEDEC; /* Rojo muy clarito */
+  color: #E74C3C;            /* Rojo suave */
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #FADBD8;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  text-align: center;
+  font-weight: 500;
+  /* Animación para que llame la atención */
+  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+  display: block !important; 
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 100;
+}
+
+/* Animación de vibración (shake) */
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
+.password-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 40px; /* Espacio para que el texto no tape al ojo */
+}
+
+.toggle-eye {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s;
+}
+
+.toggle-eye:hover {
+  color: #333;
+}
+
+/* Ajuste por si usas FontAwesome */
+.toggle-eye i {
+  font-size: 1.1rem;
+}

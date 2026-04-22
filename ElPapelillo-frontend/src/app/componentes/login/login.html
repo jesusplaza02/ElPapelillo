@@ -1,22 +1,51 @@
 <div class="content">
+  <div *ngFor="let confetti of confettis" class="confetti" [ngStyle]="confetti.style"></div>
+
   <div class="login-card">
     <h2>Bienvenido</h2>
     <p>Inicia sesión en tu cuenta</p>
 
-    <div class="input-group">
-      <label>Usuario</label>
-      <input type="text" placeholder="Ingresa tu usuario">
+    <div *ngIf="errorMessage" class="error-box">
+      <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
     </div>
 
-    <div class="input-group">
-      <label>Contraseña</label>
-      <input type="password" placeholder="Ingresa tu contraseña">
-    </div>
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+      <div class="input-group">
+        <label>Email</label>
+        <input 
+          type="text" 
+          name="email" 
+          [(ngModel)]="loginData.email" 
+          (input)="errorMessage = ''"
+          placeholder="Ingresa tu email" 
+          required>
+      </div>
 
-    <button class="btn btn-login">Iniciar Sesión</button>
-    
-    <button class="btn btn-register" routerLink="/registro">Registrarse</button>
+      <div class="input-group">
+        <label>Contraseña</label>
+        <div class="password-container">
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            name="password" 
+            [(ngModel)]="loginData.password" 
+            placeholder="Ingresa tu contraseña" 
+            required>
+          
+          <button type="button" class="toggle-eye" (click)="togglePassword()">
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+      </div>
 
-    <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+      <button type="submit" class="btn btn-login" [disabled]="!loginForm.valid">
+        Iniciar Sesión
+      </button>
+      
+      <button type="button" class="btn btn-register" routerLink="/registro">
+        Registrarse
+      </button>
+
+      <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+    </form>
   </div>
 </div>

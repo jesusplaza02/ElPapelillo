@@ -43,25 +43,34 @@
   </div>
 
   <div class="doc-card-container">
-    <div class="doc-item" *ngFor="let doc of listaDocs">
-      <div class="doc-main-content clickable" (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
-        <div class="doc-left">
-          <div class="icon-box">
-            <i class="fas fa-file-pdf"></i>
+    
+    <ng-container *ngIf="listaDocs.length > 0">
+      <div class="doc-item" *ngFor="let doc of listaDocs">
+        <div class="doc-main-content clickable" (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
+          <div class="doc-left">
+            <div class="icon-box">
+              <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="doc-info">
+              <span class="doc-name">{{ doc.nombre }}</span>
+              <span class="doc-type-label">{{ doc.tipo || 'Archivo General' }}</span>
+            </div>
           </div>
-          <div class="doc-info">
-            <span class="doc-name">{{ doc.nombre }}</span>
-            <span class="doc-type-label">{{ doc.tipo || 'Archivo General' }}</span>
+          <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
+              {{ getTextoEstado(doc.estado) }}
           </div>
         </div>
-        <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
-            {{ getTextoEstado(doc.estado) }}
-        </div>
-      </div>
 
-      <div *ngIf="doc.comentarioRevision" class="revision-comment">
-        <strong>Nota del revisor:</strong> {{ doc.comentarioRevision }}
+        <div *ngIf="doc.comentarioRevision" class="revision-comment">
+          <strong>Nota del revisor:</strong> {{ doc.comentarioRevision }}
+        </div>
       </div>
+    </ng-container>
+
+    <div class="no-docs-placeholder" *ngIf="listaDocs.length === 0">
+      <i class="fas fa-folder-open"></i>
+      <p>No se han encontrado documentos para esta agrupación.</p>
     </div>
+
   </div>
 </div>

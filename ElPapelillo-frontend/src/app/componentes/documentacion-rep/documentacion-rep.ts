@@ -21,6 +21,7 @@ export class DocumentacionRepComponent implements OnInit {
   usuarioIdActual: number = 1; 
 
   // --- VARIABLES DE ESTADO Y FORMULARIO ---
+  loading: boolean = true;
   mostrarForm: boolean = false;
   nuevoDocNombre: string = '';
   nuevoDocTipo: string = 'OTROS'; 
