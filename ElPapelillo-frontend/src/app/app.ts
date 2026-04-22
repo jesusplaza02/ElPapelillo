@@ -1,6 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router'; // Añadimos Router y NavigationEnd
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router'; 
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -13,35 +13,71 @@ import { filter } from 'rxjs/operators';
 export class App implements OnInit {
   protected readonly title = signal('ElPapelillo-frontend');
   
-  // Variables para el control de la interfaz
-  esRutaAcceso = false;  // Esta es la que te faltaba y daba error
-  menuAbierto = false;   // Para el desplegable del perfil
+  esRutaAcceso = false;  
+  menuAbierto = false;   
   
+  // Variables para mostrar los datos del usuario en el Header
+  usuarioEmail: string | null = '';
+  nombreUsuario: string | null = '';
+
   confettis: any[] = [];
   colors = ['#FF8A80', '#FF80AB', '#B39DDB', '#82B1FF', '#B9F6CA', '#FFFF8D'];
 
-  constructor(private router: Router) {
-    // Detectamos la ruta actual para ocultar el header en login/registro
+  constructor(private router: Router, private cdr: ChangeDetectorRef) {
+    // Detectamos la ruta actual
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       const url = event.urlAfterRedirects;
       this.esRutaAcceso = url.includes('login') || url.includes('registro');
+      
+      // Cada vez que cambie la ruta, intentamos recargar los datos del usuario
+      // Esto sirve para que al entrar tras el login, el email aparezca
+      this.cargarDatosSesion();
     });
   }
 
   ngOnInit() {
     this.generateConfetti();
+    this.cargarDatosSesion();
   }
 
-  // Lógica del menú de usuario
+  // Carga los datos que guardamos en LoginComponent.ts
+  cargarDatosSesion() {
+    this.usuarioEmail = localStorage.getItem('email');
+    this.nombreUsuario = localStorage.getItem('nombreUsuario');
+    this.cdr.detectChanges(); // Forzamos a que el HTML vea los cambios
+  }
+
   toggleMenu() {
     this.menuAbierto = !this.menuAbierto;
   }
 
+  // Cerrar sesión completo
   logout() {
+    localStorage.clear(); // Borramos el ID, el Email y el Rol
+    this.usuarioEmail = '';
+    this.nombreUsuario = '';
     this.menuAbierto = false;
     this.router.navigate(['/login']);
+  }
+
+  // Navegar a editar (suponiendo que la ruta existe)
+  // Dentro de tu clase App
+  irAEditar() {
+    const id = localStorage.getItem('idUsuario');
+    
+    if (id) {
+      console.log('Navegando a editar usuario con ID:', id);
+      this.menuAbierto = false; // Cerramos el desplegable
+      
+      // Navegamos a la ruta. Asegúrate de que en tus rutas se llame exactamente así
+      this.router.navigate(['/editar-usuario', id]);
+    } else {
+      console.error('No se ha encontrado el ID del usuario en el localStorage');
+      // Opcional: podrías mandar al usuario al login si esto falla
+      this.router.navigate(['/login']);
+    }
   }
 
   generateConfetti() {

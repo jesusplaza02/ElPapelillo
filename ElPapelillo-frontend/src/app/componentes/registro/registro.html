@@ -2,42 +2,52 @@
   <div class="register-card">
     <h2>Registro de Usuario</h2>
     <p class="subtitle">Ingresa los datos del sistema</p>
+    <div *ngIf="mensaje" [ngClass]="{'alert-exito': esExito, 'alert-error': !esExito}" class="mensaje-formulario">
+      {{ mensaje }}
+    </div>
 
     <div class="form-grid">
+      <div class="input-group full-width">
+        <label>Correo Electrónico</label>
+        <input type="email" name="email" [(ngModel)]="datosUsuario.email" placeholder="ejemplo@correo.com">
+      </div>
+      
       <div class="input-group">
         <label>Nombre</label>
-        <input type="text" placeholder="Tu nombre">
+        <input type="text" name="nombre" [(ngModel)]="datosUsuario.nombre" placeholder="Tu nombre">
       </div>
+
       <div class="input-group">
         <label>Apellidos</label>
-        <input type="text" placeholder="Tus apellidos">
+        <input type="text" name="apellidos" [(ngModel)]="datosUsuario.apellidos" placeholder="Tus apellidos">
       </div>
 
       <div class="input-group">
         <label>DNI</label>
-        <input type="text" placeholder="12345678A">
+        <input type="text" name="dni" [(ngModel)]="datosUsuario.dni" placeholder="12345678A">
       </div>
+
+      <div class="input-group">
+        <label>Dirección</label>
+        <input type="text" name="direccion" [(ngModel)]="datosUsuario.direccion" placeholder="Calle Larios, 2, portal 4, 2B">
+      </div>
+
       <div class="input-group">
         <label>Teléfono</label>
-        <input type="tel" placeholder="600 000 000">
+        <input type="tel" name="telefono" [(ngModel)]="datosUsuario.telefono" placeholder="600 000 000">
       </div>
 
       <div class="input-group">
         <label>Teléfono de emergencia</label>
-        <input type="tel" placeholder="650 500 500">
+        <input type="tel" name="telEmergencia" [(ngModel)]="datosUsuario.telEmergencia" placeholder="650 500 500">
       </div>
 
-      <div class="input-group full-width">
-        <label>Correo Electrónico</label>
-        <input type="email" placeholder="ejemplo@correo.com">
-      </div>
       
     </div>
 
     <div class="btn-container">
-      <button class="btn-submit">Finalizar Registro</button>
+      <button class="btn-submit" (click)="finalizarRegistro()">Finalizar Registro</button>
       <a class="back-link" routerLink="/login">¿Ya tienes cuenta? Inicia sesión</a>
     </div>
   </div>
 </div>
-

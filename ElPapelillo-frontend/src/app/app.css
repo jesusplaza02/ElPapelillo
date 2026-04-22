@@ -1,24 +1,145 @@
-/* EL CONTENEDOR DE CONFETI */
+/* ==========================================================================
+   1. CONTENEDOR DE CONFETI (PAPELILLOS)
+   ========================================================================== */
 .confetti-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    pointer-events: none; /* Crucial: permite clickear lo que hay debajo */
-    z-index: 1;           /* Por debajo de las tarjetas y el header */
+    /* Bajamos un poco el nivel para que el menú esté por encima */
+    z-index: 3; 
+    pointer-events: none; 
     overflow: hidden;
 }
 
 .confetti {
     position: absolute;
-    width: 6px; 
-    height: 6px;
-    border: 1px solid rgba(0,0,0,0.1);
+    width: 7px; 
+    height: 7px;
+    border: 1px solid rgba(0,0,0,0.05);
+    opacity: 0.8;
 }
 
-/* El main solo sirve para envolver el contenido si no es login */
-.content-wrapper {
+/* ==========================================================================
+   2. HEADER AZUL OSCURO
+   ========================================================================== */
+.main-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.8rem 2.5rem !important;
+    background: linear-gradient(135deg, #1a365d 0%, #1e40af 100%) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    position: sticky !important;
+    top: 0 !important;
+
+    z-index: 2000; 
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.main-header h1 {
+    color: white !important;
+    margin: 0 !important;
+    font-size: 1.6rem !important;
+    font-weight: 800 !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+/* ==========================================================================
+   3. PERFIL Y MENÚ (LO MÁS IMPORTANTE)
+   ========================================================================== */
+.user-profile {
     position: relative;
-    z-index: 10;
+    /* Subimos el perfil a nivel 2500 para que esté POR ENCIMA de los papelillos */
+    z-index: 2500; 
+}
+
+.user-info {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    cursor: pointer !important;
+    padding: 6px 16px !important;
+    border-radius: 50px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.user-name { color: white !important; }
+.user-avatar { color: #93c5fd !important; font-size: 1.8rem !important; }
+
+/* Menú desplegable: NIVEL MÁXIMO */
+.dropdown-menu {
+    position: absolute !important;
+    top: 130% !important;
+    right: 0 !important;
+    background: white !important;
+    min-width: 220px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4) !important;
+    /* z-index heredado del padre (.user-profile), así que está en 2500 */
+    overflow: hidden !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.dropdown-menu a {
+    padding: 14px 20px !important;
+    display: block !important;
+    color: #1a365d !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    cursor: pointer !important;
+}
+
+.dropdown-menu a:hover {
+    background: #eff6ff !important;
+    padding-left: 25px !important;
+}
+
+
+@media (max-width: 600px) {
+    .main-header {
+        padding: 0.8rem 1rem !important; /* Reducimos padding lateral */
+    }
+
+    .main-header h1 {
+        font-size: 1.2rem !important; /* Título un poco más pequeño */
+    }
+
+    /* OCULTAR EL EMAIL EN MÓVIL (Para que no rompa el diseño) */
+    .user-name {
+        display: none !important; 
+    }
+
+    /* Hacemos que el botón del usuario sea un círculo perfecto */
+    .user-info {
+        padding: 8px !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .user-avatar {
+        font-size: 2.2rem !important; /* El icono un poco más grande para que sea fácil de pulsar */
+    }
+
+    /* Ajustamos el menú desplegable para que no se salga de la pantalla */
+    .dropdown-menu {
+        right: 10px !important;
+        width: calc(100vw - 20px) !important; /* Casi todo el ancho del móvil */
+        max-width: 250px !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .user-name {
+        display: block !important;
+        max-width: 120px; /* Limitamos el ancho */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; /* Añade los "..." al final */
+    }
 }

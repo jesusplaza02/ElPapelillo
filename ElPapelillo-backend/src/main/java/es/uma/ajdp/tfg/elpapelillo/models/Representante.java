@@ -30,7 +30,7 @@ public class Representante extends Usuario {
     @JsonIgnore
     private List<Agrupacion> agrupaciones = new ArrayList<>();
 
-    @Column(name = "contacto_emergencia") 
+    @Column(name = "contacto_emergencia", nullable = false) 
     private String contacto_emergencia;
 
     public Representante(String email, String password, String nombre, String dni, String telefono, String direccion, String contactoEmergencia) {

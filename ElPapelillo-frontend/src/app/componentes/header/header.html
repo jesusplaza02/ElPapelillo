@@ -1,0 +1,39 @@
+<header class="main-header">
+  <div class="logo-section" routerLink="/home">
+    <img src="assets/logo.png" alt="Logo" class="logo-img">
+    <span class="brand-name">El Papelillo</span>
+  </div>
+
+  <nav class="nav-menu">
+    <a routerLink="/home" routerLinkActive="active">Inicio</a>
+    <a *ngIf="isLoggedIn()" routerLink="/mis-tramites">Mis Trámites</a>
+  </nav>
+
+  <div class="user-section">
+    <button *ngIf="!isLoggedIn()" routerLink="/login" class="btn-login">
+      Iniciar Sesión
+    </button>
+
+    <div *ngIf="isLoggedIn()" class="user-dropdown">
+      <div class="user-info">
+        <span class="user-email">{{ usuarioEmail }}</span>
+        <div class="user-icon">
+          <i class="fas fa-user-circle"></i>
+        </div>
+      </div>
+      
+      <div class="dropdown-content">
+        <div class="dropdown-header">
+          <strong>Hola, {{ nombreUsuario || 'Usuario' }}</strong>
+        </div>
+        <hr>
+        <a (click)="irAEditarDatos()">
+          <i class="fas fa-edit"></i> Editar mis datos
+        </a>
+        <a (click)="cerrarSesion()" class="logout-link">
+          <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </a>
+      </div>
+    </div>
+  </div>
+</header>

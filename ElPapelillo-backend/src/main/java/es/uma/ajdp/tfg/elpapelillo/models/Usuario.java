@@ -57,7 +57,7 @@ public class Usuario {
     private String direccion;
 
     @Column(nullable = false, columnDefinition = "boolean default true")
-    private boolean activo = true;
+    private Boolean activo=true;
 
     private LocalDate fechaRegistro;
 
@@ -67,6 +67,10 @@ public class Usuario {
     @PrePersist
     protected void onCreate() {
         this.fechaRegistro = LocalDate.now();
+    }
+
+    public Boolean isActivo() {
+        return this.activo;
     }
 
     /* NOTA: Se ha eliminado el getRol() manual. 

@@ -14,7 +14,9 @@ public interface RepresentanteRepository extends JpaRepository<Representante, Lo
     // Buscar por DNI para la ficha del representante (C27) 
     Optional<Representante> findByDNI(String dni);
 
-    Optional<Representante> findByemail(String dni);
+    Optional<Representante> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 
     
     // Listado de representantes activos para evitar "huérfanos" (C29) 

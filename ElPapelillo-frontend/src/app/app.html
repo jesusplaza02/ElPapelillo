@@ -5,12 +5,14 @@
 </div>
 
 <header class="main-header">
-  <h1>ElPapelillo</h1>
+  <h1 routerLink="/home" style="cursor: pointer;">ElPapelillo</h1>
 
   @if (!esRutaAcceso) {
     <div class="user-profile">
+      
       <div class="user-info" (click)="toggleMenu()">
-        <span class="user-name">Usuario</span>
+        <span class="user-name">{{ usuarioEmail || 'Usuario' }}</span>
+        
         <div class="user-avatar">
           <i class="fas fa-user-circle"></i>
         </div>
@@ -18,12 +20,23 @@
 
       @if (menuAbierto) {
         <div class="dropdown-menu">
-          <a routerLink="/perfil">Mi Perfil</a>
-          <a (click)="logout()">Cerrar Sesión</a>
+          <a (click)="irAEditar()">
+            <i class="fas fa-user-edit"></i> Editar Datos
+          </a>
+          
+          <hr>
+          
+          <a (click)="logout()" class="logout-link">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+          </a>
         </div>
       }
     </div>
   }
 </header>
 
-<router-outlet></router-outlet>
+<div class="content-wrapper">
+  <main>
+    <router-outlet></router-outlet>
+  </main>
+</div>
