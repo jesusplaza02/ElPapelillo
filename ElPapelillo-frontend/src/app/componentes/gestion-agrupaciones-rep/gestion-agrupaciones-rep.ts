@@ -1,9 +1,9 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router'; // 1. Añadimos Router aquí
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms'; 
 import { AgrupacionService } from './gestion-agrupaciones-rep.service';
-import { Agrupacion } from './gestion-agrupaciones-rep.model';
+import { Inscripcion, Agrupacion } from './gestion-agrupaciones-rep.model';
 
 @Component({
   selector: 'app-gestion-agrupaciones-rep',
@@ -14,9 +14,14 @@ import { Agrupacion } from './gestion-agrupaciones-rep.model';
 })
 export class GestionAgrupacionesRepComponent implements OnInit {
   
-  agrupaciones: Agrupacion[] = [];
+  inscripciones: Inscripcion[] = [];
+  misAgrupacionesBase: Agrupacion[] = [];
   concursosActivos: any[] = [];
+  
   concursoSeleccionado: any = null;
+  agrupacionExistenteSeleccionada: Agrupacion | null = null;
+  
+  modoFormulario: 'NUEVA' | 'EXISTENTE' = 'NUEVA';
   anioCalculado: number | null = null;
   tipoDerivado: string = ''; 
   loading: boolean = true;
@@ -25,40 +30,42 @@ export class GestionAgrupacionesRepComponent implements OnInit {
   constructor(
     private agrupacionService: AgrupacionService,
     private cdr: ChangeDetectorRef,
-    private router: Router // 2. Inyectamos el Router aquí para que no de error
+    private router: Router 
   ) {}
 
   ngOnInit(): void {
     const idLogueado = localStorage.getItem('idUsuario'); 
-
     if (idLogueado) {
       this.cargarDatos(Number(idLogueado));
     } else {
-      // 3. Ahora esto ya no dará error
       this.router.navigate(['/login']);
     }
   }
 
   cargarDatos(idRep: number) {
     this.loading = true;
-    this.agrupacionService.getAgrupacionesPorRepresentante(idRep).subscribe({
-      next: (data) => {
-        this.agrupaciones = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error al cargar agrupaciones:', err)
-    });
 
-    this.agrupacionService.getConcursosActivos().subscribe({
+    // 1. Cargar las Inscripciones
+    this.agrupacionService.getInscripcionesPorRepresentante(idRep).subscribe({
       next: (data) => {
-        this.concursosActivos = data;
+        this.inscripciones = data;
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error al cargar concursos activos:', err);
+        console.error('Error al cargar inscripciones:', err);
         this.loading = false;
       }
+    });
+
+    // 2. Cargar Agrupaciones Base para "Existente"
+    this.agrupacionService.getMisAgrupacionesBase(idRep).subscribe({
+      next: (data) => this.misAgrupacionesBase = data
+    });
+
+    // 3. Cargar Concursos Activos
+    this.agrupacionService.getConcursosActivos().subscribe({
+      next: (data) => this.concursosActivos = data
     });
   }
 
@@ -71,42 +78,78 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       this.anioCalculado = null;
       this.tipoDerivado = '';
     }
-    this.cdr.detectChanges();
   }
 
   toggleFormulario(estado: boolean) {
     this.mostrandoFormulario = estado;
-    if (!estado) {
-      this.concursoSeleccionado = null;
-      this.anioCalculado = null;
-      this.tipoDerivado = '';
-    }
-    this.cdr.detectChanges();
+    if (!estado) this.resetearEstadoFormulario();
+  }
+
+  resetearEstadoFormulario() {
+    this.concursoSeleccionado = null;
+    this.agrupacionExistenteSeleccionada = null;
+    this.anioCalculado = null;
+    this.tipoDerivado = '';
+    this.modoFormulario = 'NUEVA';
   }
 
   enviarFormulario(formulario: NgForm) {
-    // 4. Recuperamos el ID para el refresco posterior
     const idLogueado = localStorage.getItem('idUsuario');
+    if (!idLogueado || !this.concursoSeleccionado) return;
 
-    if (formulario.valid && this.concursoSeleccionado && idLogueado) {
-      const payload = { /* ... tus datos ... */ };
+    let payload: any = {
+      concurso: { idConcurso: this.concursoSeleccionado.idConcurso }
+    };
 
-      this.agrupacionService.crearAgrupacion(payload).subscribe({
-        next: () => {
-          alert('¡Inscripción realizada!');
-          this.toggleFormulario(false);
-          
-          setTimeout(() => {
-            // 5. Usamos el ID recuperado, no el "1" fijo
-            this.cargarDatos(Number(idLogueado));
-          }, 0);
-        },
-        error: (err) => console.error('Error:', err)
-      });
+    if (this.modoFormulario === 'EXISTENTE') {
+      if (!this.agrupacionExistenteSeleccionada) return;
+      // Solo enlazamos el ID de la agrupación que ya existe en la BD
+      payload.agrupacion = { idAgrupacion: this.agrupacionExistenteSeleccionada.idAgrupacion };
+      
+    } else {
+      if (!formulario.valid) return;
+      const v = formulario.value;
+      
+      // Creamos la agrupación y le inyectamos el ID del representante
+      payload.agrupacion = {
+        nombre: v.nombre,
+        nombreUltimaParticipacion: v.nombreUltimaParticipacion,
+        categoria: v.categoria,
+        tipo: this.tipoDerivado,
+        representante: { idUsuario: Number(idLogueado) } // ¡Perfecto!
+      };
+
+      if (this.tipoDerivado === 'CANTO') {
+        payload.agrupacion.agrupacionCanto = {
+          autorLetra: v.autorLetra,
+          autorMusica: v.autorMusica,
+          direccion: v.direccion
+        };
+      } else if (this.tipoDerivado === 'DRAG') {
+        payload.agrupacion.agrupacionDrag = {
+          nombreArtisticoDrag: v.nombreArtisticoDrag,
+          disenador: v.disenador
+        };
+      } else if (this.tipoDerivado === 'DIOSES') {
+        payload.agrupacion.agrupacionDioses = {
+          modelo: v.modelo,
+          disenador: v.disenador
+        };
+      }
     }
-  }
 
-  trackByAgrupacionId(index: number, agrup: Agrupacion): number {
-    return agrup.idAgrupacion;
+    // Enviamos a /api/inscripciones
+    this.agrupacionService.crearInscripcion(payload).subscribe({
+      next: () => {
+        alert('¡Inscripción realizada con éxito!');
+        this.toggleFormulario(false);
+        formulario.resetForm();
+        setTimeout(() => this.cargarDatos(Number(idLogueado)), 200);
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Error al procesar la inscripción.');
+      }
+    });
   }
 }

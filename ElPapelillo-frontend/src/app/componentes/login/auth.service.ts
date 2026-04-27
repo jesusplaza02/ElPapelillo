@@ -8,41 +8,46 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Método de Login mejorado
-   * Usamos 'tap' para guardar los datos antes de que el componente los reciba
-   */
   login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
       tap((res: any) => {
-        // Guardamos el token y el rol en el almacenamiento local del navegador
-        // El nombre de los campos (res.token, res.rol) debe coincidir con lo que envíe tu Spring
         if (res) {
+          // 1. Guardamos el Token
           localStorage.setItem('token', res.token);
-          localStorage.setItem('rol', res.rol);
-          localStorage.setItem('usuario', res.username);
+          
+          // 2. EL ROL: Lo guardamos con ambos nombres para no romper nada
+          const rolLimpio = (res.rol || '').toUpperCase().trim();
+          localStorage.setItem('rol', rolLimpio); // Para el Guard
+          localStorage.setItem('rolUsuario', rolLimpio); // Para el Panel de Control
+
+          // 3. DATOS DE USUARIO: Para que el Header no salga vacío
+          localStorage.setItem('usuario', res.username || res.email || '');
+          localStorage.setItem('email', res.email || '');
+          localStorage.setItem('nombreUsuario', res.nombre || '');
+          localStorage.setItem('idUsuario', res.idUsuario?.toString() || '');
+
+          // 4. ORGANIZACIÓN: Vital para que Pepe vea a su equipo
+          const orgId = res.id_organizacion || res.idOrganizacion;
+          if (orgId != null) {
+            localStorage.setItem('id_organizacion', orgId.toString());
+            console.log('ID Org guardado:', orgId);
+          }
         }
       })
     );
   }
 
-  registro(userData: any) {
-    return this.http.post(`${this.apiUrl}/usuarios/registro`, userData);
-  }
+  // --- MÉTODOS DE APOYO ---
 
-  // --- MÉTODOS PARA EL GUARD ---
-
-  // Verifica si existe un token (Autenticación)
   isLogged(): boolean {
     return !!localStorage.getItem('token');
   }
 
-  // Devuelve el rol guardado (Autorización)
   getRol(): string {
-    return localStorage.getItem('rol') || '';
+    // Intentamos pillar cualquiera de los dos
+    return localStorage.getItem('rolUsuario') || localStorage.getItem('rol') || '';
   }
 
-  // Limpia la sesión al cerrar
   logout() {
     localStorage.clear();
   }

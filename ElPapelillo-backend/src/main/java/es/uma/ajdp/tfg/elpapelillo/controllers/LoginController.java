@@ -3,7 +3,9 @@ package es.uma.ajdp.tfg.elpapelillo.controllers;
 import es.uma.ajdp.tfg.elpapelillo.models.LoginRequest;
 import es.uma.ajdp.tfg.elpapelillo.models.LoginResponse;
 import es.uma.ajdp.tfg.elpapelillo.models.Usuario;
+import es.uma.ajdp.tfg.elpapelillo.models.Administrador;
 import es.uma.ajdp.tfg.elpapelillo.repositories.UsuarioRepository;
+import es.uma.ajdp.tfg.elpapelillo.repositories.AdministradorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,39 +24,62 @@ public class LoginController {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private BCryptPasswordEncoder passwordEncoder; // Inyectamos el encriptador
+    private AdministradorRepository administradorRepository;
+
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginData) {
         try {
-            // 1. BUSQUEDA: Buscamos al usuario por el email que viene de Angular
+            // 1. Buscamos al usuario por email
             Optional<Usuario> userOpt = usuarioRepository.findByEmail(loginData.getEmail());
 
             if (userOpt.isPresent()) {
                 Usuario user = userOpt.get();
 
-                // 2. VERIFICACIÓN CON BCRYPT: 
-                // Comparamos la contraseña plana de Angular con el hash de la BD
+                // 2. Verificamos contraseña con BCrypt
                 if (passwordEncoder.matches(loginData.getPassword(), user.getPassword())) {
                     
-                    // Si todo es correcto, enviamos los datos REALES
+                    Integer orgId = null;
+
+                    // 3. Obtener el ID de la organización desde la tabla Administrador
+                    // Filtramos por roles que pertenecen a organizaciones
+                    if ("ADMINISTRADOR".equals(user.getRol()) || "SUPERADMIN".equals(user.getRol())) {
+                        
+                        // Buscamos en el repo de administradores usando el idUsuario
+                        Optional<Administrador> adminOpt = administradorRepository.findByIdUsuario(user.getIdUsuario());
+                        
+                        if (adminOpt.isPresent()) {
+                            Administrador admin = adminOpt.get();
+                            
+                            // Accedemos al objeto Organizacion y sacamos su ID
+                            // (Asegúrate de que en la clase Organizacion el ID se llame 'id')
+                            if (admin.getOrganizacion() != null) {
+                                orgId = admin.getOrganizacion().getIdOrganizacion(); 
+                            }
+                        }
+                    }
+
+                    // 4. Enviamos la respuesta con los 5 campos requeridos
                     LoginResponse res = new LoginResponse(
-                        "token-generado-abc", // JWT simplificado
+                        "token-generado-abc", 
                         user.getRol(),        
-                        user.getEmail(),      
-                        user.getIdUsuario()   
+                        user.getEmail(),    
+                        user.getIdUsuario(),
+                        orgId 
                     );
                     
                     return ResponseEntity.ok(res);
                 }
             }
 
-            // 3. ERROR: Si no existe o la clave no coincide
-            // Usamos un Map para que Angular reciba un JSON con el mensaje
+            // Error de autenticación
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                                  .body(Map.of("message", "Email o contraseña incorrectos"));
 
         } catch (Exception e) {
+            // Error de servidor
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                  .body(Map.of("message", "Error en el servidor: " + e.getMessage()));
         }

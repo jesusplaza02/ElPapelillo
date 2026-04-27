@@ -6,12 +6,8 @@
     align-items: center;
     padding: 20px;
     z-index: 5;
-
     padding-top: 110px; 
     box-sizing: border-box; 
-    
-    
- 
 }
 
 .login-card {
@@ -98,8 +94,8 @@
 
 /* Contenedor del error */
 .error-box {
-  background-color: #FDEDEC; /* Rojo muy clarito */
-  color: #E74C3C;            /* Rojo suave */
+  background-color: #FDEDEC;
+  color: #E74C3C;
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #FADBD8;
@@ -107,7 +103,6 @@
   font-size: 0.85rem;
   text-align: center;
   font-weight: 500;
-  /* Animación para que llame la atención */
   animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
   display: block !important; 
   visibility: visible !important;
@@ -116,7 +111,6 @@
   z-index: 100;
 }
 
-/* Animación de vibración (shake) */
 @keyframes shake {
   10%, 90% { transform: translate3d(-1px, 0, 0); }
   20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -132,7 +126,7 @@
 
 .password-container input {
   width: 100%;
-  padding-right: 40px; /* Espacio para que el texto no tape al ojo */
+  padding-right: 40px;
 }
 
 .toggle-eye {
@@ -153,7 +147,38 @@
   color: #333;
 }
 
-/* Ajuste por si usas FontAwesome */
 .toggle-eye i {
   font-size: 1.1rem;
+}
+
+/* NUEVO CONTENEDOR DE INFORMACIÓN PARA ORGANIZACIONES */
+.info-box {
+  background-color: #E8F4FD; /* Azul muy clarito */
+  color: #1565C0;            /* Azul oscuro corporativo */
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #BBDEFB;
+  margin-top: 25px;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.info-box i {
+  margin-right: 5px;
+  font-size: 1rem;
+}
+
+.info-box a {
+  color: #1976D2;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s;
+  display: inline-block;
+  margin-top: 5px;
+}
+
+.info-box a:hover {
+  color: #0D47A1;
+  text-decoration: underline;
 }

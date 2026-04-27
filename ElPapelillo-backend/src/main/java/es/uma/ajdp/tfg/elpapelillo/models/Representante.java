@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "representante")
@@ -26,7 +25,6 @@ public class Representante extends Usuario {
 
     
     @OneToMany(mappedBy = "representante", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    @JsonManagedReference
     @JsonIgnore
     private List<Agrupacion> agrupaciones = new ArrayList<>();
 

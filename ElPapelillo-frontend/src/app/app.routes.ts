@@ -25,7 +25,7 @@ const roleGuard = (allowedRoles: string[]) => {
 
     if (authService.isLogged()) {
       alert('No tienes permisos para acceder aquí');
-      router.navigate([userRole === 'ADMINISTRADOR' ? '/panel-control-administrador' : '/panel-representante']);
+      router.navigate([userRole === 'ADMINISTRADOR' || userRole === 'SUPERADMIN' || userRole === 'SYSADMIN' ? '/panel-control-administrador' : '/panel-representante']);
       return false;
     }
 
@@ -43,7 +43,7 @@ export const routes: Routes = [
   { 
     path: 'editar-usuario/:id', 
     component: EditarUsuarioComponent,
-    canActivate: [roleGuard(['REPRESENTANTE', 'ADMINISTRADOR'])] 
+    canActivate: [roleGuard(['REPRESENTANTE', 'ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
   },
 
   // SOLO PARA REPRESENTANTES
@@ -63,7 +63,7 @@ export const routes: Routes = [
   { 
     path: 'panel-control-administrador', 
     component: PanelControlAdministradorComponent,
-    canActivate: [roleGuard(['ADMINISTRADOR'])] 
+    canActivate: [roleGuard(['ADMINISTRADOR', 'SUPERADMIN','SYSADMIN'])] 
   },
 
   { path: '**', redirectTo: 'login' }

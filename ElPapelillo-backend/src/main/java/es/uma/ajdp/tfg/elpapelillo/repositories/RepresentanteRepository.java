@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface RepresentanteRepository extends JpaRepository<Representante, Long> {
+public interface RepresentanteRepository extends JpaRepository<Representante, Integer> {
     
     // Buscar por DNI para la ficha del representante (C27) 
     Optional<Representante> findByDNI(String dni);

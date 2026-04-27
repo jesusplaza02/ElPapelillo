@@ -385,6 +385,33 @@ td { padding: 15px; border-bottom: 1px solid #f9f9f9; }
     text-decoration: none; color: var(--text-dark);
 }
 
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+.btn-pag {
+  padding: 5px 15px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.btn-pag:disabled {
+  background: #f0f0f0;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.info-pag {
+  font-size: 14px;
+}
+
 /* ==========================================================================
    9. RESPONSIVO
    ========================================================================== */

@@ -20,13 +20,11 @@ public class AgrupacionDrag extends Agrupacion {
 
 
     public AgrupacionDrag(String nombre, String nombreUltimaParticipacion, Integer anio, CategoriaAgrupacion categoria, 
-                       EstadoAdministrativo estadoInscripcion, Representante representante, String nombreArtistico, String disenador) {
+                       EstadoAdministrativo estadoInscripcion, String nombreArtistico, String disenador) {
         this.setNombre(nombre);
         this.setNombreUltimaParticipacion(nombreUltimaParticipacion);
         this.setAnio(anio);
         this.setCategoria(categoria);
-        this.setEstadoInscripcion(estadoInscripcion);
-        this.setRepresentante(representante);
         this.nombreArtisticoDrag = nombreArtistico;
         this.disenador = disenador;
     }

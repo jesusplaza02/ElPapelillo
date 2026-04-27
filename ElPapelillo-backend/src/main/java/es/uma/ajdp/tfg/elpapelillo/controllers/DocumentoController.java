@@ -1,3 +1,4 @@
+
 package es.uma.ajdp.tfg.elpapelillo.controllers;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,7 +30,7 @@ public class DocumentoController {
     private DocumentoRepository documentoRepository;
 
     @Autowired
-    private AgrupacionRepository agrupacionRepository;
+    private InscripcionRepository inscripcionRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -39,10 +41,10 @@ public class DocumentoController {
     @PostMapping("/upload")
     public ResponseEntity<?> subirArchivo(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("idAgrupacion") Integer idAgrupacion,
+            @RequestParam("idInscripcion") @NonNull Integer idInscripcion, // Cambiado a Integer
             @RequestParam("nombreDoc") String nombreDoc,
             @RequestParam("tipo") String tipo,
-            @RequestParam("usuarioId") Integer usuarioId) {
+            @RequestParam("usuarioId") @NonNull Integer usuarioId) {
 
         // --- VALIDACIÓN RF21: Solo PDF y máximo 5MB ---
         String contentType = file.getContentType();
@@ -78,32 +80,27 @@ public class DocumentoController {
             doc.setUrlArchivo("archivos/" + nombreFisicoLimpio);
             doc.setEstado(EstadoAdministrativo.PENDIENTE);
 
-            Optional<Agrupacion> agrup = agrupacionRepository.findById(idAgrupacion);
-            if (agrup.isPresent()) {
-                doc.setAgrupacion(agrup.get());
+            // 3. Vincular con la Inscripción (Usando Integer)
+            // Esto quita el error de "Cast argument to int" de tu IDE
+            Optional<Inscripcion> inscrip = inscripcionRepository.findById(idInscripcion);
+            if (inscrip.isPresent()) {
+                doc.setInscripcion(inscrip.get());
             } else {
                 Files.deleteIfExists(rutaArchivo);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("{\"error\": \"Agrupación no encontrada.\"}");
+                        .body("{\"error\": \"Inscripción no encontrada.\"}");
             }
 
-            // Guardar documento en BD
             documentoRepository.save(doc);
 
-            // --- LÓGICA DE AUDITORÍA RF22: Registro de acciones administrativas ---
+            // --- LÓGICA DE AUDITORÍA ---
             usuarioRepository.findById(usuarioId).ifPresent(user -> {
-                if ("ADMIN".equalsIgnoreCase(user.getRol()) || "SUPERADMIN".equalsIgnoreCase(user.getRol())) {
-
-                    // Cast a Administrador ya que LogAuditoria requiere esta relación específica
-                    Administrador admin = (Administrador) user;
-
-                    // Creamos el log (Asegúrate de tener el constructor en LogAuditoria)
+                if (user instanceof Administrador admin) { // Java 16+ Pattern Matching
                     LogAuditoria log = new LogAuditoria(
                             admin,
                             "ADJUNTAR",
-                            "El administrador adjuntó el documento: " + nombreDoc + " a la agrupación ID: " + idAgrupacion
+                            "Documento adjunto a Inscripción ID: " + idInscripcion
                     );
-
                     logAuditoriaRepository.save(log);
                 }
             });
@@ -112,16 +109,16 @@ public class DocumentoController {
 
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("{\"error\": \"Error al procesar el archivo: " + e.getMessage() + "\"}");
+                    .body("{\"error\": \"Error al procesar el archivo\"}");
         }
     }
 
-    @GetMapping("/agrupacion/{id}")
-    public ResponseEntity<List<Documento>> listarPorAgrupacion(@PathVariable Integer id) {
+    @GetMapping("/inscripcion/{id}")
+    public ResponseEntity<List<Documento>> listarPorInscripcion(@PathVariable Integer id) { // Cambiado a Integer
         if (id == null) {
             return ResponseEntity.badRequest().build();
         }
-        List<Documento> docs = documentoService.listarPorAgrupacion(id.longValue());
+        List<Documento> docs = documentoService.listarPorInscripcion(id);
         return ResponseEntity.ok(docs);
     }
 }

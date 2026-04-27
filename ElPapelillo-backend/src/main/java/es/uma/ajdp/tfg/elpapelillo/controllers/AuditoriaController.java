@@ -19,12 +19,18 @@ public class AuditoriaController {
     @Autowired
     private LogAuditoriaRepository logAuditoriaRepository;
 
-    /**
-     * Devuelve todos los logs de auditoría ordenados por fecha descendente
-     * (Lo más nuevo primero para que se vea arriba en el panel)
-     */
     @GetMapping
-    public List<LogAuditoria> obtenerLogs() {
+    public List<LogAuditoria> obtenerTodosLosLogs() {
         return logAuditoriaRepository.findAll(Sort.by(Sort.Direction.DESC, "fecha"));
+    }
+
+    /**
+     * Devuelve los logs filtrados por la organización del usuario (Usado por ADMIN/SUPERADMIN)
+     * URL: /api/auditoria/usuario?idUsuario=5
+     */
+    @GetMapping("/usuario")
+    public List<LogAuditoria> obtenerLogsPorOrganizacion(@RequestParam("idUsuario") Integer idUsuario) {
+        // Llamamos al método personalizado del repositorio
+        return logAuditoriaRepository.findByOrganizacionDeUsuario(idUsuario);
     }
 }

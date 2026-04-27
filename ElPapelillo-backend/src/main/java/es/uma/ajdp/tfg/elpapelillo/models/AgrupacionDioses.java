@@ -1,7 +1,6 @@
 package es.uma.ajdp.tfg.elpapelillo.models;
 
 import es.uma.ajdp.tfg.elpapelillo.models.enums.CategoriaAgrupacion;
-import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoAdministrativo;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.ModalidadDioses;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -21,13 +20,11 @@ public class AgrupacionDioses extends Agrupacion {
     private ModalidadDioses modalidad;
 
     public AgrupacionDioses(String nombre, String nombreUltimaParticipacion, Integer anio, CategoriaAgrupacion categoria, 
-                       EstadoAdministrativo estadoInscripcion, Representante representante, String disenador, String modelo, ModalidadDioses modalidad) {
+                        String disenador, String modelo, ModalidadDioses modalidad) {
         this.setNombre(nombre);
         this.setNombreUltimaParticipacion(nombreUltimaParticipacion);
         this.setAnio(anio);
         this.setCategoria(categoria);
-        this.setEstadoInscripcion(estadoInscripcion);
-        this.setRepresentante(representante);
         this.disenador = disenador;
         this.modelo = modelo;
         this.modalidad = modalidad;

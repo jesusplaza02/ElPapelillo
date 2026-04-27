@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -31,7 +31,8 @@ export class EditarUsuarioComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef 
+    private cdr: ChangeDetectorRef,
+    private location: Location
   ) {}
 
   ngOnInit() {
@@ -65,34 +66,34 @@ export class EditarUsuarioComponent implements OnInit {
   const idEjecutor = this.id; 
   const url = `http://localhost:8080/api/usuarios/${this.id}?idEjecutor=${idEjecutor}`;
 
-  this.http.put(url, this.usuario)
-    .subscribe({
-      next: (response) => {
-        this.mensajeExito = true;
-        
-        // ACTUALIZACIÓN SEGURA: 
-        // Solo cambiamos el nombre, mantenemos el token y el resto de datos
-        localStorage.setItem('nombreUsuario', this.usuario.nombre);
-        
-        console.log('Actualizado con éxito. Redirigiendo a Home...');
-        
-        // Redirige a /home. Asegúrate de que esta ruta existe en tu app-routing.ts
-        setTimeout(() => {
-          this.router.navigate(['/panel-representante']); 
-        }, 2000);
-      },
-      error: (err) => {
-        console.error('Error al actualizar:', err);
-        // Si aquí recibes un 401 o 403, es cuando te echa al Login
-      }
-    });
+  this.http.put(url, this.usuario).subscribe({
+    next: (response) => {
+      this.mensajeExito = true;
+      
+      // Actualizamos el nombre en el storage para que el header se vea bien
+      localStorage.setItem('nombreUsuario', this.usuario.nombre);
+      
+      console.log('Actualizado con éxito. Redirigiendo...');
+      
+      setTimeout(() => {
+        // CORRECCIÓN: Redirigir según el rol del usuario que acaba de editar
+        const rol = this.usuario.rol; // O usa tu authService.getRol()
+
+        if (rol === 'REPRESENTANTE') {
+          this.router.navigate(['/panel-representante']);
+        } else {
+          // Si es ADMIN, SUPERADMIN o SYSADMIN, vuelve al panel de control
+          this.router.navigate(['/panel-control-administrador']);
+        }
+      }, 2000);
+    },
+    error: (err) => {
+      console.error('Error al actualizar:', err);
+    }
+  });
 }
 
-  // --- EL MÉTODO CANCELAR QUE TE FALTABA ---
   cancelar() {
-    // Te devuelve a la página anterior (Home o el listado)
-    this.router.navigate(['/panel-representante']);
-    // O si prefieres volver atrás exactamente a la última página:
-    // window.history.back();
+  this.location.back()
   }
 }

@@ -5,15 +5,17 @@ import org.springframework.stereotype.Repository;
 import es.uma.ajdp.tfg.elpapelillo.models.Administrador;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface AdministradorRepository extends JpaRepository<Administrador, Long> {
+public interface AdministradorRepository extends JpaRepository<Administrador, Integer> {
     
     // Para el listado de usuarios administradores (C23) 
     // Filtra solo los que no han sido eliminados lógicamente (C25) 
     List<Administrador> findByActivoTrue();
 
     Administrador findByEmail(String email);
+    Optional<Administrador> findByIdUsuario(Integer idUsuario);
     Administrador findByDNI(String dni);
     Administrador findByCargo(String cargo);
     

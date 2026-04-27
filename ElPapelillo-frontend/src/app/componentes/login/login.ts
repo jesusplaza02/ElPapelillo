@@ -65,7 +65,16 @@ export class LoginComponent implements OnInit {
         if (res.idUsuario) {
           localStorage.setItem('idUsuario', res.idUsuario.toString());
         }
-        
+
+        // Guardamos el ID de la organización para los filtros de visibilidad
+        if (res.id_organizacion !== undefined && res.id_organizacion !== null) {
+          localStorage.setItem('id_organizacion', res.id_organizacion.toString());
+        } else if (res.idOrganizacion) { 
+          // Por si tu Java usa camelCase en el JSON
+          localStorage.setItem('id_organizacion', res.idOrganizacion.toString());
+        }
+        // -----------------------
+                
         // Guardamos el Email (Para que el Header lo muestre)
         if (res.email) {
           localStorage.setItem('email', res.email);
@@ -85,7 +94,7 @@ export class LoginComponent implements OnInit {
         console.log('Rol detectado:', rolUsuario);
 
         // 3. REDIRECCIÓN SEGÚN ROL
-        if (rolUsuario === 'ADMINISTRADOR') {
+        if (rolUsuario === 'ADMINISTRADOR'|| rolUsuario === 'SUPERADMIN' || rolUsuario === 'SYSADMIN') {
           this.router.navigate(['/panel-control-administrador']);
         } else if (rolUsuario === 'REPRESENTANTE') {
           this.router.navigate(['/panel-representante']);

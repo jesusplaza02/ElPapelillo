@@ -2,33 +2,35 @@ package es.uma.ajdp.tfg.elpapelillo.models.dtos;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
 import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class AgrupacionDTO {
-    // Campos de la tabla 'agrupacion'
+    // ID de la agrupación (null si es nueva)
+    private Integer idAgrupacion;
+
+    // Campos comunes
     private String nombre;
     private String nombreUltimaParticipacion;
-    private String categoria;      // ADULTO, JUVENIL, INFANTIL
-    private Integer anio;          // El año que calculamos en Angular
-    private Long idConcurso;       
+    private String categoria; 
+    private Integer anio; 
+    private Integer idConcurso; 
     private Integer idRepresentante;
-    private String tipoConcurso;   // CANTO, DRAG, DIOSES
+    private TipoConcurso tipoConcurso; 
 
-    // Campos de 'agrupacioncanto'
+    // Campos específicos Canto
     private String autorLetra;
     private String autorMusica;
     private String direccion;
 
-    // Campos de 'agrupaciondrag'
+    // Campos específicos Drag / Dioses
     private String nombreArtisticoDrag;
     private String disenador; 
-
-    // Campos de 'agrupaciondioses'
     private String modelo;
 
-    // Campos de 'agrupacionOtro'
+    // Campos Otros
     private String comentariosDestacables;
 }

@@ -25,12 +25,12 @@ export class PanelControlAdministradorUsuarioService {
   }
 
   crearUsuario(usuario: any): Observable<Usuario> {
-    // Obtenemos el ID del administrador que está creando al usuario
     const idEjecutor = localStorage.getItem('idUsuario') || 1;
-    
-    // Lo enviamos como parámetro por si el backend también lo requiere en el POST
     const urlConParametro = `${this.apiUrl}?idEjecutor=${idEjecutor}`;
 
+    // Si el usuario es un administrador y el ejecutor es Superadmin, 
+    // el objeto 'usuario' ya lleva el id_organizacion inyectado desde el componente.
+    
     return this.http.post<Usuario>(urlConParametro, usuario).pipe(
       catchError(this.handleError)
     );

@@ -73,8 +73,5 @@ public class Usuario {
         return this.activo;
     }
 
-    /* NOTA: Se ha eliminado el getRol() manual. 
-       Lombok ya genera 'getRol()' automáticamente gracias a @Getter.
-       Tener ambos puede causar duplicidad en el JSON.
-    */
+    
 }

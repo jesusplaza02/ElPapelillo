@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 @Table(name = "logauditoria")
@@ -20,7 +21,12 @@ public class LogAuditoria {
     @ManyToOne
     @JoinColumn(name = "administrador_id")
     @JsonIgnore
-    private Administrador administrador; // Quién hizo la acción
+    private Administrador administrador; 
+
+    @JsonProperty("idUsuario")
+    public Integer getIdUsuario() {
+        return (administrador != null) ? administrador.getIdUsuario() : null;
+    }
 
     private String accion;       // Ejemplo: "CREAR_AGRUPACION", "SUBIR_DNI"
     private String descripcion;  // Detalles de lo que pasó

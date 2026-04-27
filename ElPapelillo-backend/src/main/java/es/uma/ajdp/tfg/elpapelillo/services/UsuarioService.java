@@ -1,12 +1,12 @@
 package es.uma.ajdp.tfg.elpapelillo.services;
 
-import es.uma.ajdp.tfg.elpapelillo.models.Administrador; // Importante añadir esto
-import es.uma.ajdp.tfg.elpapelillo.models.Representante; // Importante añadir esto
-import es.uma.ajdp.tfg.elpapelillo.models.Agrupacion;
+import es.uma.ajdp.tfg.elpapelillo.models.Administrador; 
+import es.uma.ajdp.tfg.elpapelillo.models.Representante; 
+import es.uma.ajdp.tfg.elpapelillo.models.Agrupacion; // AÑADIDO
 import es.uma.ajdp.tfg.elpapelillo.models.LogAuditoria;
 import es.uma.ajdp.tfg.elpapelillo.models.Usuario;
 import es.uma.ajdp.tfg.elpapelillo.repositories.AdministradorRepository;
-import es.uma.ajdp.tfg.elpapelillo.repositories.AgrupacionRepository;
+import es.uma.ajdp.tfg.elpapelillo.repositories.AgrupacionRepository; // AÑADIDO
 import es.uma.ajdp.tfg.elpapelillo.repositories.LogAuditoriaRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.UsuarioRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -26,13 +26,13 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private AgrupacionRepository agrupacionRepository;
-
-    @Autowired
     private LogAuditoriaRepository logAuditoriaRepository;
 
     @Autowired
     private AdministradorRepository administradorRepository;
+
+    @Autowired
+    private AgrupacionRepository agrupacionRepository;
 
     @Autowired
     private EmailService emailService;
@@ -76,7 +76,7 @@ public class UsuarioService {
         return usuarioRepository.findByNombreContainingIgnoreCaseAndActivoTrue(nombre);
     }
 
-    // ACTUALIZAR (¡Corregido para mapear TODOS los campos!)
+    // ACTUALIZAR 
     public Usuario actualizar(Integer id, Usuario datosNuevos, Integer idEjecutor) throws Exception {
         Usuario objetivo = usuarioRepository.findById(id)
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));
@@ -92,7 +92,7 @@ public class UsuarioService {
         objetivo.setDNI(datosNuevos.getDNI());
         
         // ¡ESTO ARREGLA EL BORRADO LÓGICO DESDE EL FRONTEND!
-        if (datosNuevos.isActivo() != objetivo.isActivo()) { // O getActivo() dependiendo de tus getters
+        if (datosNuevos.isActivo() != objetivo.isActivo()) { 
             objetivo.setActivo(datosNuevos.isActivo());
         }
 
@@ -105,7 +105,6 @@ public class UsuarioService {
         else if ("REPRESENTANTE".equalsIgnoreCase(objetivo.getRol()) && datosNuevos instanceof Representante) {
             Representante repObj = (Representante) objetivo;
             Representante repNuevos = (Representante) datosNuevos;
-            // *NOTA: Cambia 'getContactoEmergencia' por tu getter real si se llama distinto (ej. getContacto_emergencia)
             repObj.setContacto_emergencia(repNuevos.getContacto_emergencia()); 
         }
 
@@ -117,7 +116,7 @@ public class UsuarioService {
         return actualizado;
     }
 
-    // BORRADO LÓGICO (Este método está perfecto por si algún día llamas directo al Delete del backend)
+    // BORRADO LÓGICO 
     public void eliminarUsuarioLogico(Integer idABorrar, Integer idEjecutor) throws Exception {
         Usuario ejecutor = usuarioRepository.findById(idEjecutor)
                 .orElseThrow(() -> new Exception("Error: El usuario ejecutor no existe."));
@@ -129,15 +128,18 @@ public class UsuarioService {
             throw new Exception("Permiso denegado: Solo SuperAdmin gestiona Admins.");
         }
 
+        // CAMBIO AQUÍ: Ahora buscamos en Agrupaciones
         if ("REPRESENTANTE".equals(objetivo.getRol())) {
-            List<Agrupacion> agrupacionesAsociadas = agrupacionRepository.findByRepresentanteId(idABorrar);
+            // Buscamos las agrupaciones de este representante
+            List<Agrupacion> agrupacionesAsociadas = agrupacionRepository.findByRepresentante_IdUsuario(idABorrar);
             
             if (!agrupacionesAsociadas.isEmpty()) {
                 for (Agrupacion agrupacion : agrupacionesAsociadas) {
+                    // Desvinculamos al representante de la agrupación
                     agrupacion.setRepresentante(null); 
                 }
                 agrupacionRepository.saveAll(agrupacionesAsociadas);
-                log.info("Se han dejado huérfanas {} agrupaciones del representante {}", 
+                log.info("Se han desvinculado {} agrupaciones del representante {}", 
                          agrupacionesAsociadas.size(), objetivo.getEmail());
             }
         }

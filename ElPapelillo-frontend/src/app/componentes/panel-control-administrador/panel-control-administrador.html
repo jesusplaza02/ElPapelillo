@@ -1,5 +1,25 @@
 
 <main>
+
+  @if (nuevoUsuario.rol?.toUpperCase() === 'SYSADMIN') {
+    <details>
+    <summary>
+      <div class="summary-title">
+        <div class="summary-icon trophy-icon"><span class="material-symbols-outlined"></span></div>
+        <div>Gestión de orgnizaciones<span class="summary-subtitle">Configuración de organizaciones</span></div>
+      </div>
+      <span class="material-symbols-outlined">expand_more</span>
+    </summary>
+    <div class="details-content">
+      <div class="table-controls">
+        <input type="text" placeholder="Buscar una organización...">
+        <button class="btn-create">Nueva Organización</button>
+      </div>
+      <p class="empty-state">No hay organizaciones registradas.</p>
+    </div>
+  </details>
+  }
+
   <details>
     <summary>
       <div class="summary-title">
@@ -52,13 +72,16 @@
             <div class="form-group">
               <label>Rol</label>
               <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver'">
-                @if (rolesDisponibles.includes('ADMINISTRADOR') || modoFormulario !== 'crear') {
+                @if (rolSesionActual === 'SYSADMIN') {
+                  <option value="SYSADMIN">Sysadmin</option>
+                }
+                
+                @if (rolSesionActual === 'SYSADMIN' || rolSesionActual === 'SUPERADMIN') {
+                  <option value="SUPERADMIN">Superadmin</option>
                   <option value="ADMINISTRADOR">Administrador</option>
                 }
+                
                 <option value="REPRESENTANTE">Representante</option>
-                @if (modoFormulario !== 'crear') {
-                  <option value="PARTICIPANTE">Participante</option>
-                }
               </select>
             </div>
 
@@ -84,9 +107,7 @@
                   {{ modoFormulario === 'crear' ? 'Guardar' : 'Actualizar' }}
                 </button>
               }
-              <button type="button" (click)="mostrandoFormulario = false; resetForm()" class="btn-cancel">
-                {{ modoFormulario === 'ver' ? 'Cerrar' : 'Cancelar' }}
-              </button>
+              
             </div>
           </form>
         </div>
@@ -96,16 +117,23 @@
         <table>
           <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Acciones</th></tr></thead>
           <tbody>
-            @for (user of usuariosFiltrados; track user.idUsuario) {
+            @for (user of usuariosPaginados; track user.idUsuario) {
               <tr>
                 <td><strong>{{ user.nombre }}</strong></td>
                 <td>{{ user.email }}</td>
                 <td><span class="badge" [ngClass]="user.rol">{{ user.rol }}</span></td>
                 <td class="actions-cell">
-                  <button class="btn-action view" (click)="verDetalles(user)"><span class="material-symbols-outlined">visibility</span></button>
+                  <button class="btn-action view" (click)="verDetalles(user)">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                  
                   @if (puedeGestionar(user)) {
-                    <button class="btn-action edit" (click)="editar(user)"><span class="material-symbols-outlined">edit</span></button>
-                    <button class="btn-action delete" (click)="eliminar(user)"><span class="material-symbols-outlined">delete</span></button>
+                    <button class="btn-action edit" (click)="editar(user)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="btn-action delete" (click)="eliminar(user)">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
                   }
                 </td>
               </tr>
@@ -113,6 +141,25 @@
           </tbody>
         </table>
       </div>
+    </div>
+    <div class="pagination-controls" *ngIf="totalPaginas > 1">
+      <button 
+        (click)="cambiarPagina(paginaActual - 1)" 
+        [disabled]="paginaActual === 1"
+        class="btn-pag">
+        &laquo; Anterior
+      </button>
+
+      <span class="info-pag">
+        Página <strong>{{ paginaActual }}</strong> de {{ totalPaginas }}
+      </span>
+
+      <button 
+        (click)="cambiarPagina(paginaActual + 1)" 
+        [disabled]="paginaActual === totalPaginas"
+        class="btn-pag">
+        Siguiente &raquo;
+      </button>
     </div>
   </details>
 
@@ -143,24 +190,56 @@
         <button (click)="limpiarFiltros()" class="btn-filter-clear">
           <span class="material-symbols-outlined">filter_alt_off</span> Limpiar
         </button>
+        
       </div>
 
       <div class="activity-list">
-        @for (log of logsFiltrados; track $index) {
+        @for (log of logsPaginados; track $index){
           <div class="activity-item">
-            <div class="activity-action-icon" [ngClass]="log.tipo"><span class="material-symbols-outlined">{{ log.icon }}</span></div>
+            <div class="activity-action-icon" [ngClass]="log.tipo">
+              <span class="material-symbols-outlined">{{ log.icon }}</span>
+            </div>
+            
             <div class="activity-info">
               <p class="activity-msg"><strong>{{ log.msg }}</strong></p>
+              
               <div class="activity-meta">
-                <span class="date-text"><span class="material-symbols-outlined" style="font-size: 14px;">calendar_month</span> {{ log.fecha }} • {{ log.time }}</span>
+                <span class="date-text">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">calendar_month</span> 
+                  {{ log.fecha }} • {{ log.time }}
+                </span>
+                
                 <span class="tag-badge">{{ log.cat }}</span>
-                <span class="tag-badge"><span class="material-symbols-outlined" style="font-size: 14px;">person</span> {{ getNombreResponsable(log.idUsuario) }}</span>
+                
+                <span class="tag-badge">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">person</span> 
+                  {{ log.responsableNombre }}
+                </span>
               </div>
             </div>
           </div>
         }
       </div>
     </div>
+    <div class="pagination-controls" *ngIf="totalPaginasLogs > 1">
+        <button 
+          (click)="cambiarPaginaLogs(paginaActualLogs - 1)" 
+          [disabled]="paginaActualLogs === 1"
+          class="btn-pag">
+          &laquo; Anterior
+        </button>
+
+        <span class="info-pag">
+          Página <strong>{{ paginaActualLogs }}</strong> de {{ totalPaginasLogs }}
+        </span>
+
+        <button 
+          (click)="cambiarPaginaLogs(paginaActualLogs + 1)" 
+          [disabled]="paginaActualLogs === totalPaginasLogs"
+          class="btn-pag">
+          Siguiente &raquo;
+        </button>
+      </div>
   </details>
 </main>
 
@@ -170,6 +249,9 @@
       <span class="material-symbols-outlined warning-large" style="color: #f59e0b; font-size: 48px;">warning</span>
       <h3>Confirmar Eliminación</h3>
       <p>¿Estás seguro de que deseas dar de baja a: <br><strong>{{ usuarioABorrar?.nombre }}</strong>?</p>
+      @if (mensajeErrorBorrado) {
+        <p class="error-text-modal">{{ mensajeErrorBorrado }}</p>
+      }
       <div class="modal-buttons">
         <button (click)="cerrarModalBorrado()" class="btn-cancel">Cancelar</button>
         <button (click)="confirmarBorrado()" class="btn-confirm-delete">Sí, eliminar</button>

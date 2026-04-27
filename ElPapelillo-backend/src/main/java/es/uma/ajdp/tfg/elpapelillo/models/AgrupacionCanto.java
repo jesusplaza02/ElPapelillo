@@ -1,7 +1,6 @@
 package es.uma.ajdp.tfg.elpapelillo.models;
 
 import es.uma.ajdp.tfg.elpapelillo.models.enums.CategoriaAgrupacion;
-import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoAdministrativo;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.ModalidadCanto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -36,16 +35,14 @@ public class AgrupacionCanto extends Agrupacion {
 
     // Constructor completo revisado
     public AgrupacionCanto(String nombre, String nombreUltimaParticipacion, Integer anio, 
-                            CategoriaAgrupacion categoria, EstadoAdministrativo estadoInscripcion, 
-                            Representante representante, String autorLetra, String autorMusica, 
+                            CategoriaAgrupacion categoria, 
+                             String autorLetra, String autorMusica, 
                             String direccion, ModalidadCanto modalidad) {
         super(); // Llama al constructor de Agrupacion
         this.setNombre(nombre);
         this.setNombreUltimaParticipacion(nombreUltimaParticipacion);
         this.setAnio(anio); // Uso de 'anio' para coincidir con el cambio en la BD
         this.setCategoria(categoria);
-        this.setEstadoInscripcion(estadoInscripcion);
-        this.setRepresentante(representante);
         this.autorLetra = autorLetra;
         this.autorMusica = autorMusica;
         this.direccion = direccion;

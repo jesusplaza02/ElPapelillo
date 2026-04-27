@@ -1,24 +1,29 @@
 package es.uma.ajdp.tfg.elpapelillo.models;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoConcurso;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
 
 @Entity
 @Table(name = "concurso")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 public class Concurso {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idConcurso; 
+    private Integer idConcurso; 
 
     private String nombre;
 
@@ -36,12 +41,15 @@ public class Concurso {
     @Enumerated(EnumType.STRING)
     private EstadoConcurso estadoConcurso;
 
-    @ManyToMany(mappedBy = "concursos")
-    private List<Administrador> administradores = new ArrayList<>();
+    // Muchos concursos pertenecen a una única Organización
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_organizacion", nullable = false)
+    @JsonIgnoreProperties("concursos")
+    private Organizacion organizacion;
 
-    @OneToMany(mappedBy = "concurso", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Agrupacion> agrupaciones = new ArrayList<>();
-
+    @OneToMany(mappedBy = "concurso")
+    @JsonIgnore 
+    private List<Inscripcion> inscripciones;
     
     public Concurso(String nombre, LocalDate fechaInicio, LocalDate fechaFin, 
                 TipoConcurso tipo, EstadoConcurso estado) {

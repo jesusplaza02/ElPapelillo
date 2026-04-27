@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,21 +23,25 @@ public class Administrador extends Usuario {
     @Column(nullable = true)
     private String cargo;
 
+    // Relación con la Organización a la que pertenece
+    // Muchos administradores pertenecen a una Organización
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_organizacion")
+    @JsonIgnore
+    private Organizacion organizacion;
+
+    @JsonProperty("id_organizacion") 
+    public Integer getIdOrganizacionParaJson() {
+        return (this.organizacion != null) ? this.organizacion.getIdOrganizacion() : null;
+    }
+
     // 1. Relación con Logs: 1 Admin -> Muchos Logs
     // mappedBy debe coincidir con el nombre del atributo en la clase LogSistema
     @OneToMany(mappedBy = "administrador", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<LogAuditoria> logs = new ArrayList<>();
 
-    // 2. Relación con Concursos: Muchos Admin <-> Muchos Concursos
-    @ManyToMany
-    @JoinTable(
-        name = "administrador_concurso", // Nombre de la tabla intermedia
-        joinColumns = @JoinColumn(name = "administrador_id"),
-        inverseJoinColumns = @JoinColumn(name = "concurso_id")
-    )
-    @JsonIgnore
-    private List<Concurso> concursos = new ArrayList<>();
+    
 
     public Administrador(String email, String password, String nombre, String dni, String telefono, String direccion, String cargo) {
         // Usamos los setters de la clase padre (Usuario)
@@ -50,4 +54,6 @@ public class Administrador extends Usuario {
         this.setActivo(true); // Aseguramos que nace activo
         this.cargo = cargo;
     }
+
+
 }

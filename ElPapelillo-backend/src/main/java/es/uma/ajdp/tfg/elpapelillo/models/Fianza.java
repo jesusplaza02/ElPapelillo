@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "fianza")
 @Data
@@ -14,14 +16,14 @@ public class Fianza {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idFianza")
-    private Long idFianza;
+    private Integer idFianza;
 
     private Double importe;
     private LocalDateTime fechaPago;
     private String rutaRecibo; // Para guardar la ruta
     private Boolean pagada;
 
-    @OneToOne
-    @JoinColumn(name = "idAgrupacion")
-    private Agrupacion agrupacion;
+    @OneToOne(mappedBy = "fianza")
+    @JsonIgnore
+    private Inscripcion inscripcion;
 }

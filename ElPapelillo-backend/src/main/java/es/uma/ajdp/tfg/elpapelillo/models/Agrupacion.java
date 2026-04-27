@@ -1,24 +1,24 @@
 package es.uma.ajdp.tfg.elpapelillo.models;
 
 import es.uma.ajdp.tfg.elpapelillo.models.enums.CategoriaAgrupacion;
-import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoAdministrativo;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
-
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 
 @Entity
 @Table(name = "agrupacion")
 @Inheritance(strategy = InheritanceType.JOINED)
-
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class Agrupacion {
@@ -45,29 +45,12 @@ public abstract class Agrupacion {
     @Column(name = "tipoConcurso")
     private TipoConcurso tipoConcurso;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estadoInscripcion") // Coincide con 'estadoInscripcion' en la BD
-    private EstadoAdministrativo estadoInscripcion;
-
-    @ManyToOne
-    @JoinColumn(name = "idRepresentante")
-    @JsonBackReference
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_representante")
+    @JsonIgnoreProperties({"agrupaciones", "password", "roles"}) // Corta la vuelta al representante
     private Representante representante;
 
-    @ManyToOne
-    @JoinColumn(name = "idConcurso")
-    @JsonIgnoreProperties("agrupaciones")
-    private Concurso concurso;
-
-    @OneToMany(mappedBy = "agrupacion", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("agrupacion")
-    private List<Documento> documentos;
-
-    @OneToMany(mappedBy = "agrupacion", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("agrupacion")
-    private List<Participante> participantes;
-
-    @OneToOne(mappedBy = "agrupacion", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("agrupacion")
-    private Fianza fianza;
+    @OneToMany(mappedBy = "agrupacion")
+    @JsonIgnore // NUNCA serializar inscripciones desde aquí
+    private List<Inscripcion> inscripciones;
 }
