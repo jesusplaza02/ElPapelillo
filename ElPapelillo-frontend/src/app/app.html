@@ -4,31 +4,10 @@
   }
 </div>
 
-<header class="main-header">
-  <h1 (click)="redirigirAlPanel()">ElPapelillo</h1>
+@if (!esRutaAcceso) {
+  <app-header></app-header>
+}
 
-  @if (!esRutaAcceso) {
-    <div class="user-profile">
-      <div class="user-info" (click)="toggleMenu()">
-        <span class="user-name">Usuario</span>
-        <div class="user-avatar">
-          <i class="fas fa-user-circle"></i>
-        </div>
-      </div>
-
-      @if (menuAbierto) {
-        <div class="dropdown-menu">
-          <a (click)="irAEditar()" style="cursor: pointer;">
-            <i class="fas fa-user-edit"></i> Mi Perfil
-          </a>
-          
-          <hr> <a (click)="logout()" style="cursor: pointer;" class="logout-link">
-            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-          </a>
-        </div>
-      }
-    </div>
-  }
-</header>
-
-<router-outlet></router-outlet>
+<main>
+  <router-outlet></router-outlet>
+</main>

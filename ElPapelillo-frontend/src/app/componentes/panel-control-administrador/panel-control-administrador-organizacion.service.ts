@@ -18,11 +18,12 @@ export class PanelControlAdministradorOrganizacionService {
     return this.http.post<any>(this.apiUrl, org);
   }
 
-  actualizarOrganizacion(org: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${org.idOrganizacion}`, org);
-  }
 
   eliminarOrganizacion(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  }
+
+  actualizarOrganizacion(id: number, data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, data);
   }
 }

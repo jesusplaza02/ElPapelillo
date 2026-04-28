@@ -26,7 +26,14 @@ public class Organizacion {
     private String email; 
 
     @Column(nullable = false)
+    private String telefono;   
+
+    @Column(nullable = false)
     private String ubicacion; 
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private Boolean activo=true;
+
 
     // Relación 1:N con Concurso
     // Una organización puede tener muchos concursos (ej. Concurso de drags, Concurso de canto, etc.)
@@ -39,10 +46,12 @@ public class Organizacion {
     @JsonIgnore
     private List<Administrador> administradores = new ArrayList<>();
 
-    public Organizacion(String nombre, String email, String ubicacion) {
+    public Organizacion(String nombre, String email, String telefono, String ubicacion) {
         this.nombre = nombre;
         this.email = email;
+        this.telefono = telefono;
         this.ubicacion = ubicacion;
+        this.activo = true; // Por defecto, la organización nace activa
 
     }
 }

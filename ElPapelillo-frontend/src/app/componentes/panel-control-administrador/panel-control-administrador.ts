@@ -59,7 +59,22 @@ export class PanelControlAdministradorComponent implements OnInit {
   terminoBusquedaOrg: string = '';
   mostrandoFormOrg: boolean = false;
   modoFormOrg: 'crear' | 'editar' = 'crear';
-  nuevaOrg: any = { idOrganizacion: null, nombre: '', cif: '', emailContacto: '', telefono: '', direccion: '' };
+  mostrarModalBorradoOrg: boolean = false; // Fundamental para que el modal de borrar aparezca/desaparezca
+  orgABorrar: any = null;
+  nuevaOrg: any = { 
+    idOrganizacion: null, 
+    nombre: '', 
+    email: '',
+    telefono: '', 
+    ubicacion: '',
+    activo: true 
+  };
+
+  // Control de Toasts
+  mostrarToast: boolean = false;
+  mensajeToast: string = '';
+  tipoToast: 'success' | 'error' = 'success';
+    
 
   constructor(
     private usuarioService: PanelControlAdministradorUsuarioService,
@@ -69,72 +84,196 @@ export class PanelControlAdministradorComponent implements OnInit {
 
   ngOnInit(): void {
     this.rolSesionActual = localStorage.getItem('rol'); 
-    this.cargarUsuariosSincronizados();
+    this.cargarDatosSincronizados();
+    // Si soy SYSADMIN, cargo también las organizaciones
+    if (this.rolSesionActual?.toUpperCase() === 'SYSADMIN') {
+      this.cargarOrganizaciones();
+    }
   }
 
-  cargarUsuariosSincronizados(): void {
-    const miRol = (this.rolSesionActual || '').toUpperCase();
-    const miIdOrg = localStorage.getItem('id_organizacion');
+  // Objeto para el formulario (debe coincidir con los campos del HTML)
 
-    forkJoin({
-      usuariosRes: this.usuarioService.getUsuarios(),
-      auditoriaRes: this.auditoriaService.getLogs()
-    }).subscribe({
-      next: ({ usuariosRes, auditoriaRes }) => {
-        
-        // 1. FILTRAR USUARIOS (POR ESTADO Y ORGANIZACIÓN)
-        const activos = usuariosRes.filter((u: any) => u.activo !== 0 && u.activo !== false);
+// --- MÉTODOS DE ORGANIZACIONES ---
+// Método para disparar el toast y que se oculte solo
+lanzarToast(mensaje: string, tipo: 'success' | 'error' = 'success'): void {
+  this.mensajeToast = mensaje;
+  this.tipoToast = tipo;
+  this.mostrarToast = true;
+  
+  // Se oculta automáticamente tras 3 segundos
+  setTimeout(() => {
+    this.mostrarToast = false;
+  }, 3000);
+}
 
-        if (miRol === 'SYSADMIN') {
-          this.usuarios = activos;
-        } else {
-          this.usuarios = activos.filter((u: any) => {
-            const rolFila = u.rol?.toUpperCase();
-            const suIdOrg = u.id_organizacion;
-            if (rolFila === 'SYSADMIN' || rolFila === 'REPRESENTANTE') return true;
-            return (suIdOrg != null && miIdOrg != null && suIdOrg == miIdOrg);
-          });
-        }
-        this.usuariosFiltrados = [...this.usuarios];
+cargarOrganizaciones(): void {
+  this.organizacionService.getOrganizaciones().subscribe({
+    next: (res) => {
+      // Filtramos en el cliente para mostrar solo las activas
+      this.organizaciones = res.filter((o: any) => o.activo !== false && o.activo !== 0);
+      this.organizacionesFiltradas = [...this.organizaciones];
+    },
+    error: (err) => console.error("Error al cargar organizaciones", err)
+  });
+}
 
-        // 2. FILTRAR Y PROCESAR AUDITORÍA
-        // Primero mapeamos para tener nombres, iconos y tipos listos
-        // 2. FILTRAR Y PROCESAR AUDITORÍA (RESTAURANDO ESTÉTICA)
-          const logsProcesados = auditoriaRes.map((log: any) => {
-          const fechaObj = new Date(log.fecha);
-          const autor = this.usuarios.find(u => (u as any).idUsuario == log.idUsuario);
-          
-          return {
-            ...log,
-            // Estos nombres deben ser EXACTOS a los de tu @for en el HTML
-            icon: this.mapearIconoLog(log.accion), 
-            tipo: this.mapearTipoLog(log.accion),
-            msg: log.accion, // O log.descripcion si prefieres el texto largo
-            cat: this.mapearCategoria(log.accion),
-            // Formateamos la fecha para que no salga el chorro de texto ISO
-            fecha: fechaObj.toLocaleDateString(), 
-            time: fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            fechaIso: log.fecha ? log.fecha.split('T')[0] : '',
-            responsableNombre: autor ? autor.nombre : (log.nombreResponsable || 'Sistema')
-          };
-        });
+buscarOrgs(): void {
+  const termino = this.terminoBusquedaOrg.toLowerCase().trim();
+  if (!termino) {
+    this.organizacionesFiltradas = [...this.organizaciones];
+  } else {
+    this.organizacionesFiltradas = this.organizaciones.filter(org => 
+      org.nombre?.toLowerCase().includes(termino) || 
+      org.cif?.toLowerCase().includes(termino)
+    );
+  }
+}
 
-        // Solo mostramos logs de usuarios que pertenecen a mi organización
-        if (miRol === 'SYSADMIN') {
-          this.logs = logsProcesados;
-        } else {
-          this.logs = logsProcesados.filter(log => 
-            this.usuarios.some(u => (u as any).idUsuario == log.idUsuario)
-          );
-        }
-        this.logsFiltrados = [...this.logs];
+abrirModalOrg(): void {
+  this.modoFormOrg = 'crear';
+  this.nuevaOrg = { idOrganizacion: null, nombre: '', email: '', telefono: '', ubicacion: '', activo: true };
+  this.mostrandoFormOrg = true;
+}
 
-        // 3. EJECUTAR PAGINACIÓN INICIAL
-        this.actualizarPaginacion();
+editarOrg(org: any): void {
+  this.modoFormOrg = 'editar';
+  // Mapeamos los datos asegurando que emailContacto y direccion existan para el form
+  this.nuevaOrg = { 
+    ...org,
+    email: org.email, 
+    ubicacion: org.ubicacion,
+    telefono: org.telefono 
+  }; 
+  this.mostrandoFormOrg = true;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+cancelarFormOrg(): void {
+  this.mostrandoFormOrg = false;
+}
+
+cerrarTodoOrg(): void {
+  console.log("Forzando cierre de modales..."); // Mira si esto sale en la consola (F12)
+  
+  this.mostrandoFormOrg = false;
+  this.mostrarModalBorradoOrg = false;
+  this.orgABorrar = null;
+
+  // Reseteamos el objeto de la organización
+  this.nuevaOrg = { 
+    idOrganizacion: null, 
+    nombre: '', 
+    emailContacto: '', 
+    telefono: '', 
+    direccion: '', 
+    activo: true 
+  };
+
+  this.cargarOrganizaciones(); // Refrescar la tabla
+}
+
+guardarOrganizacion(): void {
+  const id = this.nuevaOrg.idOrganizacion;
+  const peticion = this.modoFormOrg === 'crear' 
+    ? this.organizacionService.crearOrganizacion(this.nuevaOrg)
+    : this.organizacionService.actualizarOrganizacion(+id, this.nuevaOrg);
+
+  peticion.subscribe({
+    next: () => {
+      this.lanzarToast('¡Conseguido!', 'success');
+      this.cerrarTodoOrg();
+    },
+    error: (err) => {
+      // Si el servidor responde 200 pero Angular cree que es error (por JSON vacío)
+      if (err.status === 200 || err.status === 201) {
+        this.lanzarToast('¡Conseguido!', 'success');
+        this.cerrarTodoOrg();
+      } else {
+        this.lanzarToast('Vaya, algo ha fallado', 'error');
+        console.error(err);
+      }
+    }
+  });
+}
+// Creamos un método aparte para limpiar todo y no repetir código
+cerrarYRefrescar(): void {
+  this.mostrandoFormOrg = false;
+  this.cargarOrganizaciones();
+  // Limpiamos el objeto para el siguiente uso
+  this.nuevaOrg = { idOrganizacion: null, nombre: '', emailContacto: '', telefono: '', direccion: '', activo: true };
+}
+
+// --- BORRADO LÓGICO ---
+
+eliminarOrg(org: any): void {
+  this.orgABorrar = org;
+  this.mostrarModalBorradoOrg = true;
+}
+
+cerrarModalBorradoOrg(): void {
+  this.mostrarModalBorradoOrg = false;
+  this.orgABorrar = null;
+}
+
+confirmarBorradoOrg(): void {
+  if (this.orgABorrar) {
+    const datosDesactivar = { ...this.orgABorrar, activo: false };
+    this.organizacionService.actualizarOrganizacion(+this.orgABorrar.idOrganizacion, datosDesactivar).subscribe({
+      next: () => {
+        this.lanzarToast('Organización eliminada correctamente', 'success');
+        this.mostrarModalBorradoOrg = false;
+        this.cargarOrganizaciones();
       },
-      error: (err) => console.error("Error al cargar:", err)
+      error: () => this.lanzarToast('No se pudo eliminar', 'error')
     });
   }
+}
+  
+  cargarDatosSincronizados(): void {
+  const miRol = (this.rolSesionActual || '').toUpperCase();
+  const miIdOrg = localStorage.getItem('id_organizacion');
+
+  forkJoin({
+    usuariosRes: this.usuarioService.getUsuarios(),
+    auditoriaRes: this.auditoriaService.getLogs()
+  }).subscribe({
+    next: ({ usuariosRes, auditoriaRes }) => {
+      // 1. Usuarios
+      const activos = usuariosRes.filter((u: any) => u.activo !== 0 && u.activo !== false);
+      this.usuarios = miRol === 'SYSADMIN' 
+        ? activos 
+        : activos.filter((u: any) => {
+            const rolFila = u.rol?.toUpperCase();
+            return (rolFila === 'SYSADMIN' || rolFila === 'REPRESENTANTE' || u.id_organizacion == miIdOrg);
+          });
+      this.usuariosFiltrados = [...this.usuarios];
+
+      // 2. Auditoría (RESTAURANDO CAMPOS ORIGINALES)
+      this.logs = auditoriaRes.map((log: any) => {
+        const fechaObj = new Date(log.fecha);
+        return {
+          ...log,
+          icon: this.mapearIconoLog(log.accion), // Para el icono de material
+          tipo: this.mapearTipoLog(log.accion),  // Para el color (success, error, info)
+          msg: log.accion,                       // El texto de la acción
+          cat: this.mapearCategoria(log.accion), // La categoría
+          fecha: fechaObj.toLocaleDateString(),  // Fecha bonita
+          time: fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), // Hora bonita
+          fechaIso: log.fecha ? log.fecha.split('T')[0] : ''
+        };
+      });
+
+      // Filtrar logs según organización si no es SYSADMIN
+      if (miRol !== 'SYSADMIN') {
+        this.logs = this.logs.filter(log => this.usuarios.some(u => (u as any).idUsuario == log.idUsuario));
+      }
+      this.logsFiltrados = [...this.logs];
+
+      // 3. Paginación
+      this.actualizarPaginacion();
+    }
+  });
+}
 
   actualizarPaginacion(): void {
     // Paginación Usuarios
@@ -242,9 +381,9 @@ export class PanelControlAdministradorComponent implements OnInit {
     const idEjecutor = Number(localStorage.getItem('idUsuario'));
     if (this.modoFormulario === 'crear') {
       if (miRol === 'SUPERADMIN' && this.nuevoUsuario.rol === 'ADMINISTRADOR') this.nuevoUsuario.id_organizacion = miIdOrg; 
-      this.usuarioService.crearUsuario(this.nuevoUsuario).subscribe({ next: () => { alert('Usuario creado'); this.cargarUsuariosSincronizados(); this.mostrandoFormulario = false; }, error: () => alert('Error') });
+      this.usuarioService.crearUsuario(this.nuevoUsuario).subscribe({ next: () => { alert('Usuario creado'); this.cargarDatosSincronizados(); this.mostrandoFormulario = false; }, error: () => alert('Error') });
     } else if (this.modoFormulario === 'editar') {
-      this.usuarioService.actualizarUsuarioConEjecutor(this.nuevoUsuario.idUsuario, this.nuevoUsuario, idEjecutor).subscribe({ next: () => { alert('Actualizado'); this.cargarUsuariosSincronizados(); this.mostrandoFormulario = false; }, error: () => alert('Error') });
+      this.usuarioService.actualizarUsuarioConEjecutor(this.nuevoUsuario.idUsuario, this.nuevoUsuario, idEjecutor).subscribe({ next: () => { alert('Actualizado'); this.cargarDatosSincronizados(); this.mostrandoFormulario = false; }, error: () => alert('Error') });
     }
   }
 
@@ -257,7 +396,7 @@ export class PanelControlAdministradorComponent implements OnInit {
     const idABorrar = this.usuarioABorrar.idUsuario;
     if (idABorrar === miId) { this.mensajeErrorBorrado = "No puedes borrarte a ti mismo."; return; }
     const updateData = { ...this.usuarioABorrar, activo: false, DNI: (this.usuarioABorrar as any).DNI || (this.usuarioABorrar as any).dni };
-    this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, miId).subscribe({ next: () => { this.mostrarModalBorrado = false; this.cargarUsuariosSincronizados(); }, error: () => alert('Error') });
+    this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, miId).subscribe({ next: () => { this.mostrarModalBorrado = false; this.cargarDatosSincronizados(); }, error: () => alert('Error') });
   }
 
   cerrarModalBorrado(): void { this.mostrarModalBorrado = false; this.mensajeErrorBorrado = null; }
