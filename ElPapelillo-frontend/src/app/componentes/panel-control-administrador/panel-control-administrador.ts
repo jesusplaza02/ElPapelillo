@@ -8,6 +8,7 @@ import { Usuario } from './panel-control-administrador-usuario.model';
 import { PanelControlAdministradorUsuarioService } from './panel-control-administrador-usuario.service';
 import { PanelControlAdministradorAuditoriaService } from './panel-control-administrador-auditoria.service';
 import { PanelControlAdministradorOrganizacionService } from './panel-control-administrador-organizacion.service';
+import { PanelControlAdministradorConcursoService } from './panel-control-administrador-concurso.service';
 
 @Component({
   selector: 'app-panel-control-administrador',
@@ -70,6 +71,13 @@ export class PanelControlAdministradorComponent implements OnInit {
     activo: true 
   };
 
+  // 2. Añade las variables de estado para concursos
+  concursos: any[] = [];
+  concursosFiltrados: any[] = [];
+  concursosPaginados: any[] = [];
+  paginaActualConcursos: number = 1;
+  totalPaginasConcursos: number = 1;
+
   // Control de Toasts
   mostrarToast: boolean = false;
   mensajeToast: string = '';
@@ -79,7 +87,8 @@ export class PanelControlAdministradorComponent implements OnInit {
   constructor(
     private usuarioService: PanelControlAdministradorUsuarioService,
     private auditoriaService: PanelControlAdministradorAuditoriaService,
-    private organizacionService: PanelControlAdministradorOrganizacionService
+    private organizacionService: PanelControlAdministradorOrganizacionService,
+    private concursoService: PanelControlAdministradorConcursoService
   ) {}
 
   ngOnInit(): void {
@@ -287,7 +296,13 @@ confirmarBorradoOrg(): void {
     if (this.paginaActualLogs > this.totalPaginasLogs) this.paginaActualLogs = 1;
     const inicioL = (this.paginaActualLogs - 1) * this.itemsPorPagina;
     this.logsPaginados = this.logsFiltrados.slice(inicioL, inicioL + this.itemsPorPagina);
-  }
+  
+    // Paginación Concursos
+    this.totalPaginasConcursos = Math.ceil(this.concursosFiltrados.length / this.itemsPorPagina) || 1;
+    if (this.paginaActualConcursos > this.totalPaginasConcursos) this.paginaActualConcursos = 1;
+    const inicioC = (this.paginaActualConcursos - 1) * this.itemsPorPagina;
+    this.concursosPaginados = this.concursosFiltrados.slice(inicioC, inicioC + this.itemsPorPagina);
+    }
 
   cambiarPagina(p: number): void {
     if (p >= 1 && p <= this.totalPaginas) {

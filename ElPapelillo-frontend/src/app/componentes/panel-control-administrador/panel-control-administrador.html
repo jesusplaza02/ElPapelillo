@@ -48,11 +48,11 @@
                   <td>{{org.email }}</td>
                   <td>{{org.telefono}}</td>
                   <td>{{org.ubicacion }}</td>
-                  <td class="acciones-cell">
-                    <button class="btn-icon edit" (click)="editarOrg(org)" title="Editar">
+                  <td class="actions-cell">
+                    <button class="btn-action edit" (click)="editarOrg(org)" title="Editar">
                       <span class="material-symbols-outlined">edit</span>
                     </button>
-                    <button class="btn-icon delete" (click)="eliminarOrg(org)" title="Borrar">
+                    <button class="btn-action delete" (click)="eliminarOrg(org)" title="Borrar">
                       <span class="material-symbols-outlined">delete_forever</span>
                     </button>
                   </td>
@@ -181,6 +181,7 @@
               <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver'">
                 @if (rolSesionActual === 'SYSADMIN') {
                   <option value="SYSADMIN">Sysadmin</option>
+                  <option value="REPRESENTANTE">Representante</option>
                 }
                 
                 @if (rolSesionActual === 'SYSADMIN' || rolSesionActual === 'SUPERADMIN') {
@@ -188,7 +189,7 @@
                   <option value="ADMINISTRADOR">Administrador</option>
                 }
                 
-                <option value="REPRESENTANTE">Representante</option>
+                
               </select>
             </div>
 
