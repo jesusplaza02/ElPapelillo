@@ -23,10 +23,13 @@ public class Administrador extends Usuario {
     @Column(nullable = true)
     private String cargo;
 
+    @Column(name = "id_organizacion")
+    private Integer id_organizacion;
+
     // Relación con la Organización a la que pertenece
     // Muchos administradores pertenecen a una Organización
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_organizacion")
+    @JoinColumn(name = "id_organizacion", insertable = false, updatable = false)
     @JsonIgnore
     private Organizacion organizacion;
 
@@ -35,6 +38,7 @@ public class Administrador extends Usuario {
         return (this.organizacion != null) ? this.organizacion.getIdOrganizacion() : null;
     }
 
+    
     // 1. Relación con Logs: 1 Admin -> Muchos Logs
     // mappedBy debe coincidir con el nombre del atributo en la clase LogSistema
     @OneToMany(mappedBy = "administrador", cascade = CascadeType.ALL)
