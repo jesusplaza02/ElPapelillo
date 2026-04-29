@@ -391,16 +391,69 @@ confirmarBorradoOrg(): void {
   private prepararUsuarioParaFormulario(u: Usuario): void { this.nuevoUsuario = { ...u }; const rol = (u as any).rol?.toUpperCase() || ''; this.nuevoUsuario.rol = rol; }
   
   guardarFormulario(): void {
-    const miRol = this.rolSesionActual?.toUpperCase();
-    const miIdOrg = localStorage.getItem('id_organizacion');
-    const idEjecutor = Number(localStorage.getItem('idUsuario'));
-    if (this.modoFormulario === 'crear') {
-      if (miRol === 'SUPERADMIN' && this.nuevoUsuario.rol === 'ADMINISTRADOR') this.nuevoUsuario.id_organizacion = miIdOrg; 
-      this.usuarioService.crearUsuario(this.nuevoUsuario).subscribe({ next: () => { alert('Usuario creado'); this.cargarDatosSincronizados(); this.mostrandoFormulario = false; }, error: () => alert('Error') });
-    } else if (this.modoFormulario === 'editar') {
-      this.usuarioService.actualizarUsuarioConEjecutor(this.nuevoUsuario.idUsuario, this.nuevoUsuario, idEjecutor).subscribe({ next: () => { alert('Actualizado'); this.cargarDatosSincronizados(); this.mostrandoFormulario = false; }, error: () => alert('Error') });
-    }
+  const miRol = this.rolSesionActual?.toUpperCase();
+  const miIdOrg = localStorage.getItem('id_organizacion');
+  const idEjecutor = Number(localStorage.getItem('idUsuario'));
+
+  // 1. Creamos el objeto base para enviar
+  // IMPORTANTE: Asegúrate de que idUsuario esté presente
+  const usuarioParaEnviar: any = { ...this.nuevoUsuario };
+
+  // 2. Inyectamos el discriminador 'type' para Jackson
+  // Revisa en tu Java si es 'admin'/'rep' o 'administrador'/'representante'
+  const rolLimpio = usuarioParaEnviar.rol?.toUpperCase();
+  
+  if (rolLimpio === 'REPRESENTANTE') {
+    usuarioParaEnviar.type = 'representante';
+  } else if (rolLimpio === 'ADMINISTRADOR' || rolLimpio === 'SUPERADMIN') {
+    usuarioParaEnviar.type = 'administrador';
+  } else {
+    // Para el SYSADMIN, no enviamos 'type' de administrador, 
+    // para que Jackson lo trate como un Usuario base o el tipo que corresponda.
+    delete usuarioParaEnviar.type; 
   }
+
+  if (this.modoFormulario === 'crear') {
+    // Lógica de organización para creación
+    if (miRol === 'SUPERADMIN' && rolLimpio === 'ADMINISTRADOR') {
+      usuarioParaEnviar.id_organizacion = miIdOrg;
+    }
+
+    this.usuarioService.crearUsuario(usuarioParaEnviar).subscribe({
+      next: () => this.finalizarGuardado('Usuario creado'),
+      error: (err) => this.manejarError(err)
+    });
+
+  } else if (this.modoFormulario === 'editar') {
+    // Verificamos que tenemos el ID, si no, el PUT a /api/usuarios/{id} fallará
+    const idAEditar = usuarioParaEnviar.idUsuario || usuarioParaEnviar.id;
+
+    if (!idAEditar) {
+      console.error("No se encuentra el ID del usuario para editar:", usuarioParaEnviar);
+      alert("Error: No se pudo identificar al usuario para actualizar.");
+      return;
+    }
+
+    this.usuarioService.actualizarUsuarioConEjecutor(idAEditar, usuarioParaEnviar, idEjecutor).subscribe({
+      next: () => this.finalizarGuardado('Usuario actualizado'),
+      error: (err) => this.manejarError(err)
+    });
+  }
+}
+
+// Métodos auxiliares para limpiar el código
+private finalizarGuardado(mensaje: string): void {
+  alert(mensaje);
+  this.cargarDatosSincronizados();
+  this.mostrandoFormulario = false;
+}
+
+private manejarError(err: any): void {
+  console.error("Error completo del backend:", err);
+  // Si el backend envía un mensaje de error personalizado, lo mostramos
+  const msg = err.error?.message || err.error || 'Error en la operación';
+  alert("Error: " + msg);
+}
 
   resetForm(): void { this.nuevoUsuario = { nombre: '', email: '', dni: '', direccion: '', telefono: '', rol: 'REPRESENTANTE', contacto_emergencia: '', cargo: '', activo: true }; }
 

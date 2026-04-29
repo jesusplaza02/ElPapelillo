@@ -43,21 +43,13 @@ public class EmailService {
             maxDelay = 60000       // Límite máximo de espera: 1 minuto
         )
     )
-   public void enviarEmailInstrucciones(String correo) {
+   public void enviarEmailInstrucciones(String correo, String passwordSinCifrar) { 
         SimpleMailMessage mensaje = new SimpleMailMessage();
         
         mensaje.setFrom("ElPapelillo@gmail.com");
         mensaje.setTo(correo);
         mensaje.setSubject("Bienvenido a El Papelillo - Instrucciones de Acceso");
 
-        CharacterRule letras = new CharacterRule(EnglishCharacterData.UpperCase, 2);
-        CharacterRule digitos = new CharacterRule(EnglishCharacterData.Digit, 2);
-        CharacterRule minusculas = new CharacterRule(EnglishCharacterData.LowerCase, 1);
-
-        PasswordGenerator gen = new PasswordGenerator();
-        String passwordSinCifrar = gen.generatePassword(10, letras, digitos, minusculas); 
-        // Resultado ej: "A1b2C3d4Ef"
-        
         mensaje.setText("Hola,\n\n" +
                 "Tu cuenta ha sido creada correctamente.\n" +
                 "Tus credenciales de acceso son:\n" +

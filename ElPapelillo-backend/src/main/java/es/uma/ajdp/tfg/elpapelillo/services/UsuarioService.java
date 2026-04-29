@@ -14,7 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Optional;
 
+import org.passay.CharacterRule;
+import org.passay.EnglishCharacterData;
+import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,28 +41,45 @@ public class UsuarioService {
     @Autowired
     private EmailService emailService;
 
-    // private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    // REGISTRAR USUARIO 
-    public Usuario registrarUsuario(Usuario usuario) throws Exception {
+
+
+    public Usuario registrarUsuario(Usuario usuario, Integer idEjecutor) throws Exception {
+        // 1. Validaciones de DNI y Email
         if (!validarDNI(usuario.getDNI())) {
-            throw new Exception("El DNI introducido no es válido (algoritmo incorrecto).");
+            throw new Exception("El DNI introducido no es válido.");
         }
-
         if (usuarioRepository.existsByEmail(usuario.getEmail())) {
             throw new Exception("El correo electrónico ya está registrado.");
         }
 
-        // Asignamos el DNI como contraseña provisional si no viene ninguna
-        if (usuario.getPassword() == null || usuario.getPassword().isEmpty()) {
-            usuario.setPassword(usuario.getDNI());
-        }
-
-        usuario.setActivo(true);
-
-        Usuario usuarioGuardado = usuarioRepository.save(usuario);
-        emailService.enviarEmailInstrucciones(usuarioGuardado.getEmail());
+        // 2. GENERAR CONTRASEÑA ALEATORIA SEGURA (Texto plano)
+        // Usamos las reglas que tenías: 2 mayúsculas, 2 dígitos, 1 minúscula
+        CharacterRule letras = new CharacterRule(EnglishCharacterData.UpperCase, 2);
+        CharacterRule digitos = new CharacterRule(EnglishCharacterData.Digit, 2);
+        CharacterRule minusculas = new CharacterRule(EnglishCharacterData.LowerCase, 1);
+        PasswordGenerator gen = new PasswordGenerator();
         
+        String passwordPlana = gen.generatePassword(10, letras, digitos, minusculas);
+
+        // 3. CIFRAR PARA LA BASE DE DATOS ($2a$10$...)
+        // IMPORTANTE: Se guarda el hash cifrado, nunca la plana
+        usuario.setPassword(passwordEncoder.encode(passwordPlana));
+        usuario.setActivo(true);
+        
+        // 4. GUARDAR EN BD
+        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+
+        // 5. ENVIAR EMAIL CON LA CLAVE PLANA
+        // Le pasamos la 'passwordPlana' para que el usuario reciba la que puede leer
+        emailService.enviarEmailInstrucciones(usuarioGuardado.getEmail(), passwordPlana);
+
+        // 6. Auditoría
+        Usuario ejecutor = usuarioRepository.findById(idEjecutor)
+                .orElseThrow(() -> new Exception("Ejecutor no válido"));
+        registrarLog(ejecutor.getEmail(), "CREAR_USUARIO", "Usuario creado con éxito: " + usuarioGuardado.getEmail());
+
         return usuarioGuardado;
     }
 
@@ -151,6 +172,16 @@ public class UsuarioService {
     }
     
     // --- MÉTODOS AUXILIARES ---
+
+    private String generarPasswordAleatoria(int longitud) {
+        String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        java.security.SecureRandom rnd = new java.security.SecureRandom();
+        for (int i = 0; i < longitud; i++) {
+            sb.append(caracteres.charAt(rnd.nextInt(caracteres.length())));
+        }
+        return sb.toString();
+    }
 
     private boolean validarDNI(String dni) {
         if (dni == null || !dni.matches("^[0-9]{8}[A-Z]$")) return false;

@@ -16,6 +16,19 @@ public class UsuarioController {
     @Autowired
     private UsuarioService usuarioService;
 
+    @PostMapping
+    public ResponseEntity<?> crearUsuario(
+            @RequestBody Usuario nuevoUsuario,
+            @RequestParam Integer idEjecutor) {
+        try {
+            // CAMBIO: Llamamos a registrarUsuario que es el método que existe en el Service
+            Usuario creado = usuarioService.registrarUsuario(nuevoUsuario, idEjecutor); 
+            return ResponseEntity.ok(creado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al crear usuario: " + e.getMessage());
+        }
+    }
+
     // LISTAR TODOS LOS USUARIOS
     @GetMapping
     public ResponseEntity<List<Usuario>> listarTodos() {

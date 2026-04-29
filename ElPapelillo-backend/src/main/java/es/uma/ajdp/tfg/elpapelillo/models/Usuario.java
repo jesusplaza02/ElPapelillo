@@ -24,7 +24,9 @@ import lombok.AllArgsConstructor;
    1. Definimos que el JSON incluya un campo "type" para diferenciar Admin de Representante.
    2. Ignoramos propiedades de Hibernate que suelen romper el parseo en el Frontend.
 */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonTypeInfo
+    (use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, 
+    property = "type", defaultImpl = Usuario.class)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Administrador.class, name = "administrador"),
     @JsonSubTypes.Type(value = Representante.class, name = "representante")
