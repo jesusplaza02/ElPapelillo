@@ -59,5 +59,10 @@ public class Administrador extends Usuario {
         this.cargo = cargo;
     }
 
+    @JsonProperty("nombreOrganizacion") // Esto crea el campo en el JSON para Angular
+    public String getNombreOrganizacionParaJson() {
+        return (this.getOrganizacion() != null) ? this.getOrganizacion().getNombre() : "Sin Organización";
+    }
+
 
 }

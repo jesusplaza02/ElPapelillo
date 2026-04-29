@@ -8,8 +8,10 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoConcurso;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
@@ -19,6 +21,7 @@ import es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso;
 @Getter
 @Setter
 @NoArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Concurso {
 
     @Id
@@ -44,7 +47,7 @@ public class Concurso {
     // Muchos concursos pertenecen a una única Organización
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_organizacion", nullable = false)
-    @JsonIgnoreProperties("concursos")
+    @JsonBackReference
     private Organizacion organizacion;
 
     @OneToMany(mappedBy = "concurso")
@@ -59,4 +62,9 @@ public class Concurso {
     this.tipoConcurso = tipo;
     this.estadoConcurso = estado;
     }
+
+    @JsonProperty("nombreOrganizacion") 
+public String getNombreOrganizacionParaJson() {
+    return (this.organizacion != null) ? this.organizacion.getNombre() : "Sin Organización";
+}
 }

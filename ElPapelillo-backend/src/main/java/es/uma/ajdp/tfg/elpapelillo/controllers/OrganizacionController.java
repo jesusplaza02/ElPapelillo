@@ -23,7 +23,7 @@ public class OrganizacionController {
     }
 
     @PostMapping
-    public Organizacion guardar(@RequestBody @NonNull Organizacion org) {
+    public Organizacion guardar(@RequestBody Organizacion org) {
         return repository.save(org);
     }
 

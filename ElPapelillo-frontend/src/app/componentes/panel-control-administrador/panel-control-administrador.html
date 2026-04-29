@@ -128,21 +128,73 @@
 }
 
   <details>
-    <summary>
-      <div class="summary-title">
-        <div class="summary-icon trophy-icon"><span class="material-symbols-outlined">trophy</span></div>
-        <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos y bases</span></div>
-      </div>
-      <span class="material-symbols-outlined">expand_more</span>
-    </summary>
-    <div class="details-content">
-      <div class="table-controls">
-        <input type="text" placeholder="Buscar concurso...">
-        <button class="btn-create">Nuevo Concurso</button>
-      </div>
-      <p class="empty-state">No hay concursos registrados.</p>
+  <summary>
+    <div class="summary-title">
+      <div class="summary-icon trophy-icon"><span class="material-symbols-outlined">trophy</span></div>
+      <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos y bases</span></div>
     </div>
-  </details>
+    <span class="material-symbols-outlined">expand_more</span>
+  </summary>
+
+  <div class="details-content">
+    <div class="table-controls">
+      <input type="text" placeholder="Buscar concurso por nombre o categoría..." >
+      
+      <button class="btn-create" >Nuevo Concurso</button>
+    </div>
+
+    @if (concursosPaginados.length > 0) {
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Organización</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (concurso of concursosPaginados; track concurso.idConcurso) {
+              <tr>
+                <td><strong>{{ concurso.nombre }}</strong></td>
+                <td>{{ concurso.nombreOrganizacion || 'N/A' }}</td>
+                <td>
+                  <span class="badge" [ngClass]="concurso.estadoConcurso">
+                    {{ concurso.estadoConcurso }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <button class="btn-action view">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                  
+                  <button class="btn-action edit" >
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination-controls" *ngIf="totalPaginasConcursos > 1">
+        <button  [disabled]="paginaActualConcursos === 1" class="btn-pag">
+          &laquo; Anterior
+        </button>
+        <span class="info-pag">
+          Página <strong>{{ paginaActualConcursos }}</strong> de {{ totalPaginasConcursos }}
+        </span>
+        <button  [disabled]="paginaActualConcursos === totalPaginasConcursos" class="btn-pag">
+          Siguiente &raquo;
+        </button>
+      </div>
+    } @else {
+      <p class="empty-state">No hay concursos registrados o no tienes permisos para verlos.</p>
+    }
+  </div>
+</details>
 
   <details>
     <summary>

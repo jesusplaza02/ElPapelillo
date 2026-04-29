@@ -2,7 +2,7 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { catchError, forkJoin, of } from 'rxjs';
 
 import { Usuario } from './panel-control-administrador-usuario.model'; 
 import { PanelControlAdministradorUsuarioService } from './panel-control-administrador-usuario.service';
@@ -77,6 +77,7 @@ export class PanelControlAdministradorComponent implements OnInit {
   concursosPaginados: any[] = [];
   paginaActualConcursos: number = 1;
   totalPaginasConcursos: number = 1;
+  
 
   // Control de Toasts
   mostrarToast: boolean = false;
@@ -241,19 +242,21 @@ confirmarBorradoOrg(): void {
   cargarDatosSincronizados(): void {
   const miRol = (this.rolSesionActual || '').toUpperCase();
   const miIdOrg = localStorage.getItem('id_organizacion');
+  const idLogueado = Number(localStorage.getItem('idUsuario'));
 
   forkJoin({
     usuariosRes: this.usuarioService.getUsuarios(),
-    auditoriaRes: this.auditoriaService.getLogs()
+    auditoriaRes: this.auditoriaService.getLogs(),
+    concursosRes: this.concursoService.getMisConcursos(idLogueado).pipe(catchError(() => of([])))
   }).subscribe({
-    next: ({ usuariosRes, auditoriaRes }) => {
+    next: ({ usuariosRes, auditoriaRes, concursosRes }) => {
       // 1. Usuarios
       const activos = usuariosRes.filter((u: any) => u.activo !== 0 && u.activo !== false);
       this.usuarios = miRol === 'SYSADMIN' 
         ? activos 
         : activos.filter((u: any) => {
             const rolFila = u.rol?.toUpperCase();
-            return (rolFila === 'SYSADMIN' || rolFila === 'REPRESENTANTE' || u.id_organizacion == miIdOrg);
+            return (rolFila === 'SYSADMIN' || rolFila === 'REPRESENTANTE' || Number(u.id_organizacion) === Number(miIdOrg));
           });
       this.usuariosFiltrados = [...this.usuarios];
 
@@ -278,9 +281,14 @@ confirmarBorradoOrg(): void {
       }
       this.logsFiltrados = [...this.logs];
 
+      // 3. Procesar Concursos 
+      this.concursos = concursosRes;
+      this.concursosFiltrados = [...this.concursos];
+
       // 3. Paginación
       this.actualizarPaginacion();
-    }
+    },
+    error: (err) => console.error("Error crítico en la carga", err)
   });
 }
 
