@@ -2,8 +2,9 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router'; 
 import { FormsModule } from '@angular/forms'; 
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service'; 
+
 
 @Component({
   selector: 'app-login',
@@ -28,7 +29,8 @@ export class LoginComponent implements OnInit {
   colors = ['#FFCDD2', '#F8BBD0', '#E1BEE7', '#D1C4E9', '#C5CAE9', '#B3E5FC', '#C8E6C9', '#FFF9C4'];
 
   constructor(
-    private authService: AuthService, 
+    private authService: AuthService,
+    private http: HttpClient,
     private router: Router,
     private cdr: ChangeDetectorRef 
   ) {}
@@ -121,6 +123,40 @@ export class LoginComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+
+  olvidarPassword() {
+    // 1. Forzamos a leer el valor directamente del input por si Angular no se ha enterado del autocompletado
+    const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
+    const email = emailInput?.value || this.loginData.email;
+
+    // 2. Ahora sí, la validación que querías
+    if (!email || email.trim() === '') {
+      this.errorMessage = 'Debes indicar un correo electrónico para recuperar la contraseña. Después te será enviado un correo con tu nueva contraseña.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // 3. Continuamos con la llamada al backend usando ese email
+    const url = 'http://localhost:8080/api/usuarios/recuperar-password';
+    this.http.post(url, { email: email }).subscribe({
+      next: () => {
+        alert('¡Nueva contraseña enviada! Revisa tu bandeja de entrada.');
+        this.errorMessage = '';
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        this.errorMessage = 'No se ha podido enviar el correo. Verifica que el email sea correcto.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // 3. AÑADIMOS EL MÉTODO PARA QUE NO TE DE ERROR AL LLAMARLO
+  lanzarToast(mensaje: string, tipo: 'success' | 'error') {
+    alert(mensaje); 
+
   }
 
   /**

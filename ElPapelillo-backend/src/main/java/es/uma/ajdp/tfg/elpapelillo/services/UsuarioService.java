@@ -193,10 +193,36 @@ public class UsuarioService {
     }
     
     private void registrarLog(String email, String accion, String desc) {
-        LogAuditoria log = new LogAuditoria();
-        log.setAdministrador(administradorRepository.findByEmail(email)); 
-        log.setAccion(accion);
-        log.setDescripcion(desc);
-        logAuditoriaRepository.save(log);
+            LogAuditoria log = new LogAuditoria();
+            log.setAdministrador(administradorRepository.findByEmail(email)); 
+            log.setAccion(accion);
+            log.setDescripcion(desc);
+            logAuditoriaRepository.save(log);
+        }
+
+    public void recuperarPasswordDefinitiva(String email) throws Exception {
+        // 1. Buscamos al usuario (usando el orElse(null) para que no te de error de tipos)
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+        
+        if (usuario == null) {
+            throw new Exception("El usuario no existe");
+        }
+
+        // 2. Generamos la nueva clave con las reglas que ya usas en registrarUsuario
+        CharacterRule letras = new CharacterRule(EnglishCharacterData.UpperCase, 2);
+        CharacterRule digitos = new CharacterRule(EnglishCharacterData.Digit, 2);
+        CharacterRule minusculas = new CharacterRule(EnglishCharacterData.LowerCase, 1);
+        PasswordGenerator gen = new PasswordGenerator();
+        
+        String nuevaPasswordPlana = gen.generatePassword(10, letras, digitos, minusculas);
+
+        // 3. Ciframos y guardamos en BDD
+        usuario.setPassword(passwordEncoder.encode(nuevaPasswordPlana));
+        usuarioRepository.save(usuario);
+
+        // 4. REUTILIZAMOS tu método de email (el que ya tienes funcionando)
+        emailService.enviarEmailInstrucciones(usuario.getEmail(), nuevaPasswordPlana);
+        
+        log.info("Password recuperada para: {}", email);
     }
 }

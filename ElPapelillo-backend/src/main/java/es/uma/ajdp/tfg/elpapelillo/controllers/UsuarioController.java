@@ -3,10 +3,12 @@ package es.uma.ajdp.tfg.elpapelillo.controllers;
 import es.uma.ajdp.tfg.elpapelillo.models.Usuario;
 import es.uma.ajdp.tfg.elpapelillo.services.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -80,6 +82,16 @@ public class UsuarioController {
             return ResponseEntity.ok(actualizado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("No se pudo actualizar: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/recuperar-password")
+    public ResponseEntity<?> recuperar(@RequestBody Map<String, String> payload) {
+        try {
+            usuarioService.recuperarPasswordDefinitiva(payload.get("email"));
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }
