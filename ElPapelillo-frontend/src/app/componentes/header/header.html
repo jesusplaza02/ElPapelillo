@@ -4,35 +4,39 @@
     <span class="brand-name">El Papelillo</span>
   </div>
 
-  <div class="user-section">
-    @if (!isLoggedIn()) {
-      <button routerLink="/login" class="btn-login">
-        Iniciar Sesión
-      </button>
-    }
-    @else {
-      <div class="user-dropdown" (click)="toggleMenu($event)">
-        <div class="user-info">
-          <span class="user-email">{{ nombreAMostrar }}</span>
-          <div class="user-icon">
-            <i class="fas fa-user-circle"></i>
+  @if (!ocultarMenu) {
+    <div class="user-section">
+      
+      @if (!isLoggedIn()) {
+        <button routerLink="/login" class="btn-login">
+          Iniciar Sesión
+        </button>
+      }
+      
+      @else {
+        <div class="user-dropdown" (click)="toggleMenu($event)">
+          <div class="user-info">
+            <span class="user-email">{{ nombreAMostrar }}</span>
+            <div class="user-icon">
+              <i class="fas fa-user-circle"></i>
+            </div>
           </div>
-        </div>
-        
-        <div class="dropdown-content" [class.show]="menuAbierto">
-          <div class="dropdown-header">
-            <strong>Hola, {{ nombreAMostrar }}</strong>
-          </div>
-          <hr>
-          <a (click)="irAEditarDatos()" style="cursor: pointer;">
-            <i class="fas fa-edit"></i> Mi Perfil
-          </a>
+          
+          <div class="dropdown-content" [class.show]="menuAbierto">
+            <div class="dropdown-header">
+              <strong>Hola, {{ nombreAMostrar }}</strong>
+            </div>
+            <hr>
+            <a (click)="irAEditarDatos()" style="cursor: pointer;">
+              <i class="fas fa-edit"></i> Mi Perfil
+            </a>
 
-          <a (click)="cerrarSesion()" class="logout-link" style="cursor: pointer;">
-            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-          </a>
+            <a (click)="cerrarSesion()" class="logout-link" style="cursor: pointer;">
+              <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </a>
+          </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
 </header>

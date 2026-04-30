@@ -55,9 +55,4 @@ export class App implements OnInit {
       });
     }
   }
-
-  /**
-   * El resto de funciones (redirigir, cerrar sesión, cargar nombre) 
-   * ahora viven en el HeaderComponent para evitar conflictos.
-   */
 }

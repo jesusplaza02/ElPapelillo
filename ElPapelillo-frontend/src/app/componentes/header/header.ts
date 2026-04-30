@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -10,6 +10,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './header.css'
 })
 export class HeaderComponent implements OnInit {
+  @Input() ocultarMenu: boolean = false;
   usuarioEmail: string | null = '';
   nombreUsuario: string | null = '';
   menuAbierto: boolean = false;

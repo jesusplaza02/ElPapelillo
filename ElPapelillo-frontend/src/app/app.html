@@ -4,9 +4,7 @@
   }
 </div>
 
-@if (!esRutaAcceso) {
-  <app-header></app-header>
-}
+<app-header [ocultarMenu]="esRutaAcceso"></app-header>
 
 <main>
   <router-outlet></router-outlet>
