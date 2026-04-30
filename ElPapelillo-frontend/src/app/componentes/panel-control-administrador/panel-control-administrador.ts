@@ -247,9 +247,10 @@ confirmarBorradoOrg(): void {
     const datosDesactivar = { ...this.orgABorrar, activo: false };
     this.organizacionService.actualizarOrganizacion(+this.orgABorrar.idOrganizacion, datosDesactivar).subscribe({
       next: () => {
-        this.lanzarToast('Organización eliminada correctamente', 'success');
         this.mostrarModalBorradoOrg = false;
-        this.cargarOrganizaciones();
+        this.cargarDatosSincronizados(); // Para logs y seguridad
+        this.cargarOrganizaciones();     // Para la tabla de organizaciones
+        this.lanzarToast('Organización eliminada', 'success');
       },
       error: () => this.lanzarToast('No se pudo eliminar', 'error')
     });
@@ -518,13 +519,21 @@ confirmarBorradoOrg(): void {
     }
 
 
-// Método auxiliar para limpiar la vista tras guardar
-private finalizarGuardado(mensaje: string): void {
-  alert(mensaje);
-  this.cargarDatosSincronizados();
-  this.filtrarConcursos(); // Refresca la tabla y paginación
-  this.cerrarFormularioConcurso(); // Cierra el formulario
-}
+  // Método auxiliar para limpiar la vista tras guardar
+  private finalizarGuardado(mensaje: string): void {
+    this.lanzarToast(mensaje, 'success');
+    
+    // Cerramos todos los posibles formularios abiertos
+    this.mostrandoFormulario = false;
+    this.mostrandoFormularioConcurso = false;
+    this.mostrandoFormOrg = false;
+    
+    // Sincronización total
+    this.cargarDatosSincronizados();
+    if (this.rolSesionActual?.toUpperCase() === 'SYSADMIN') {
+      this.cargarOrganizaciones();
+    }
+  }
 
   private manejarError(err: any): void {
     console.error("Error completo del backend:", err);
@@ -536,14 +545,29 @@ private finalizarGuardado(mensaje: string): void {
     resetForm(): void { this.nuevoUsuario = { nombre: '', email: '', dni: '', direccion: '', telefono: '', rol: 'REPRESENTANTE', contacto_emergencia: '', cargo: '', activo: true }; }
 
     eliminar(u: Usuario): void { this.usuarioABorrar = { ...u }; this.mensajeErrorBorrado = null; this.mostrarModalBorrado = true; }
-    confirmarBorrado(): void {
-      if (!this.usuarioABorrar) return;
-      const miId = Number(localStorage.getItem('idUsuario'));
-      const idABorrar = this.usuarioABorrar.idUsuario;
-      if (idABorrar === miId) { this.mensajeErrorBorrado = "No puedes borrarte a ti mismo."; return; }
-      const updateData = { ...this.usuarioABorrar, activo: false, DNI: (this.usuarioABorrar as any).DNI || (this.usuarioABorrar as any).dni };
-      this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, miId).subscribe({ next: () => { this.mostrarModalBorrado = false; this.cargarDatosSincronizados(); }, error: () => alert('Error') });
+    // --- BUSCA ESTO (Está cerca de la línea 480 aproximadamente) ---
+
+confirmarBorrado(): void {
+  if (!this.usuarioABorrar) return;
+  const miId = Number(localStorage.getItem('idUsuario'));
+  const idABorrar = this.usuarioABorrar.idUsuario;
+
+  this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, { ...this.usuarioABorrar, activo: false }, miId).subscribe({
+    next: () => {
+      // 1. Cerramos la variable de visibilidad INMEDIATAMENTE
+      this.mostrarModalBorrado = false; 
+      this.usuarioABorrar = null;
+
+      // 2. Refrescamos datos
+      this.cargarDatosSincronizados();
+      this.lanzarToast('Usuario eliminado', 'success');
+    },
+    error: () => {
+      this.mostrarModalBorrado = false;
+      this.lanzarToast('Error al eliminar', 'error');
     }
+  });
+}
 
     cerrarModalBorrado(): void { this.mostrarModalBorrado = false; this.mensajeErrorBorrado = null; }
     logout(): void { localStorage.removeItem('rol'); }
@@ -576,6 +600,7 @@ private finalizarGuardado(mensaje: string): void {
     this.modoFormularioConcurso = 'crear';
     this.concursoSeleccionado = {
       nombre: '',
+      tipoConcurso: '',
       estadoConcurso: 'ACTIVO',
       id_organizacion: localStorage.getItem('id_organizacion') // Auto-asignar org si no es SYSADMIN
     };
@@ -595,25 +620,22 @@ private finalizarGuardado(mensaje: string): void {
   }
 
   eliminarConcurso(concurso: any): void {
-    const confirmacion = confirm(`¿ESTÁS SEGURO? Esta acción borrará el concurso "${concurso.nombre}" de forma permanente de la base de datos.`);
+    const confirmacion = confirm(`¿ESTÁS SEGURO?`);
     
     if (confirmacion) {
       this.concursoService.eliminarConcurso(concurso.idConcurso).subscribe({
         next: () => {
-          // Borramos del array local para que desaparezca de la vista inmediatamente
-          this.concursos = this.concursos.filter(c => c.idConcurso !== concurso.idConcurso);
-          this.cargarDatosSincronizados();
-          alert('Concurso eliminado del sistema.');
+          // --- QUITA EL .filter() QUE TENÍAS ---
+          this.cargarDatosSincronizados(); // El servidor ya no lo enviará, así que desaparecerá solo
+          this.lanzarToast('Concurso eliminado', 'success');
         },
         error: (err) => {
-          // Mostramos el error específico del backend (ej: "No se puede borrar: tiene inscripciones")
-          const msg = err.error?.message || 'Error al intentar eliminar el concurso.';
-          alert(msg);
+          const msg = err.error?.message || 'Error al eliminar';
+          this.lanzarToast(msg, 'error');
         }
       });
     }
   }
-
   // Para cerrar el formulario (necesitarás un botón de cancelar)
   cerrarFormularioConcurso(): void {
     this.mostrandoFormularioConcurso = false;
@@ -628,23 +650,21 @@ private finalizarGuardado(mensaje: string): void {
     this.mostrarModalBorradoConcurso = true;
   }
 
-  // Ejecuta la llamada al servicio para concurso
   confirmarBorradoConcurso(): void {
-    if (this.idConcursoABorrar) {
-      this.concursoService.eliminarConcurso(this.idConcursoABorrar).subscribe({
-        next: () => {
-          this.concursos = this.concursos.filter(c => c.idConcurso !== this.idConcursoABorrar);
-          this.cerrarModalBorradoConcurso();
-        },
-        error: (err) => {
-          // Transformamos el modal en una ventana de error específica
-          this.esErrorModalBorradoConcurso = true;
-          this.tituloModalBorradoConcurso = 'Error al eliminar concurso';
-          this.mensajeModalBorradoConcurso = err.error?.message || 'El concurso tiene agrupaciones asociadas y no puede ser borrado.';
-        }
-      });
-    }
+  if (this.idConcursoABorrar) {
+    this.concursoService.eliminarConcurso(this.idConcursoABorrar).subscribe({
+      next: () => {
+        
+        this.cerrarModalBorradoConcurso();
+        this.cargarDatosSincronizados(); // Refresco total
+      },
+      error: (err) => {
+        this.esErrorModalBorradoConcurso = true;
+        this.mensajeModalBorradoConcurso = err.error?.message || 'Error de base de datos';
+      }
+    });
   }
+}
 
   cerrarModalBorradoConcurso(): void {
     this.mostrarModalBorradoConcurso = false;

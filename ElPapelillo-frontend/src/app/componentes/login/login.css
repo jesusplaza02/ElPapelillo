@@ -1,25 +1,41 @@
-/* Solo lo específico de la pantalla de Login */
+/* 1. ESTRUCTURA GLOBAL (Mata el scroll) */
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Altura total de la ventana */
+    width: 100%;
+    overflow: hidden; /* Evita cualquier desbordamiento */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 .content {
-    flex: 1;
+    flex: 1; /* Ocupa el espacio restante bajo el header */
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
+    box-sizing: border-box;
+    position: relative;
     z-index: 5;
-    padding-top: 110px; 
-    box-sizing: border-box; 
+    /* Eliminamos padding-top exagerados */
 }
 
+/* 2. LA TARJETA (Login Card) */
 .login-card {
     background-color: white;
-    padding: 40px;
+    padding: 30px 40px;
     border-radius: 30px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    width: 90%;
-    max-width: 400px;
+    width: 95%;
+    max-width: 420px;
     text-align: center;
     box-sizing: border-box;
-    z-index:10;
+    z-index: 10;
+    /* Seguridad para pantallas muy bajas: permite scroll solo interno */
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .login-card h2 {
@@ -32,19 +48,13 @@
 .login-card p {
     font-family: Arial, Helvetica, sans-serif;
     color: #757575;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
-/* Responsivo para móvil */
-@media (max-width: 480px) {
-    .login-card { padding: 25px; }
-    .login-card h2 { font-size: 26px; }
-}
-
-/* Formulario */
+/* 3. INPUTS Y GRUPOS */
 .input-group {
     text-align: left;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .input-group label {
@@ -64,7 +74,7 @@
     background-color: #FAFAFA;
 }
 
-/* Botones */
+/* 4. BOTONES (Estilo original recuperado) */
 .btn {
     width: 100%;
     padding: 14px;
@@ -73,112 +83,98 @@
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    margin-bottom: 15px;
-    transition: transform 0.2s;
+    margin-bottom: 12px;
+    transition: transform 0.2s, background-color 0.2s;
+    display: block;
 }
 
 .btn:active {
     transform: scale(0.98);
 }
 
-.btn-login { background-color: #C6DFFF; color: #1A237E; }
-.btn-register { background-color: #B9F6CA; color: #1B5E20; }
+.btn-login { 
+    background-color: #C6DFFF !important; 
+    color: #1A237E !important; 
+}
+
+.btn-register { 
+    background-color: #B9F6CA !important; 
+    color: #1B5E20 !important; 
+}
 
 .forgot-password {
     color: #546E7A;
     text-decoration: none;
     font-size: 14px;
     display: block;
-    margin-top: 10px;
+    margin-top: 5px;
 }
 
-/* Contenedor del error */
-.error-box {
-  background-color: #FDEDEC;
-  color: #E74C3C;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #FADBD8;
-  margin-bottom: 20px;
-  font-size: 0.85rem;
-  text-align: center;
-  font-weight: 500;
-  animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-  display: block !important; 
-  visibility: visible !important;
-  opacity: 1 !important;
-  position: relative;
-  z-index: 100;
-}
-
-@keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
-}
-
-.password-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-container input {
-  width: 100%;
-  padding-right: 40px;
-}
-
-.toggle-eye {
-  position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #666;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.3s;
-}
-
-.toggle-eye:hover {
-  color: #333;
-}
-
-.toggle-eye i {
-  font-size: 1.1rem;
-}
-
-/* NUEVO CONTENEDOR DE INFORMACIÓN PARA ORGANIZACIONES */
+/* 5. CAJA DE INFO (Con el marco azul original) */
 .info-box {
-  background-color: #E8F4FD; /* Azul muy clarito */
-  color: #1565C0;            /* Azul oscuro corporativo */
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #BBDEFB;
-  margin-top: 25px;
-  font-size: 0.85rem;
-  text-align: center;
-  line-height: 1.6;
+    background-color: #E8F4FD;
+    color: #1565C0;
+    padding: 15px;
+    border-radius: 15px;
+    border: 2px solid #BBDEFB; /* Marco azul */
+    margin-top: 20px;
+    font-size: 0.85rem;
+    text-align: center;
+    line-height: 1.5;
 }
 
 .info-box i {
-  margin-right: 5px;
-  font-size: 1rem;
+    margin-right: 8px;
+    font-size: 1.1rem;
 }
 
 .info-box a {
-  color: #1976D2;
-  font-weight: 700;
-  text-decoration: none;
-  transition: color 0.2s;
-  display: inline-block;
-  margin-top: 5px;
+    color: #1976D2;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 5px;
 }
 
-.info-box a:hover {
-  color: #0D47A1;
-  text-decoration: underline;
+/* 6. PASSWORD EYE Y ERRORES */
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-eye {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #757575;
+}
+
+.error-box {
+    background-color: #FDEDEC;
+    color: #E74C3C;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #FADBD8;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    animation: shake 0.4s both;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    30%, 70% { transform: translate3d(-2px, 0, 0); }
+    40%, 60% { transform: translate3d(2px, 0, 0); }
+}
+
+/* 7. AJUSTES PARA PANTALLAS PEQUEÑAS (Laptop/Móvil) */
+@media (max-height: 750px) {
+    .login-card { padding: 20px 30px; }
+    .login-card h2 { font-size: 26px; }
+    .login-card p { margin-bottom: 12px; }
+    .info-box { margin-top: 10px; padding: 10px; }
+    .btn { padding: 10px; }
+    .input-group { margin-bottom: 12px; }
 }

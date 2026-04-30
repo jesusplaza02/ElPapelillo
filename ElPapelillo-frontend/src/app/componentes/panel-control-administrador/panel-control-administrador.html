@@ -152,6 +152,18 @@
         <label>NOMBRE</label>
         <input type="text" [(ngModel)]="concursoSeleccionado.nombre">
       </div>
+
+      <div class="form-group">
+        <label>Tipo de Concurso</label>
+        <select [(ngModel)]="concursoSeleccionado.tipoConcurso" name="tipoConcurso" required>
+          <option value="" disabled selected>Selecciona un tipo...</option>
+          <option value="CANTO">Canto</option>
+          <option value="DRAG">Drag</option>
+          <option value="DIOSES">Dioses</option>
+          <option value="OTRO">Otro</option>
+        </select>
+      </div>
+
       <div class="form-group">
         <label>ESTADO</label>
         <select [(ngModel)]="concursoSeleccionado.estadoConcurso" class="filter-select">
