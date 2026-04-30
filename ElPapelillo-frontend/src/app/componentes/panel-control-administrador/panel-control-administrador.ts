@@ -49,6 +49,11 @@ export class PanelControlAdministradorComponent implements OnInit {
     telefono: '', rol: 'REPRESENTANTE', contacto_emergencia: '', cargo: '', activo: true 
   };
 
+  // FORMULARIO CONCURSOS
+  mostrandoFormularioConcurso = false;
+  modoFormularioConcurso: 'crear' | 'editar' | 'ver' = 'ver';
+  concursoSeleccionado: any = {};
+
   // MODAL BORRADO
   mostrarModalBorrado = false;
   usuarioABorrar: any = null;
@@ -71,11 +76,23 @@ export class PanelControlAdministradorComponent implements OnInit {
     activo: true 
   };
 
+  // Variables para el modal de borrado de concursos
+  mostrarModalBorradoConcurso = false;
+  esErrorModalBorradoConcurso = false;
+  mensajeModalBorradoConcurso = '';
+  tituloModalBorradoConcurso = '';
+  idConcursoABorrar: number | null = null;
+
   // 2. Añade las variables de estado para concursos
   concursos: any[] = [];
   concursosFiltrados: any[] = [];
   concursosPaginados: any[] = [];
+  terminoBusquedaConcurso: string = '';
+  filtroEstadoConcurso: string = '';
+  filtroOrgConcurso: string = '';
+
   paginaActualConcursos: number = 1;
+  itemsPorPaginaConcursos: number = 5;
   totalPaginasConcursos: number = 1;
   
 
@@ -449,35 +466,188 @@ confirmarBorradoOrg(): void {
   }
 }
 
-// Métodos auxiliares para limpiar el código
+  guardarConcurso(): void {
+      const c = this.concursoSeleccionado;
+
+      // Si es ADMIN normal, nos aseguramos de que lleve SU organización
+      if (this.rolSesionActual !== 'SYSADMIN') {
+        const idOrgPropia = localStorage.getItem('idOrganizacion');
+        if (idOrgPropia) c.id_organizacion = parseInt(idOrgPropia);
+      }
+
+      // Validación final antes de enviar
+      if (!c.id_organizacion) {
+        alert('Debes seleccionar o tener una organización asignada.');
+        return;
+      }
+
+      // 1. Validaciones de fechas (la lógica que pediste: Ins < Concurso)
+      const fIniCon = new Date(c.fechaInicio);
+      const fIniIns = new Date(c.fechaInicioInscripcion);
+      const fFinIns = new Date(c.fechaFinInscripcion);
+
+      if (fFinIns > fIniCon) {
+        alert('Error: La inscripción debe terminar antes de que empiece el concurso.');
+        return;
+      }
+
+      // 2. IMPORTANTE: Evitar el Error 500 (Campos obligatorios)
+      // Si eres ADMIN, te aseguras de enviar tu ID de org
+      if (this.rolSesionActual !== 'SYSADMIN') {
+        const idOrg = localStorage.getItem('idOrganizacion');
+        if (idOrg) c.id_organizacion = parseInt(idOrg);
+      }
+      // Si eres SYSADMIN, el objeto 'c' ya debería traer su 'id_organizacion' 
+      // desde que lo cargaste en la tabla. Si no, asegúrate de que no se borre.
+
+      const servicioCall = this.modoFormularioConcurso === 'crear' 
+        ? this.concursoService.crearConcurso(c)
+        : this.concursoService.actualizarConcurso(c.idConcurso, c);
+
+      servicioCall.subscribe({
+        next: (res) => {
+          // ... lógica de actualización de tabla que ya tienes ...
+          this.cargarDatosSincronizados();
+          this.finalizarGuardado('Guardado correctamente');
+        },
+        error: (err) => {
+          console.error('ERROR 500 DETECTADO:', err);
+          alert('Error 500: Revisa que todos los campos (incluida la organización) estén rellenos en la base de datos.');
+        }
+      });
+    }
+
+
+// Método auxiliar para limpiar la vista tras guardar
 private finalizarGuardado(mensaje: string): void {
   alert(mensaje);
   this.cargarDatosSincronizados();
-  this.mostrandoFormulario = false;
+  this.filtrarConcursos(); // Refresca la tabla y paginación
+  this.cerrarFormularioConcurso(); // Cierra el formulario
 }
 
-private manejarError(err: any): void {
-  console.error("Error completo del backend:", err);
-  // Si el backend envía un mensaje de error personalizado, lo mostramos
-  const msg = err.error?.message || err.error || 'Error en la operación';
-  alert("Error: " + msg);
-}
-
-  resetForm(): void { this.nuevoUsuario = { nombre: '', email: '', dni: '', direccion: '', telefono: '', rol: 'REPRESENTANTE', contacto_emergencia: '', cargo: '', activo: true }; }
-
-  eliminar(u: Usuario): void { this.usuarioABorrar = { ...u }; this.mensajeErrorBorrado = null; this.mostrarModalBorrado = true; }
-  confirmarBorrado(): void {
-    if (!this.usuarioABorrar) return;
-    const miId = Number(localStorage.getItem('idUsuario'));
-    const idABorrar = this.usuarioABorrar.idUsuario;
-    if (idABorrar === miId) { this.mensajeErrorBorrado = "No puedes borrarte a ti mismo."; return; }
-    const updateData = { ...this.usuarioABorrar, activo: false, DNI: (this.usuarioABorrar as any).DNI || (this.usuarioABorrar as any).dni };
-    this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, miId).subscribe({ next: () => { this.mostrarModalBorrado = false; this.cargarDatosSincronizados(); }, error: () => alert('Error') });
+  private manejarError(err: any): void {
+    console.error("Error completo del backend:", err);
+    // Si el backend envía un mensaje de error personalizado, lo mostramos
+    const msg = err.error?.message || err.error || 'Error en la operación';
+    alert("Error: " + msg);
   }
 
-  cerrarModalBorrado(): void { this.mostrarModalBorrado = false; this.mensajeErrorBorrado = null; }
-  logout(): void { localStorage.removeItem('rol'); }
-  toggleMenu(): void { this.isMenuOpen = !this.isMenuOpen; }
-  @HostListener('document:click', ['$event'])
-  clickout(event: any) { if (!event.target.closest('.user-menu-container')) this.isMenuOpen = false; }
+    resetForm(): void { this.nuevoUsuario = { nombre: '', email: '', dni: '', direccion: '', telefono: '', rol: 'REPRESENTANTE', contacto_emergencia: '', cargo: '', activo: true }; }
+
+    eliminar(u: Usuario): void { this.usuarioABorrar = { ...u }; this.mensajeErrorBorrado = null; this.mostrarModalBorrado = true; }
+    confirmarBorrado(): void {
+      if (!this.usuarioABorrar) return;
+      const miId = Number(localStorage.getItem('idUsuario'));
+      const idABorrar = this.usuarioABorrar.idUsuario;
+      if (idABorrar === miId) { this.mensajeErrorBorrado = "No puedes borrarte a ti mismo."; return; }
+      const updateData = { ...this.usuarioABorrar, activo: false, DNI: (this.usuarioABorrar as any).DNI || (this.usuarioABorrar as any).dni };
+      this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, updateData, miId).subscribe({ next: () => { this.mostrarModalBorrado = false; this.cargarDatosSincronizados(); }, error: () => alert('Error') });
+    }
+
+    cerrarModalBorrado(): void { this.mostrarModalBorrado = false; this.mensajeErrorBorrado = null; }
+    logout(): void { localStorage.removeItem('rol'); }
+    toggleMenu(): void { this.isMenuOpen = !this.isMenuOpen; }
+    @HostListener('document:click', ['$event'])
+    clickout(event: any) { if (!event.target.closest('.user-menu-container')) this.isMenuOpen = false; }
+
+    filtrarConcursos(): void {
+    this.concursosFiltrados = this.concursos.filter(c => {
+      const cumpleNombre = c.nombre?.toLowerCase().includes(this.terminoBusquedaConcurso.toLowerCase());
+      const cumpleEstado = this.filtroEstadoConcurso === '' || c.estadoConcurso === this.filtroEstadoConcurso;
+      const cumpleOrg = this.filtroOrgConcurso === '' || c.nombreOrganizacion === this.filtroOrgConcurso;
+      
+      return cumpleNombre && cumpleEstado && cumpleOrg;
+    });
+
+    this.paginaActualConcursos = 1; // Reiniciar a la primera página al filtrar
+    this.actualizarPaginacionConcursos();
+  }
+
+  actualizarPaginacionConcursos(): void {
+    this.totalPaginasConcursos = Math.ceil(this.concursosFiltrados.length / this.itemsPorPaginaConcursos);
+    const inicio = (this.paginaActualConcursos - 1) * this.itemsPorPaginaConcursos;
+    const fin = inicio + this.itemsPorPaginaConcursos;
+    this.concursosPaginados = this.concursosFiltrados.slice(inicio, fin);
+  }
+
+  // Al pulsar "Nuevo Concurso"
+  crearNuevoConcurso(): void {
+    this.modoFormularioConcurso = 'crear';
+    this.concursoSeleccionado = {
+      nombre: '',
+      estadoConcurso: 'ACTIVO',
+      id_organizacion: localStorage.getItem('id_organizacion') // Auto-asignar org si no es SYSADMIN
+    };
+    this.mostrandoFormularioConcurso = true;
+  }
+
+  // Al pulsar el icono del OJO
+  verDetallesConcurso(concurso: any): void {
+    
+  }
+
+  // Al pulsar el icono del LÁPIZ
+  editarConcurso(concurso: any): void {
+    this.modoFormularioConcurso = 'editar';
+    this.concursoSeleccionado = { ...concurso };
+    this.mostrandoFormularioConcurso = true;
+  }
+
+  eliminarConcurso(concurso: any): void {
+    const confirmacion = confirm(`¿ESTÁS SEGURO? Esta acción borrará el concurso "${concurso.nombre}" de forma permanente de la base de datos.`);
+    
+    if (confirmacion) {
+      this.concursoService.eliminarConcurso(concurso.idConcurso).subscribe({
+        next: () => {
+          // Borramos del array local para que desaparezca de la vista inmediatamente
+          this.concursos = this.concursos.filter(c => c.idConcurso !== concurso.idConcurso);
+          this.cargarDatosSincronizados();
+          alert('Concurso eliminado del sistema.');
+        },
+        error: (err) => {
+          // Mostramos el error específico del backend (ej: "No se puede borrar: tiene inscripciones")
+          const msg = err.error?.message || 'Error al intentar eliminar el concurso.';
+          alert(msg);
+        }
+      });
+    }
+  }
+
+  // Para cerrar el formulario (necesitarás un botón de cancelar)
+  cerrarFormularioConcurso(): void {
+    this.mostrandoFormularioConcurso = false;
+  }
+
+    // Abre el modal de confirmación específico para concurso
+  abrirModalBorradoConcurso(concurso: any): void {
+    this.idConcursoABorrar = concurso.idConcurso;
+    this.esErrorModalBorradoConcurso = false;
+    this.tituloModalBorradoConcurso = 'Confirmar Eliminación de Concurso';
+    this.mensajeModalBorradoConcurso = `¿Estás seguro de que deseas eliminar permanentemente el concurso "${concurso.nombre}"?`;
+    this.mostrarModalBorradoConcurso = true;
+  }
+
+  // Ejecuta la llamada al servicio para concurso
+  confirmarBorradoConcurso(): void {
+    if (this.idConcursoABorrar) {
+      this.concursoService.eliminarConcurso(this.idConcursoABorrar).subscribe({
+        next: () => {
+          this.concursos = this.concursos.filter(c => c.idConcurso !== this.idConcursoABorrar);
+          this.cerrarModalBorradoConcurso();
+        },
+        error: (err) => {
+          // Transformamos el modal en una ventana de error específica
+          this.esErrorModalBorradoConcurso = true;
+          this.tituloModalBorradoConcurso = 'Error al eliminar concurso';
+          this.mensajeModalBorradoConcurso = err.error?.message || 'El concurso tiene agrupaciones asociadas y no puede ser borrado.';
+        }
+      });
+    }
+  }
+
+  cerrarModalBorradoConcurso(): void {
+    this.mostrarModalBorradoConcurso = false;
+    this.idConcursoABorrar = null;
+  }  
 }

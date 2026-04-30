@@ -3,8 +3,10 @@ package es.uma.ajdp.tfg.elpapelillo.services;
 import es.uma.ajdp.tfg.elpapelillo.models.Administrador;
 import es.uma.ajdp.tfg.elpapelillo.models.Concurso;
 import es.uma.ajdp.tfg.elpapelillo.models.Usuario;
+import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoConcurso;
 import es.uma.ajdp.tfg.elpapelillo.repositories.ConcursoRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.UsuarioRepository;
+import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -53,5 +55,62 @@ public class ConcursoService {
         
         // Opción B: Si aún no tienes estados y quieres probar que el select cargue algo:
         return concursoRepository.findAll(); 
+    }
+
+    public Concurso guardar(Concurso concurso) {
+        // 1. Si tiene ID, es una EDICIÓN (PUT)
+        if (concurso.getIdConcurso() != null) {
+            return concursoRepository.findById(concurso.getIdConcurso())
+                .map(existente -> {
+                    // Actualizamos solo lo que viene del formulario
+                    existente.setNombre(concurso.getNombre());
+                    existente.setEstadoConcurso(concurso.getEstadoConcurso());
+                    existente.setFechaInicio(concurso.getFechaInicio());
+                    existente.setFechaFin(concurso.getFechaFin());
+                    existente.setFechaInicioInscripcion(concurso.getFechaInicioInscripcion());
+                    existente.setFechaFinInscripcion(concurso.getFechaFinInscripcion());
+
+                    // IMPORTANTE: Si el objeto del front no trae la organización, 
+                    // mantenemos la que ya tenía en la base de datos para evitar el Error 500
+                    if (concurso.getId_organizacion() != null) {
+                        existente.setId_organizacion(concurso.getId_organizacion());
+                    }
+
+                    validarLogicaFechas(existente);
+                    return concursoRepository.save(existente);
+                }).orElseThrow(() -> new RuntimeException("Concurso no encontrado"));
+        } 
+        
+        // 2. Si no tiene ID, es CREACIÓN (POST)
+        validarLogicaFechas(concurso);
+        return concursoRepository.save(concurso);
+    }
+
+    private void validarLogicaFechas(Concurso c) {
+            if (c.getFechaFinInscripcion().isAfter(c.getFechaInicio())) {
+                throw new RuntimeException("La inscripción debe terminar antes del inicio del concurso");
+            }
+            if (c.getFechaInicio().isAfter(c.getFechaFin())) {
+                throw new RuntimeException("El concurso no puede terminar antes de empezar");
+            }
+    }
+
+    @Transactional
+    public void eliminarConcurso(Integer id) {
+        Concurso concurso = concursoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("El concurso no existe."));
+
+        // Regla 1: Solo permitir borrar si está ACTIVO
+        if (concurso.getEstadoConcurso() != EstadoConcurso.ACTIVO) {
+            throw new RuntimeException("No se puede eliminar un concurso que no esté ACTIVO.");
+        }
+
+        // Regla 2: Solo permitir borrar si NO tiene agrupaciones/inscripciones
+        if (concurso.getInscripciones() != null && !concurso.getInscripciones().isEmpty()) {
+            throw new RuntimeException("No se puede eliminar: El concurso ya tiene agrupaciones asociadas.");
+        }
+
+        // Borrado físico de la base de datos
+        concursoRepository.deleteById(id);
     }
 }

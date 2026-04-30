@@ -44,9 +44,13 @@ public class Concurso {
     @Enumerated(EnumType.STRING)
     private EstadoConcurso estadoConcurso;
 
+    
+    @Column(name = "id_organizacion")
+    private Integer id_organizacion;
+
     // Muchos concursos pertenecen a una única Organización
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_organizacion", nullable = false)
+    @JoinColumn(name = "id_organizacion", nullable = false, insertable = false, updatable = false)
     @JsonBackReference
     private Organizacion organizacion;
 
@@ -64,7 +68,10 @@ public class Concurso {
     }
 
     @JsonProperty("nombreOrganizacion") 
-public String getNombreOrganizacionParaJson() {
-    return (this.organizacion != null) ? this.organizacion.getNombre() : "Sin Organización";
-}
+    public String getNombreOrganizacionParaJson() {
+        return (this.organizacion != null) ? this.organizacion.getNombre() : "Sin Organización";
+    }
+
+    public Integer getId_organizacion() { return id_organizacion; }
+    public void setId_organizacion(Integer id_organizacion) { this.id_organizacion = id_organizacion; }
 }
