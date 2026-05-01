@@ -256,7 +256,7 @@
                   <button class="btn-action view" (click)="verDetallesConcurso(concurso)">
                     <span class="material-symbols-outlined">visibility</span>
                   </button>
-                  <button class="btn-action edit" (click)="editarConcurso(concurso)">
+                  <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action edit" (click)="editarConcurso(concurso)">
                     <span class="material-symbols-outlined">edit</span>
                   </button>
                   <button class="btn-action delete" (click)="abrirModalBorradoConcurso(concurso)">
@@ -333,7 +333,7 @@
             <option value="ADMINISTRADOR">Administrador</option>
           }
 
-          @if (rolSesionActual === 'ADMINISTRADOR') {
+          @if (rolSesionActual === 'ADMINISTRADOR' || rolSesionActual === 'SUPERADMIN') {
             <option value="REPRESENTANTE">Representante</option>
           }
 
