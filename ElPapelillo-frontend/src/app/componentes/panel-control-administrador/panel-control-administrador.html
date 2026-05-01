@@ -332,6 +332,12 @@
             <option value="SUPERADMIN">Superadmin</option>
             <option value="ADMINISTRADOR">Administrador</option>
           }
+
+          @if (rolSesionActual === 'ADMINISTRADOR') {
+            <option value="REPRESENTANTE">Representante</option>
+          }
+
+
         </select>
       </div>
 
