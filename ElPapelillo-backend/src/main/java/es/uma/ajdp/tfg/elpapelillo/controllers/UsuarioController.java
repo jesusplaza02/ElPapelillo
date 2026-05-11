@@ -89,6 +89,19 @@ public class UsuarioController {
         }
     }
 
+    @PutMapping("/perfil")
+    public ResponseEntity<?> actualizarMiPerfil(
+            @RequestBody Usuario datosNuevos,
+            @RequestParam Integer idEjecutor) {
+        try {
+            // Usamos idEjecutor como el ID a modificar y como el que ejecuta
+            Usuario actualizado = usuarioService.actualizar(idEjecutor, datosNuevos, idEjecutor);
+            return ResponseEntity.ok(actualizado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al actualizar perfil: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/recuperar-password")
     public ResponseEntity<?> recuperar(@RequestBody Map<String, String> payload) {
         try {
