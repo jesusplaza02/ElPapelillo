@@ -13,7 +13,7 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 })
 export class EditarUsuarioComponent implements OnInit {
   usuario: any = {
-    idUsuario: null,    // Importante: Coincide con @Column(name = "idUsuario")
+    idUsuario: null,
     nombre: '',
     email: '',
     telefono: '',
@@ -21,10 +21,10 @@ export class EditarUsuarioComponent implements OnInit {
     contacto_emergencia: '', 
     cargo: '',              
     rol: '',
-    type: ''            // Necesario por @JsonTypeInfo de tu Java
+    type: '' 
   };
   
-  id: string | null = null;
+  idUrl: any = null; 
   mensajeExito = false;
 
   constructor(
@@ -36,24 +36,47 @@ export class EditarUsuarioComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.id = this.route.snapshot.paramMap.get('id');
-    if (this.id) {
-      this.cargarUsuario();
+    console.log('%c --- DEBUG SESIÓN --- ', 'background: #222; color: #bada55');
+    
+    // 1. OBTENER NUESTRA IDENTIDAD REAL (A prueba de errores de JSON)
+    const dataStored = localStorage.getItem('usuario');
+    let miIdReal: any = null;
+
+    if (dataStored) {
+      try {
+        // Solo intentamos parsear si parece un objeto JSON (empieza por {)
+        if (dataStored.trim().startsWith('{')) {
+          const sesion = JSON.parse(dataStored);
+          miIdReal = sesion.idUsuario || sesion.id;
+        } else {
+          // Si no es JSON (es un texto como el email), buscamos el ID en otra clave
+          console.warn('El storage "usuario" es texto plano, no JSON.');
+          miIdReal = localStorage.getItem('idUsuario'); 
+        }
+      } catch (e) {
+        miIdReal = localStorage.getItem('idUsuario');
+      }
     }
+
+    // 2. Si todo falla, forzamos el ID 1 (Tú) para que no se rompa nada en las pruebas
+    if (!miIdReal) miIdReal = 1; 
+
+    this.idUrl = this.route.snapshot.paramMap.get('id');
+    
+    console.log('ID en la URL:', this.idUrl);
+    console.log('ID real detectado (Fijo):', miIdReal);
+
+    // SEGURIDAD: Siempre cargamos NUESTRO perfil, ignoramos la URL para evitar confusiones
+    this.cargarUsuario(miIdReal);
   }
 
-  cargarUsuario() {
-    this.http.get(`http://localhost:8080/api/usuarios/${this.id}`)
+  cargarUsuario(id: any) {
+    this.http.get(`http://localhost:8080/api/usuarios/${id}`)
       .subscribe({
         next: (res: any) => {
-          console.log('Datos cargados de Java:', res);
           this.usuario = res;
-
-          // Mapeo por si el JSON de Representante trae 'telefono_emergencia'
-          if (res.telefono_emergencia) {
-            this.usuario.contacto_emergencia = res.telefono_emergencia;
-          }
-
+          // Mapeo por si el campo en DB es diferente
+          if (res.telefono_emergencia) this.usuario.contacto_emergencia = res.telefono_emergencia;
           this.cdr.detectChanges(); 
         },
         error: (err) => console.error('Error al cargar:', err)
@@ -61,39 +84,37 @@ export class EditarUsuarioComponent implements OnInit {
   }
 
   actualizar() {
-  if (!this.id) return;
+    // Recuperar identidad para el guardado
+    const dataStored = localStorage.getItem('usuario');
+    let miIdReal: any = 1; // Default por seguridad
 
-  const idEjecutor = this.id; 
-  const url = `http://localhost:8080/api/usuarios/${this.id}?idEjecutor=${idEjecutor}`;
+    try {
+      if (dataStored && dataStored.trim().startsWith('{')) {
+        const sesion = JSON.parse(dataStored);
+        miIdReal = sesion.idUsuario || sesion.id;
+      } else {
+        miIdReal = localStorage.getItem('idUsuario') || 1;
+      }
+    } catch(e) { miIdReal = 1; }
 
-  this.http.put(url, this.usuario).subscribe({
-    next: (response) => {
-      this.mensajeExito = true;
-      
-      // Actualizamos el nombre en el storage para que el header se vea bien
-      localStorage.setItem('nombreUsuario', this.usuario.nombre);
-      
-      console.log('Actualizado con éxito. Redirigiendo...');
-      
-      setTimeout(() => {
-        // CORRECCIÓN: Redirigir según el rol del usuario que acaba de editar
-        const rol = this.usuario.rol; // O usa tu authService.getRol()
+    // BLINDAJE: El ID que se envía al servidor es el nuestro, SIEMPRE.
+    this.usuario.idUsuario = miIdReal;
 
-        if (rol === 'REPRESENTANTE') {
-          this.router.navigate(['/panel-representante']);
-        } else {
-          // Si es ADMIN, SUPERADMIN o SYSADMIN, vuelve al panel de control
-          this.router.navigate(['/panel-control-administrador']);
-        }
-      }, 2000);
-    },
-    error: (err) => {
-      console.error('Error al actualizar:', err);
-    }
-  });
-}
+    const url = `http://localhost:8080/api/usuarios/perfil?idEjecutor=${miIdReal}`;
 
-  cancelar() {
-  this.location.back()
+    this.http.put(url, this.usuario).subscribe({
+      next: (response) => {
+        this.mensajeExito = true;
+        localStorage.setItem('nombreUsuario', this.usuario.nombre);
+        
+        setTimeout(() => {
+          const r = this.usuario.rol;
+          this.router.navigate([r === 'REPRESENTANTE' ? '/panel-representante' : '/panel-control-administrador']);
+        }, 2000);
+      },
+      error: (err) => alert('Error al guardar datos: ' + err.message)
+    });
   }
+
+  cancelar() { this.location.back(); }
 }

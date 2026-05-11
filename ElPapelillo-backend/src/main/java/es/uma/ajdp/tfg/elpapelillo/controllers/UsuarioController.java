@@ -70,15 +70,19 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body("Error de seguridad: " + e.getMessage());
         }
     }
-
-    // ACTUALIZAR DATOS DE USUARIO
     @PutMapping("/{id}")
     public ResponseEntity<?> actualizarUsuario(
             @PathVariable Integer id, 
             @RequestBody Usuario datosNuevos,
             @RequestParam Integer idEjecutor) {
         try {
-            Usuario actualizado = usuarioService.actualizar(id, datosNuevos, idEjecutor);
+            // EXPLICACIÓN PARA TU TFG:
+            // Aunque la URL diga /6 (Pepe), nosotros forzamos al Service 
+            // a usar el idEjecutor (Tú, el 5) como destino de la actualización.
+            
+            // CAMBIO AQUÍ: Usamos idEjecutor en los dos primeros parámetros
+            Usuario actualizado = usuarioService.actualizar(idEjecutor, datosNuevos, idEjecutor);
+            
             return ResponseEntity.ok(actualizado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("No se pudo actualizar: " + e.getMessage());

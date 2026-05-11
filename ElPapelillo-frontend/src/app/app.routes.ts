@@ -8,9 +8,9 @@ import { RegistroComponent } from './componentes/registro/registro';
 import { GestionAgrupacionesRepComponent } from './componentes/gestion-agrupaciones-rep/gestion-agrupaciones-rep';
 import { PanelControlAdministradorComponent } from './componentes/panel-control-administrador/panel-control-administrador';
 import { DocumentacionRepComponent } from './componentes/documentacion-rep/documentacion-rep';
-// 1. IMPORTA TU COMPONENTE DE EDICIÓN AQUÍ
-// Cambia la ruta según dónde tengas el archivo realmente
+
 import { EditarUsuarioComponent } from './componentes/editar-usuario/editar-usuario'; 
+import { PoliticaPrivacidadComponent } from './componentes/politica-privacidad/politica-privacidad';
 
 // FUNCIÓN GUARD CON CONTROL DE ROLES
 const roleGuard = (allowedRoles: string[]) => {
@@ -38,10 +38,17 @@ export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'registro', component: RegistroComponent },
+  { path: 'politica-privacidad', component: PoliticaPrivacidadComponent },
   
   // RUTA DE EDICIÓN DE USUARIO (Para ambos roles, o ajusta según prefieras)
   { 
-    path: 'editar-usuario/:id', 
+    path: 'editar-usuario', 
+    component: EditarUsuarioComponent,
+    canActivate: [roleGuard(['REPRESENTANTE', 'ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
+  },
+
+  { 
+    path: 'editar-usuario/:id', // Agregamos esta otra vez para que no te eche al login
     component: EditarUsuarioComponent,
     canActivate: [roleGuard(['REPRESENTANTE', 'ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
   },

@@ -4,6 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms'; 
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service'; 
+import { GlobalConfig } from '../../../constants';
 
 
 @Component({
@@ -19,6 +20,8 @@ export class LoginComponent implements OnInit {
     email: '',
     password: ''
   };
+
+  public config = GlobalConfig;
 
   // Estados de la interfaz
   errorMessage: string = '';

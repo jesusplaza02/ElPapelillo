@@ -13,8 +13,6 @@ export class PanelControlAdministradorConcursoService {
     return this.http.get<any[]>(`${this.apiUrl}/mis-concursos/${idUsuario}`);
   }
 
-  // --- AÑADE ESTOS MÉTODOS PARA QUITAR EL ROJO ---
-  
   crearConcurso(concurso: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, concurso);
   }

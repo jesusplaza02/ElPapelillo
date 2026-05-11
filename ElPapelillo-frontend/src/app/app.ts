@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router'; 
 import { filter } from 'rxjs/operators';
 import { HeaderComponent } from "./componentes/header/header";
+import { FooterComponent } from './componentes/footer/footer';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   // IMPORTANTE: Asegúrate de incluir HeaderComponent aquí si lo usas en app.html
-  imports: [CommonModule, RouterOutlet, HeaderComponent], 
+  imports: [CommonModule, RouterOutlet, HeaderComponent, FooterComponent], 
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

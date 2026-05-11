@@ -46,12 +46,11 @@ export class PanelControlAdministradorUsuarioService {
     }
     
     // Obtenemos el ID del administrador que está haciendo la acción
-    // (Si no tienes 'idUsuario' guardado en localStorage, enviamos un 1 por defecto)
+    // (Si no tengo 'idUsuario' guardado en localStorage, envio un 1 por defecto)
     const idEjecutor = localStorage.getItem('idUsuario') || 1;
 
     console.log(`Actualizando usuario ${id} ejecutado por admin ${idEjecutor}`);
 
-    // ¡AQUÍ ESTÁ LA SOLUCIÓN! Añadimos el parámetro que exigía Spring Boot
     const urlConParametro = `${this.apiUrl}/${id}?idEjecutor=${idEjecutor}`;
 
     return this.http.put<Usuario>(urlConParametro, usuario).pipe(

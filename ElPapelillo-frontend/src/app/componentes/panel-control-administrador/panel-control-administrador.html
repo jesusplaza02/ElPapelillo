@@ -259,7 +259,7 @@
                   <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action edit" (click)="editarConcurso(concurso)">
                     <span class="material-symbols-outlined">edit</span>
                   </button>
-                  <button class="btn-action delete" (click)="abrirModalBorradoConcurso(concurso)">
+                  <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action delete" (click)="abrirModalBorradoConcurso(concurso)">
                       <span class="material-symbols-outlined">delete</span>
                   </button>
                 </td>

@@ -1,6 +1,6 @@
 <div class="content">
   <div class="register-card">
-    <h2>Registro de Usuario</h2>
+    <h2>Registro de Representante</h2>
     <p class="subtitle">Ingresa los datos del sistema</p>
 
     <div *ngIf="mensaje" [ngClass]="{'alert-exito': esExito, 'alert-error': !esExito}" class="mensaje-formulario">
@@ -8,7 +8,7 @@
       {{ mensaje }}
     </div>
 
-    <form (ngSubmit)="finalizarRegistro()" class="form-grid">
+    <form (ngSubmit)="finalizarRegistro()" #registroForm="ngForm" class="form-grid">
       
       <div class="input-group full-width">
         <label for="email">Correo Electrónico</label>
@@ -45,8 +45,20 @@
         <input type="tel" id="telEmergencia" name="telEmergencia" [(ngModel)]="datosUsuario.telEmergencia" placeholder="650 500 500">
       </div>
 
+      <div class="privacy-check-container">
+        <input type="checkbox" id="aceptaPrivacidad" #checkPrivacidad required>
+        <label for="aceptaPrivacidad">
+          He leído y acepto la 
+          <a href="/politica-privacidad" target="_blank">Política de Privacidad</a>
+        </label>
+      </div>
+
       <div class="btn-container full-width">
-        <button type="submit" class="btn-submit">Finalizar Registro</button>
+        <button type="submit" 
+                class="btn-submit" 
+                [disabled]="registroForm.invalid || !checkPrivacidad.checked">
+          Finalizar Registro
+        </button>
         <a class="back-link" routerLink="/login">¿Ya tienes cuenta? Inicia sesión</a>
       </div>
     </form>
