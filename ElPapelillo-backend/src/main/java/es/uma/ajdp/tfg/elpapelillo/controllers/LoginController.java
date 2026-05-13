@@ -38,6 +38,11 @@ public class LoginController {
             if (userOpt.isPresent()) {
                 Usuario user = userOpt.get();
 
+                if (!user.isActivo()) {
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("message", "Su cuenta está desactivada. Contacte con el administrador."));
+                }
+
                 // 2. Verificamos contraseña con BCrypt
                 if (passwordEncoder.matches(loginData.getPassword(), user.getPassword())) {
                     

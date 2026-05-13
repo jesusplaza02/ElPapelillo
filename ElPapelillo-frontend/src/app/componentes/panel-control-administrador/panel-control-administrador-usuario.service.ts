@@ -68,9 +68,15 @@ export class PanelControlAdministradorUsuarioService {
   }
 
   actualizarUsuarioConEjecutor(idUsuario: number, usuario: any, idEjecutor: number): Observable<any> {
-  // Construimos la URL con el parámetro de consulta ?idEjecutor=X
-  const url = `${this.apiUrl}/${idUsuario}?idEjecutor=${idEjecutor}`;
-  
-  return this.http.put(url, usuario);
-}
+    // Construimos la URL con el parámetro de consulta ?idEjecutor=X
+    const url = `${this.apiUrl}/${idUsuario}?idEjecutor=${idEjecutor}`;
+    
+    return this.http.put(url, usuario);
+  }
+
+  eliminarUsuario(idABorrar: number, idEjecutor: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${idABorrar}?idEjecutor=${idEjecutor}`, { responseType: 'text' });
+  }
+
+
 }

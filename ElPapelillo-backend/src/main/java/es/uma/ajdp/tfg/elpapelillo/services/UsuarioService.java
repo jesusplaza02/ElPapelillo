@@ -140,38 +140,46 @@ public class UsuarioService {
     // BORRADO LÓGICO 
     public void eliminarUsuarioLogico(Integer idABorrar, Integer idEjecutor) throws Exception {
         Usuario ejecutor = usuarioRepository.findById(idEjecutor)
-                .orElseThrow(() -> new Exception("Error: El usuario ejecutor no existe."));
+            .orElseThrow(() -> new Exception("Error: El ejecutor no existe."));
+    Usuario objetivo = usuarioRepository.findById(idABorrar)
+            .orElseThrow(() -> new Exception("Error: El usuario a borrar no existe."));
 
-        Usuario objetivo = usuarioRepository.findById(idABorrar)
-                .orElseThrow(() -> new Exception("Error: El usuario a borrar no existe."));
-
-        if ("ADMIN".equals(objetivo.getRol()) && !"SUPERADMIN".equals(ejecutor.getRol())) {
-            throw new Exception("Permiso denegado: Solo SuperAdmin gestiona Admins.");
-        }
-
-        // CAMBIO AQUÍ: Ahora buscamos en Agrupaciones
-        if ("REPRESENTANTE".equals(objetivo.getRol())) {
-            // Buscamos las agrupaciones de este representante
-            List<Agrupacion> agrupacionesAsociadas = agrupacionRepository.findByRepresentante_IdUsuario(idABorrar);
-            
-            if (!agrupacionesAsociadas.isEmpty()) {
-                for (Agrupacion agrupacion : agrupacionesAsociadas) {
-                    // Desvinculamos al representante de la agrupación
-                    agrupacion.setRepresentante(null); 
-                }
-                agrupacionRepository.saveAll(agrupacionesAsociadas);
-                log.info("Se han desvinculado {} agrupaciones del representante {}", 
-                         agrupacionesAsociadas.size(), objetivo.getEmail());
-            }
-        }
-
-        objetivo.setActivo(false);
-        usuarioRepository.save(objetivo);
-        
-        registrarLog(ejecutor.getEmail(), "BORRADO_LOGICO", "Desactivado usuario: " + objetivo.getEmail());
+    // --- RESTRICCIÓN 1: ANTISUICIDIO (BLOQUEO TOTAL) ---
+    // Da igual el rol que seas, no puedes borrarte a ti mismo.
+   System.out.println("DEBUG: Rol del objetivo -> [" + objetivo.getRol() + "]");
+    if (idABorrar.intValue()==(idEjecutor).intValue()) {
+        throw new Exception("Operación cancelada: Un usuario no puede desactivar su propia cuenta.");
     }
-    
-    // --- MÉTODOS AUXILIARES ---
+
+    // --- RESTRICCIÓN 2: MÍNIMO 1 SYSADMIN ---
+    if ("SYSADMIN".equalsIgnoreCase(objetivo.getRol())) {
+        // Buscamos todos los usuarios que tengan ese rol (sin importar mayúsculas) y estén activos
+        List<Usuario> sysadminsActivos = usuarioRepository.findByRolIgnoreCaseAndActivoTrue("SYSADMIN");
+        
+        // Si solo hay uno en la lista, y ese uno es precisamente el que queremos borrar... ¡BLOQUEO!
+        if (sysadminsActivos.size() <= 1) {
+            throw new Exception("Error de seguridad: No se puede desactivar al último SYSADMIN. El sistema quedaría sin administrador.");
+        }
+    }
+
+    // --- EL RESTO DE TU LÓGICA (JERARQUÍA Y REPRESENTANTES) ---
+    if ("ADMINISTRADOR".equals(objetivo.getRol()) && !"SUPERADMIN".equals(ejecutor.getRol())) {
+        throw new Exception("Permiso denegado: Solo el SuperAdmin gestiona Administradores.");
+    }
+
+    if ("REPRESENTANTE".equals(objetivo.getRol())) {
+        List<Agrupacion> agrupaciones = agrupacionRepository.findByRepresentante_IdUsuario(idABorrar);
+        for (Agrupacion ag : agrupaciones) {
+            ag.setRepresentante(null);
+        }
+        agrupacionRepository.saveAll(agrupaciones);
+    }
+
+    // EJECUCIÓN
+    objetivo.setActivo(false);
+    usuarioRepository.save(objetivo);
+    registrarLog(ejecutor.getEmail(), "BORRADO_LOGICO", "Desactivado: " + objetivo.getEmail());
+}// --- MÉTODOS AUXILIARES ---
 
     private String generarPasswordAleatoria(int longitud) {
         String caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";

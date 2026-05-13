@@ -547,24 +547,31 @@ confirmarBorradoOrg(): void {
     eliminar(u: Usuario): void { this.usuarioABorrar = { ...u }; this.mensajeErrorBorrado = null; this.mostrarModalBorrado = true; }
     // --- BUSCA ESTO (Está cerca de la línea 480 aproximadamente) ---
 
+    
 confirmarBorrado(): void {
-  if (!this.usuarioABorrar) return;
+  if (!this.usuarioABorrar || !this.usuarioABorrar.idUsuario) return;
+  
   const miId = Number(localStorage.getItem('idUsuario'));
   const idABorrar = this.usuarioABorrar.idUsuario;
 
-  this.usuarioService.actualizarUsuarioConEjecutor(idABorrar, { ...this.usuarioABorrar, activo: false }, miId).subscribe({
+  // CAMBIO CLAVE: Llamamos a eliminarUsuario (el DELETE), no a actualizar
+  this.usuarioService.eliminarUsuario(idABorrar, miId).subscribe({
     next: () => {
-      // 1. Cerramos la variable de visibilidad INMEDIATAMENTE
       this.mostrarModalBorrado = false; 
       this.usuarioABorrar = null;
 
-      // 2. Refrescamos datos
       this.cargarDatosSincronizados();
-      this.lanzarToast('Usuario eliminado', 'success');
+      this.lanzarToast('Usuario desactivado correctamente', 'success');
     },
-    error: () => {
+    error: (err) => {
+      // Ahora 'err' contendrá el mensaje de "No puedes borrarte a ti mismo" que lanza el Java
       this.mostrarModalBorrado = false;
-      this.lanzarToast('Error al eliminar', 'error');
+      
+      // Intentamos sacar el mensaje de error real que viene del Backend
+      const mensajeError = typeof err.error === 'string' ? err.error : 'Error de seguridad al eliminar';
+      this.lanzarToast(mensajeError, 'error');
+      
+      console.error("Bloqueo del backend:", err);
     }
   });
 }
