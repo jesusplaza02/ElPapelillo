@@ -1,6 +1,6 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { catchError, forkJoin, of } from 'rxjs';
 
@@ -18,6 +18,7 @@ import { PanelControlAdministradorConcursoService } from './panel-control-admini
   styleUrl: './panel-control-administrador.css'
 })
 export class PanelControlAdministradorComponent implements OnInit {
+  private router = inject(Router);
   isMenuOpen = false;
   borradoExitoso: boolean = false;
   
@@ -616,8 +617,17 @@ confirmarBorrado(): void {
 
   // Al pulsar el icono del OJO
   verDetallesConcurso(concurso: any): void {
-    
+    if (concurso && concurso.idConcurso) {
+      // Navega hacia 'detalle-concurso/X' (donde X es el id del concurso)
+      this.router.navigate(['/detalle-concurso', concurso.idConcurso]);
+    } else if (concurso && concurso.id) {
+      // Por si acaso en tu BD el atributo clave se llama simplemente 'id'
+      this.router.navigate(['/detalle-concurso', concurso.id]);
+    } else {
+      console.error('Error: El concurso seleccionado no tiene un ID válido', concurso);
+    }
   }
+
 
   // Al pulsar el icono del LÁPIZ
   editarConcurso(concurso: any): void {

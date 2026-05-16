@@ -12,6 +12,7 @@ import { DocumentacionRepComponent } from './componentes/documentacion-rep/docum
 import { EditarUsuarioComponent } from './componentes/editar-usuario/editar-usuario'; 
 import { PoliticaPrivacidadComponent } from './componentes/politica-privacidad/politica-privacidad';
 
+import { DetalleConcursoComponent } from './componentes/pagina-concurso/pagina-concurso';
 // FUNCIÓN GUARD CON CONTROL DE ROLES
 const roleGuard = (allowedRoles: string[]) => {
   return () => {
@@ -71,6 +72,12 @@ export const routes: Routes = [
     path: 'panel-control-administrador', 
     component: PanelControlAdministradorComponent,
     canActivate: [roleGuard(['ADMINISTRADOR', 'SUPERADMIN','SYSADMIN'])] 
+  },
+  
+  { 
+    path: 'detalle-concurso/:id', 
+    component: DetalleConcursoComponent,
+    canActivate: [roleGuard(['ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
   },
 
   { path: '**', redirectTo: 'login' }

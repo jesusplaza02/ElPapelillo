@@ -1,6 +1,5 @@
 package es.uma.ajdp.tfg.elpapelillo.services;
 
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,10 +22,15 @@ public class InscripcionService {
 
     // 2. Crear una nueva inscripción con la lógica de negocio aplicada
     public Inscripcion crearInscripcion(Inscripcion nuevaInscripcion) {
-        // La lógica de negocio (fechas, estados por defecto) va aquí, en el Service
         nuevaInscripcion.setFechaInscripcion(LocalDateTime.now());
         nuevaInscripcion.setEstadoInscripcion(EstadoAdministrativo.PENDIENTE);
         
         return inscripcionRepository.save(nuevaInscripcion);
     }
-} 
+
+    // --- NUEVO MÉTODO PARA CARGAR LOS DATOS EN EL DETALLE DEL CONCURSO ---
+    public List<Inscripcion> obtenerInscripcionesPorConcurso(Integer idConcurso) {
+        // Llama al repositorio usando la relación que tiene Inscripcion con Concurso
+        return inscripcionRepository.findByConcursoIdConcurso(idConcurso);
+    }
+}

@@ -1,0 +1,148 @@
+<div class="main-container" *ngIf="concurso">
+  
+  <div class="contest-header">
+    <div class="header-left">
+      <h1>
+        <i class="fas fa-trophy gold"></i> 
+        {{ concurso?.nombre }} 
+        <span class="badge active">Activo</span>
+      </h1>
+      <div class="dates-grid">
+        <div class="date-group">
+          <p class="date-title"><i class="far fa-calendar-alt"></i> Inscripciones</p>
+          <p><span>Inicio:</span> {{ concurso?.fechaInicioInscripcion }}</p>
+          <p><span>Fin:</span> {{ concurso?.fechaFinInscripcion }}</p>
+        </div>
+        <div class="date-group">
+          <p class="date-title"><i class="fas fa-clock"></i> Concurso</p>
+          <p><span>Inicio:</span> {{ concurso?.fechaInicio }}</p>
+          <p><span>Fin:</span> {{ concurso?.fechaFin }}</p>
+        </div>
+      </div>
+    </div>
+    <button class="btn-pdf" (click)="generarPDF()">
+      <i class="fas fa-file-pdf"></i> Generar PDF Listado General
+    </button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-content">
+        <p class="stat-title">Total de Grupos Inscritos</p>
+        <p class="stat-number">{{ stats?.totalGrupos }}</p>
+        <p class="stat-sub">Agrupaciones registradas</p>
+      </div>
+      <i class="fas fa-users icon-bg"></i>
+    </div>
+    
+    <div class="stat-card orange">
+      <div class="stat-content">
+        <p class="stat-title">Pendientes de Validar</p>
+        <p class="stat-number">{{ stats?.pendientesValidar }}</p>
+        <p class="stat-sub">Requieren revisión</p>
+      </div>
+      <i class="far fa-eye icon-bg"></i>
+    </div>
+
+    <div class="stat-card pink">
+      <div class="stat-content">
+        <p class="stat-title">Fianzas Pendientes</p>
+        <p class="stat-number">{{ stats?.fianzasPendientes }}</p>
+        <p class="stat-sub">Pagos sin confirmar</p>
+      </div>
+      <i class="fas fa-dollar-sign icon-bg"></i>
+    </div>
+  </div>
+
+  <div class="table-controls">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input 
+        type="text" 
+        [(ngModel)]="filtroTexto" 
+        (input)="filtrarAgrupaciones()" 
+        placeholder="Buscar por nombre de agrupación o representante...">
+    </div>
+    
+    <div class="filters-row">
+      <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
+
+      <select [(ngModel)]="filtroCategoria" (change)="filtrarAgrupaciones()">
+        <option value="">Todas las categorías</option>
+        <option value="ADULTO">Adulto</option>
+        <option value="JUVENIL">Juvenil</option>
+        <option value="INFANTIL">Infantil</option>
+      </select>
+
+      <select [(ngModel)]="filtroEstado" (change)="filtrarAgrupaciones()">
+        <option value="">Todos los estados</option>
+        <option value="APROBADO">Aprobado</option>
+        <option value="PENDIENTE">Pendiente</option>
+        <option value="RECHAZADO">Rechazado</option>
+      </select>
+
+      <select [(ngModel)]="filtroFianza" (change)="filtrarAgrupaciones()">
+        <option value="">Todas las fianzas</option>
+        <option value="PAGADA">Pagada</option>
+        <option value="PENDIENTE">Pendiente</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox"></th>
+          <th>Nombre</th>
+          <th>Modalidad</th>
+          <th>Categoría</th>
+          <th>Representante</th>
+          <th>Estado</th>
+          <th>Fianza</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ins of inscripcionesFiltradas">
+          <td><input type="checkbox"></td>
+          <td class="bold-text">{{ ins?.agrupacion?.nombre }}</td>
+          <td>
+            <span class="tag tag-murga">
+              {{ ins?.agrupacion?.modalidad }}
+            </span>
+          </td>
+          <td>
+            <span class="tag tag-adulto">
+              {{ ins?.agrupacion?.categoria }}
+            </span>
+          </td>
+          <td>
+            {{ ins?.agrupacion?.representante?.nombre || 'Sin asignar' }} 
+            <i class="far fa-eye view-icon" (click)="verDetalleRepresentante(ins?.agrupacion?.representante?.nombre)"></i>
+          </td>
+          <td>
+            <span class="status" [ngClass]="{
+              'st-aprobado': ins?.estadoInscripcion === 'APROBADO' || ins?.estadoInscripcion === 'Aprobada',
+              'st-pendiente': ins?.estadoInscripcion === 'PENDIENTE' || ins?.estadoInscripcion === 'Pendiente',
+              'st-rechazado': ins?.estadoInscripcion === 'RECHAZADO' || ins?.estadoInscripcion === 'Rechazada'
+            }">
+              {{ ins?.estadoInscripcion }}
+            </span>
+          </td>
+          <td>
+            <span class="status" [class.st-pagada]="ins?.fianza === true || ins?.fianza === 'PAGADA' || ins?.fianza === 'Pagada'">
+              <i *ngIf="ins?.fianza === true || ins?.fianza === 'PAGADA' || ins?.fianza === 'Pagada'" class="fas fa-check-circle"></i> 
+              {{ (ins?.fianza === true || ins?.fianza === 'PAGADA' || ins?.fianza === 'Pagada') ? 'PAGADA' : 'PENDIENTE' }}
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="inscripcionesFiltradas.length === 0">
+          <td colspan="7" style="text-align: center; color: var(--text-light); padding: 30px;">
+            No se han encontrado agrupaciones que coincidan con los filtros seleccionados.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

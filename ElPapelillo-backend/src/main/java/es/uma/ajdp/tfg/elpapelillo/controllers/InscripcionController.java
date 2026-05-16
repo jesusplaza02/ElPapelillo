@@ -27,6 +27,12 @@ public class InscripcionController {
         return ResponseEntity.ok(inscripciones);
     }
 
+    @GetMapping("/concurso/{idConcurso}")
+    public ResponseEntity<List<Inscripcion>> getInscripcionesConcurso(@PathVariable Integer idConcurso) {
+        List<Inscripcion> inscripciones = inscripcionService.obtenerInscripcionesPorConcurso(idConcurso);
+        return ResponseEntity.ok(inscripciones);
+    }
+
     // 2. Crear una nueva inscripción
     @PostMapping
     public ResponseEntity<Inscripcion> crearInscripcion(@RequestBody Inscripcion nuevaInscripcion) {
