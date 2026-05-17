@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router} from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class DetalleConcursoComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private http = inject(HttpClient);
   private cdRef = inject(ChangeDetectorRef);
 
@@ -139,7 +140,9 @@ export class DetalleConcursoComponent implements OnInit {
     alert('Función de exportación PDF en desarrollo para el TFG');
   }
 
-  verDetalleRepresentante(representante: string): void {
-    console.log('Viendo perfil de:', representante);
+  irADetalleAgrupacion(idInscripcion: number): void {
+  if (idInscripcion) {
+    this.router.navigate(['/detalle-agrupacion', idInscripcion]);
   }
+}
 }

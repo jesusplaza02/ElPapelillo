@@ -1,0 +1,300 @@
+/* Contenedor Principal */
+.main-container {
+  padding: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Botón de Volver */
+.btn-back {
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s ease;
+}
+
+.btn-back:hover {
+  color: #212529;
+}
+
+/* Tarjetas de Información */
+.shadow-card {
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  margin-bottom: 30px;
+  border: 1px solid #f1f3f5;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #f8f9fa;
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.card-header-row h2 {
+  font-size: 1.8rem;
+  color: #212529;
+  margin: 0 0 5px 0;
+}
+
+.card-header-row h3 {
+  font-size: 1.3rem;
+  color: #343a40;
+  margin: 0;
+}
+
+.subtitle {
+  color: #6c757d;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.subtitle span {
+  font-weight: 600;
+}
+
+/* Badges de Estado de Inscripción */
+.badge-status {
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bg-pendiente {
+  background-color: #ffe8cc;
+  color: #fd7e14;
+}
+
+.bg-aprobado {
+  background-color: #d3f9d8;
+  color: #2b8a3e;
+}
+
+.bg-rechazado {
+  background-color: #ffe3e3;
+  color: #e03131;
+}
+
+/* Grid de Información Dinámica */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 25px;
+  margin-bottom: 10px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  font-size: 0.85rem;
+  color: #adb5bd;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.info-item p {
+  font-size: 1.05rem;
+  color: #495057;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Estilos de texto especiales */
+.bold-text {
+  font-weight: 700 !important;
+}
+
+.text-purple {
+  color: #9c27b0 !important;
+}
+
+.tag-tipo {
+  display: inline-block;
+  background: #e8f4fd;
+  color: #1d8cf8;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Caja de comentarios para Tipo OTRO */
+.comments-box {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 4px solid #adb5bd;
+  font-style: italic;
+}
+
+/* Botonera de Validación del Administrador */
+.actions-row {
+  display: flex;
+  gap: 15px;
+  margin-top: 35px;
+  padding-top: 25px;
+  border-top: 1px solid #f1f3f5;
+}
+
+.btn-approve, .btn-reject, .btn-secondary, .btn-pdf-download {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-approve {
+  background-color: #2b8a3e;
+  color: white;
+}
+
+.btn-approve:hover {
+  background-color: #237032;
+}
+
+.btn-reject {
+  background-color: #e03131;
+  color: white;
+}
+
+.btn-reject:hover {
+  background-color: #c12727;
+}
+
+.btn-secondary {
+  background-color: #f1f3f5;
+  color: #495057;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+.btn-secondary:hover {
+  background-color: #e9ecef;
+}
+
+/* Tarjeta compacta del Representante */
+.unique-row-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 25px 30px;
+}
+
+.rep-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #212529;
+  margin: 0;
+}
+
+.rep-email {
+  font-size: 0.95rem;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Listado de Participantes */
+.clear-top-margin {
+  margin-top: 10px;
+}
+
+.section-sub-title {
+  font-size: 0.95rem;
+  color: #868e96;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.btn-pdf-download {
+  background-color: #e3fafc;
+  color: #0b7285;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+}
+
+.btn-pdf-download:hover {
+  background-color: #c5f6fa;
+}
+
+/* Tabla de Componentes */
+.table-container {
+  overflow-x: auto;
+}
+
+.participants-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.participants-table th {
+  background-color: #f8f9fa;
+  color: #495057;
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.participants-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f3f5;
+  color: #495057;
+  font-size: 0.95rem;
+}
+
+.participants-table tbody tr:hover {
+  background-color: #fbfbfb;
+}
+
+/* Badges de Instrumentos / Roles */
+.role-badge {
+  background-color: #f1f3f5;
+  color: #495057;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.font-guitarra {
+  background-color: #e3fafc;
+  color: #0b7285;
+}

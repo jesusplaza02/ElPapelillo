@@ -1,0 +1,149 @@
+<div class="main-container" *ngIf="inscripcion">
+  
+  <button class="btn-back" (click)="volver()">
+    <i class="fas fa-arrow-left"></i> Volver al listado
+  </button>
+
+  <div class="details-card shadow-card">
+    <div class="card-header-row">
+      <div>
+        <h2>{{ inscripcion?.agrupacion?.nombre }}</h2>
+        <p class="subtitle" *ngIf="inscripcion?.agrupacion?.nombreUltimaParticipacion">
+          <span>Nombre última participación:</span> {{ inscripcion?.agrupacion?.nombreUltimaParticipacion }}
+        </p>
+      </div>
+      
+      <span class="badge-status" [ngClass]="{
+        'bg-pendiente': inscripcion?.estadoInscripcion === 'PENDIENTE' || inscripcion?.estadoInscripcion === 'Pendiente',
+        'bg-aprobado': inscripcion?.estadoInscripcion === 'APROBADO' || inscripcion?.estadoInscripcion === 'Aprobada',
+        'bg-rechazado': inscripcion?.estadoInscripcion === 'RECHAZADO' || inscripcion?.estadoInscripcion === 'Rechazada'
+      }">
+        {{ inscripcion?.estadoInscripcion }}
+      </span>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Categoría</label>
+        <p>{{ inscripcion?.agrupacion?.categoria }}</p>
+      </div>
+      <div class="info-item">
+        <label>Tipo de Concurso</label>
+        <p class="tag-tipo">{{ inscripcion?.agrupacion?.tipoConcurso }}</p>
+      </div>
+      <div class="info-item">
+        <label>Año de registro</label>
+        <p>{{ inscripcion?.agrupacion?.anio }}</p>
+      </div>
+
+      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'CANTO'">
+        <div class="info-item">
+          <label>Modalidad</label>
+          <p>{{ inscripcion?.agrupacion?.modalidad }}</p> 
+        </div>
+        <div class="info-item">
+          <label>Autor de Letra</label>
+          <p>{{ inscripcion?.agrupacion?.autorLetra || 'No indicado' }}</p>
+        </div>
+        <div class="info-item">
+          <label>Autor de Música</label>
+          <p>{{ inscripcion?.agrupacion?.autorMusica || 'No indicado' }}</p>
+        </div>
+        <div class="info-item">
+          <label>Dirección</label>
+          <p>{{ inscripcion?.agrupacion?.direccion || 'No indicada' }}</p>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DIOSES'">
+        <div class="info-item">
+          <label>Modalidad</label>
+          <p>{{ inscripcion?.agrupacion?.modalidad === 1 ? 'Dios/Diosa' : 'Nivel ' + inscripcion?.agrupacion?.modalidad }}</p>
+        </div>
+        <div class="info-item">
+          <label>Diseñador/a</label>
+          <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
+        </div>
+        <div class="info-item">
+          <label>Modelo de Disfraz/Tipo</label>
+          <p>{{ inscripcion?.agrupacion?.modelo || 'No indicado' }}</p>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DRAG'">
+        <div class="info-item">
+          <label>Nombre Artístico Drag</label>
+          <p class="bold-text text-purple">{{ inscripcion?.agrupacion?.nombreArtisticodrag || 'Sin nombre artístico' }}</p>
+        </div>
+        <div class="info-item">
+          <label>Diseñador/a del Vestuario</label>
+          <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'OTRO'">
+        <div class="info-item full-width">
+          <label>Comentarios Destacables de la Inscripción</label>
+          <p class="comments-box">{{ inscripcion?.agrupacion?.comentariosDestacables || 'Sin comentarios.' }}</p>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="actions-row" *ngIf="inscripcion?.estadoInscripcion === 'PENDIENTE' || inscripcion?.estadoInscripcion === 'Pendiente'">
+      <button class="btn-approve" (click)="actualizarEstadoInscripcion('APROBADO')">
+        <i class="fas fa-check"></i> Approbar Inscripción
+      </button>
+      <button class="btn-reject" (click)="actualizarEstadoInscripcion('RECHAZADO')">
+        <i class="fas fa-times"></i> Rechazar Inscripción
+      </button>
+    </div>
+  </div>
+
+  <div class="details-card shadow-card unique-row-card">
+    <div class="card-header-row">
+      <h3>Representante</h3>
+      <button class="btn-secondary"><i class="far fa-eye"></i> Ver Datos</button>
+    </div>
+    <p class="rep-name">{{ inscripcion?.agrupacion?.representante?.nombre || 'Sin asignar' }}</p>
+    <p class="rep-email">Email: {{ inscripcion?.agrupacion?.representante?.email || 'sin-email@example.com' }}</p>
+  </div>
+
+  <div class="details-card shadow-card clear-top-margin">
+    <div class="card-header-row">
+      <h3>Participantes</h3>
+      <button class="btn-pdf-download" (click)="descargarPDF()">
+        <i class="fas fa-download"></i> Descargar Listado PDF
+      </button>
+    </div>
+
+    <p class="section-sub-title">Componentes Artísticos</p>
+    
+    <div class="table-container">
+      <table class="participants-table">
+        <thead>
+          <tr>
+            <th>Nombre Completo</th>
+            <th>DNI/NIE</th>
+            <th>Fecha Nacimiento</th>
+            <th>Rol / Instrumento</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of participantes">
+            <td class="bold-text">{{ p?.nombre }}</td>
+            <td>{{ p?.dni }}</td>
+            <td>{{ p?.fechaNacimiento }}</td>
+            <td><span class="role-badge">{{ p?.rol || 'Componente' }}</span></td>
+          </tr>
+          
+          <tr *ngIf="participantes.length === 0">
+            <td colspan="4" style="text-align: center; color: #adb5bd; padding: 20px;">
+              No hay componentes registrados en esta inscripción.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

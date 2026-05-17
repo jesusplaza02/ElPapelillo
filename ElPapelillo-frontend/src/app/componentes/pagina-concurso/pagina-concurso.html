@@ -69,16 +69,16 @@
 
       <select [(ngModel)]="filtroCategoria" (change)="filtrarAgrupaciones()">
         <option value="">Todas las categorías</option>
-        <option value="ADULTO">Adulto</option>
+        <option value="ADULTOS">Adultos</option>
         <option value="JUVENIL">Juvenil</option>
         <option value="INFANTIL">Infantil</option>
       </select>
 
       <select [(ngModel)]="filtroEstado" (change)="filtrarAgrupaciones()">
         <option value="">Todos los estados</option>
-        <option value="APROBADO">Aprobado</option>
-        <option value="PENDIENTE">Pendiente</option>
-        <option value="RECHAZADO">Rechazado</option>
+        <option value="APROBADO">Aprobados</option>
+        <option value="PENDIENTE">Pendientes</option>
+        <option value="RECHAZADO">Rechazados</option>
       </select>
 
       <select [(ngModel)]="filtroFianza" (change)="filtrarAgrupaciones()">
@@ -103,8 +103,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let ins of inscripcionesFiltradas">
-          <td><input type="checkbox"></td>
+        <tr *ngFor="let ins of inscripcionesFiltradas" 
+            (click)="irADetalleAgrupacion(ins?.idInscripcion)"
+            style="cursor: pointer;">
+          
+          <td><input type="checkbox" (click)="$event.stopPropagation()"></td>
+          
           <td class="bold-text">{{ ins?.agrupacion?.nombre }}</td>
           <td>
             <span class="tag tag-murga">
@@ -118,8 +122,6 @@
           </td>
           <td>
             {{ ins?.agrupacion?.representante?.nombre || 'Sin asignar' }} 
-            <i class="far fa-eye view-icon" (click)="verDetalleRepresentante(ins?.agrupacion?.representante?.nombre)"></i>
-          </td>
           <td>
             <span class="status" [ngClass]="{
               'st-aprobado': ins?.estadoInscripcion === 'APROBADO' || ins?.estadoInscripcion === 'Aprobada',
