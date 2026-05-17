@@ -1,10 +1,12 @@
 <div class="main-container" *ngIf="inscripcion">
   
-  <button class="btn-back" (click)="volver()">
-    <i class="fas fa-arrow-left"></i> Volver al listado
-  </button>
+  <div class="top-actions-bar">
+    <button class="btn-back" (click)="volver()">
+      <i class="fas fa-arrow-left"></i> Volver al listado
+    </button>
+  </div>
 
-  <div class="details-card shadow-card">
+  <div class="shadow-card">
     <div class="card-header-row">
       <div>
         <h2>{{ inscripcion?.agrupacion?.nombre }}</h2>
@@ -89,9 +91,9 @@
       </ng-container>
     </div>
 
-    <div class="actions-row" *ngIf="inscripcion?.estadoInscripcion === 'PENDIENTE' || inscripcion?.estadoInscripcion === 'Pendiente'">
+    <div class="actions-row">
       <button class="btn-approve" (click)="actualizarEstadoInscripcion('APROBADO')">
-        <i class="fas fa-check"></i> Approbar Inscripción
+        <i class="fas fa-check"></i> Aprobar Inscripción
       </button>
       <button class="btn-reject" (click)="actualizarEstadoInscripcion('RECHAZADO')">
         <i class="fas fa-times"></i> Rechazar Inscripción
@@ -99,25 +101,24 @@
     </div>
   </div>
 
-  <div class="details-card shadow-card unique-row-card">
+  <div class="shadow-card">
     <div class="card-header-row">
-      <h3>Representante</h3>
-      <button class="btn-secondary"><i class="far fa-eye"></i> Ver Datos</button>
-    </div>
-    <p class="rep-name">{{ inscripcion?.agrupacion?.representante?.nombre || 'Sin asignar' }}</p>
-    <p class="rep-email">Email: {{ inscripcion?.agrupacion?.representante?.email || 'sin-email@example.com' }}</p>
-  </div>
-
-  <div class="details-card shadow-card clear-top-margin">
-    <div class="card-header-row">
-      <h3>Participantes</h3>
+      <h3>Representante y Componentes</h3>
       <button class="btn-pdf-download" (click)="descargarPDF()">
         <i class="fas fa-download"></i> Descargar Listado PDF
       </button>
     </div>
 
+    <div class="rep-info-block" style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f1f3f5;">
+      <p class="rep-name">{{ inscripcion?.agrupacion?.representante?.nombre || 'Sin asignar' }}</p>
+      <p class="rep-email">
+        Email: {{ inscripcion?.agrupacion?.representante?.email || 'sin email' }} | 
+        Teléfono: {{ inscripcion?.agrupacion?.representante?.telefono || 'sin teléfono' }} |
+        Emergencia: {{ inscripcion?.agrupacion?.representante?.contacto_emergencia || 'sin teléfono de emergencia' }}
+      </p>
+    </div>
+
     <p class="section-sub-title">Componentes Artísticos</p>
-    
     <div class="table-container">
       <table class="participants-table">
         <thead>
@@ -135,7 +136,6 @@
             <td>{{ p?.fechaNacimiento }}</td>
             <td><span class="role-badge">{{ p?.rol || 'Componente' }}</span></td>
           </tr>
-          
           <tr *ngIf="participantes.length === 0">
             <td colspan="4" style="text-align: center; color: #adb5bd; padding: 20px;">
               No hay componentes registrados en esta inscripción.
@@ -145,5 +145,82 @@
       </table>
     </div>
   </div>
+
+  <div class="shadow-card">
+    <div class="card-header-row">
+      <div>
+        <h3>Gestión de Documentación</h3>
+        <p class="subtitle">Validación de archivos obligatorios cargados por el representante</p>
+      </div>
+      
+      <div class="header-actions-right" style="display: flex; align-items: center; gap: 15px;">
+        
+        <input type="file" 
+               #fianzaInput 
+               style="display: none;" 
+               accept=".pdf" 
+               (change)="onFianzaSeleccionada($event)">
+               
+        <button class="btn-fianza-header" *ngIf="!fianzaSubida" (click)="fianzaInput.click()">
+          <i class="fas fa-file-invoice-dollar"></i> Adjuntar Fianza (.pdf)
+        </button>
+
+        <span class="page-indicator-badge">
+          Documentos {{ obtenerIndiceInicial() + 1 }} - {{ obtenerIndiceFinal() }} de {{ documentosRequeridos.length }}
+        </span>
+      </div>
+    </div>
+
+    <div class="docs-review-container">
+      <div class="doc-review-item-card" *ngFor="let doc of documentosPaginados">
+        
+        <div class="doc-review-main-row">
+          <div class="doc-meta-info">
+            <h4>{{ doc.nombre }}</h4>
+            <button class="btn-download-file" (click)="verDocumento(doc)" [disabled]="!doc.urlArchivo">
+              <i class="far fa-file-pdf"></i> {{ doc.urlArchivo || 'No presentado' }}
+            </button>
+          </div>
+          
+          <span class="badge-status" [ngClass]="{
+            'bg-pendiente': doc.estado === 'PENDIENTE',
+            'bg-aprobado': doc.estado === 'APROBADO',
+            'bg-rechazado': doc.estado === 'RECHAZADO'
+          }">
+            {{ doc.estado }}
+          </span>
+        </div>
+
+        <div class="doc-admin-actions" *ngIf="doc.urlArchivo">
+          <div class="doc-buttons-group">
+            <button class="btn-doc-approve" [class.active]="doc.estado === 'APROBADO'" (click)="evaluarDocumento(doc, 'APROBADO')">
+              <i class="fas fa-check"></i> Aprobar
+            </button>
+            <button class="btn-doc-reject" [class.active]="doc.estado === 'RECHAZADO'" (click)="evaluarDocumento(doc, 'RECHAZADO')">
+              <i class="fas fa-times"></i> Rechazar
+            </button>
+          </div>
+
+          <input type="text" 
+                 class="doc-comment-input" 
+                 [(ngModel)]="doc.comentarioRevision"
+                 placeholder="Escribe un motivo o comentario de revisión (opcional)...">
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pagination-actions-row">
+      <button class="btn-secondary" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+        <i class="fas fa-chevron-left"></i> Anteriores
+      </button>
+      <span class="pagination-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+      <button class="btn-secondary" (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+        Siguientes <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+
+  </div>
+  
 
 </div>

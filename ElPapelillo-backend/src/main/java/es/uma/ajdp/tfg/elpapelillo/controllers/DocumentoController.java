@@ -41,10 +41,10 @@ public class DocumentoController {
     @PostMapping("/upload")
     public ResponseEntity<?> subirArchivo(
             @RequestParam("file") MultipartFile file,
-            @RequestParam("idInscripcion") @NonNull Integer idInscripcion, // Cambiado a Integer
+            @RequestParam("idInscripcion") @NonNull Integer idInscripcion,
             @RequestParam("nombreDoc") String nombreDoc,
-            @RequestParam("tipo") String tipo,
-            @RequestParam("usuarioId") @NonNull Integer usuarioId) {
+            @RequestParam(value = "tipo", required = false, defaultValue = "PDF") String tipo, // Opcional con valor por defecto
+            @RequestParam(value = "usuarioId", required = false) Integer usuarioId) { // Opcional para pruebas en Postman
 
         // --- VALIDACIÓN RF21: Solo PDF y máximo 5MB ---
         String contentType = file.getContentType();
