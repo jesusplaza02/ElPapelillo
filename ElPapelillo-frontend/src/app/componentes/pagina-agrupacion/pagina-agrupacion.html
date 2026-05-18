@@ -6,221 +6,277 @@
     </button>
   </div>
 
-  <div class="shadow-card">
-    <div class="card-header-row">
-      <div>
-        <h2>{{ inscripcion?.agrupacion?.nombre }}</h2>
-        <p class="subtitle" *ngIf="inscripcion?.agrupacion?.nombreUltimaParticipacion">
-          <span>Nombre última participación:</span> {{ inscripcion?.agrupacion?.nombreUltimaParticipacion }}
-        </p>
-      </div>
-      
-      <span class="badge-status" [ngClass]="{
-        'bg-pendiente': inscripcion?.estadoInscripcion === 'PENDIENTE' || inscripcion?.estadoInscripcion === 'Pendiente',
-        'bg-aprobado': inscripcion?.estadoInscripcion === 'APROBADO' || inscripcion?.estadoInscripcion === 'Aprobada',
-        'bg-rechazado': inscripcion?.estadoInscripcion === 'RECHAZADO' || inscripcion?.estadoInscripcion === 'Rechazada'
-      }">
-        {{ inscripcion?.estadoInscripcion }}
-      </span>
-    </div>
+  <div class="panel-base-gris">
 
-    <div class="info-grid">
-      <div class="info-item">
-        <label>Categoría</label>
-        <p>{{ inscripcion?.agrupacion?.categoria }}</p>
-      </div>
-      <div class="info-item">
-        <label>Tipo de Concurso</label>
-        <p class="tag-tipo">{{ inscripcion?.agrupacion?.tipoConcurso }}</p>
-      </div>
-      <div class="info-item">
-        <label>Año de registro</label>
-        <p>{{ inscripcion?.agrupacion?.anio }}</p>
-      </div>
-
-      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'CANTO'">
-        <div class="info-item">
-          <label>Modalidad</label>
-          <p>{{ inscripcion?.agrupacion?.modalidad }}</p> 
+    <div class="shadow-card">
+      <div class="card-header-row">
+        <div>
+          <h2>{{ inscripcion?.agrupacion?.nombre }}</h2>
+          <p class="subtitle" *ngIf="inscripcion?.agrupacion?.nombreUltimaParticipacion">
+            <span>Nombre última participación:</span> {{ inscripcion?.agrupacion?.nombreUltimaParticipacion }}
+          </p>
         </div>
-        <div class="info-item">
-          <label>Autor de Letra</label>
-          <p>{{ inscripcion?.agrupacion?.autorLetra || 'No indicado' }}</p>
-        </div>
-        <div class="info-item">
-          <label>Autor de Música</label>
-          <p>{{ inscripcion?.agrupacion?.autorMusica || 'No indicado' }}</p>
-        </div>
-        <div class="info-item">
-          <label>Dirección</label>
-          <p>{{ inscripcion?.agrupacion?.direccion || 'No indicada' }}</p>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DIOSES'">
-        <div class="info-item">
-          <label>Modalidad</label>
-          <p>{{ inscripcion?.agrupacion?.modalidad === 1 ? 'Dios/Diosa' : 'Nivel ' + inscripcion?.agrupacion?.modalidad }}</p>
-        </div>
-        <div class="info-item">
-          <label>Diseñador/a</label>
-          <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
-        </div>
-        <div class="info-item">
-          <label>Modelo de Disfraz/Tipo</label>
-          <p>{{ inscripcion?.agrupacion?.modelo || 'No indicado' }}</p>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DRAG'">
-        <div class="info-item">
-          <label>Nombre Artístico Drag</label>
-          <p class="bold-text text-purple">{{ inscripcion?.agrupacion?.nombreArtisticodrag || 'Sin nombre artístico' }}</p>
-        </div>
-        <div class="info-item">
-          <label>Diseñador/a del Vestuario</label>
-          <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
-        </div>
-      </ng-container>
-
-      <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'OTRO'">
-        <div class="info-item full-width">
-          <label>Comentarios Destacables de la Inscripción</label>
-          <p class="comments-box">{{ inscripcion?.agrupacion?.comentariosDestacables || 'Sin comentarios.' }}</p>
-        </div>
-      </ng-container>
-    </div>
-
-    <div class="actions-row">
-      <button class="btn-approve" (click)="actualizarEstadoInscripcion('APROBADO')">
-        <i class="fas fa-check"></i> Aprobar Inscripción
-      </button>
-      <button class="btn-reject" (click)="actualizarEstadoInscripcion('RECHAZADO')">
-        <i class="fas fa-times"></i> Rechazar Inscripción
-      </button>
-    </div>
-  </div>
-
-  <div class="shadow-card">
-    <div class="card-header-row">
-      <h3>Representante y Componentes</h3>
-      <button class="btn-pdf-download" (click)="descargarPDF()">
-        <i class="fas fa-download"></i> Descargar Listado PDF
-      </button>
-    </div>
-
-    <div class="rep-info-block" style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #f1f3f5;">
-      <p class="rep-name">{{ inscripcion?.agrupacion?.representante?.nombre || 'Sin asignar' }}</p>
-      <p class="rep-email">
-        Email: {{ inscripcion?.agrupacion?.representante?.email || 'sin email' }} | 
-        Teléfono: {{ inscripcion?.agrupacion?.representante?.telefono || 'sin teléfono' }} |
-        Emergencia: {{ inscripcion?.agrupacion?.representante?.contacto_emergencia || 'sin teléfono de emergencia' }}
-      </p>
-    </div>
-
-    <p class="section-sub-title">Componentes Artísticos</p>
-    <div class="table-container">
-      <table class="participants-table">
-        <thead>
-          <tr>
-            <th>Nombre Completo</th>
-            <th>DNI/NIE</th>
-            <th>Fecha Nacimiento</th>
-            <th>Rol / Instrumento</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of participantes">
-            <td class="bold-text">{{ p?.nombre }}</td>
-            <td>{{ p?.dni }}</td>
-            <td>{{ p?.fechaNacimiento }}</td>
-            <td><span class="role-badge">{{ p?.rol || 'Componente' }}</span></td>
-          </tr>
-          <tr *ngIf="participantes.length === 0">
-            <td colspan="4" style="text-align: center; color: #adb5bd; padding: 20px;">
-              No hay componentes registrados en esta inscripción.
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="shadow-card">
-    <div class="card-header-row">
-      <div>
-        <h3>Gestión de Documentación</h3>
-        <p class="subtitle">Validación de archivos obligatorios cargados por el representante</p>
-      </div>
-      
-      <div class="header-actions-right" style="display: flex; align-items: center; gap: 15px;">
         
-        <input type="file" 
-               #fianzaInput 
-               style="display: none;" 
-               accept=".pdf" 
-               (change)="onFianzaSeleccionada($event)">
-               
-        <button class="btn-fianza-header" *ngIf="!fianzaSubida" (click)="fianzaInput.click()">
-          <i class="fas fa-file-invoice-dollar"></i> Adjuntar Fianza (.pdf)
-        </button>
-
-        <span class="page-indicator-badge">
-          Documentos {{ obtenerIndiceInicial() + 1 }} - {{ obtenerIndiceFinal() }} de {{ documentosRequeridos.length }}
+        <span class="badge-status" [ngClass]="{
+          'bg-pendiente': inscripcion?.estadoInscripcion === 'PENDIENTE' || inscripcion?.estadoInscripcion === 'Pendiente',
+          'bg-aprobado': inscripcion?.estadoInscripcion === 'APROBADO' || inscripcion?.estadoInscripcion === 'Aprobada',
+          'bg-rechazado': inscripcion?.estadoInscripcion === 'RECHAZADO' || inscripcion?.estadoInscripcion === 'Rechazada'
+        }">
+          {{ inscripcion?.estadoInscripcion }}
         </span>
       </div>
-    </div>
 
-    <div class="docs-review-container">
-      <div class="doc-review-item-card" *ngFor="let doc of documentosPaginados">
-        
-        <div class="doc-review-main-row">
-          <div class="doc-meta-info">
-            <h4>{{ doc.nombre }}</h4>
-            <button class="btn-download-file" (click)="verDocumento(doc)" [disabled]="!doc.urlArchivo">
-              <i class="far fa-file-pdf"></i> {{ doc.urlArchivo || 'No presentado' }}
-            </button>
-          </div>
-          
-          <span class="badge-status" [ngClass]="{
-            'bg-pendiente': doc.estado === 'PENDIENTE',
-            'bg-aprobado': doc.estado === 'APROBADO',
-            'bg-rechazado': doc.estado === 'RECHAZADO'
-          }">
-            {{ doc.estado }}
-          </span>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Categoría</label>
+          <p>{{ inscripcion?.agrupacion?.categoria }}</p>
+        </div>
+        <div class="info-item">
+          <label>Tipo de Concurso</label>
+          <p class="tag-tipo">{{ inscripcion?.agrupacion?.tipoConcurso }}</p>
+        </div>
+        <div class="info-item">
+          <label>Año de registro</label>
+          <p>{{ inscripcion?.agrupacion?.anio }}</p>
         </div>
 
-        <div class="doc-admin-actions" *ngIf="doc.urlArchivo">
-          <div class="doc-buttons-group">
-            <button class="btn-doc-approve" [class.active]="doc.estado === 'APROBADO'" (click)="evaluarDocumento(doc, 'APROBADO')">
-              <i class="fas fa-check"></i> Aprobar
-            </button>
-            <button class="btn-doc-reject" [class.active]="doc.estado === 'RECHAZADO'" (click)="evaluarDocumento(doc, 'RECHAZADO')">
-              <i class="fas fa-times"></i> Rechazar
-            </button>
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'CANTO'">
+          <div class="info-item">
+            <label>Modalidad</label>
+            <p>{{ inscripcion?.agrupacion?.modalidad }}</p> 
           </div>
+          <div class="info-item">
+            <label>Autor de Letra</label>
+            <p>{{ inscripcion?.agrupacion?.autorLetra || 'No indicado' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Autor de Música</label>
+            <p>{{ inscripcion?.agrupacion?.autorMusica || 'No indicado' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Dirección</label>
+            <p>{{ inscripcion?.agrupacion?.direccion || 'No indicada' }}</p>
+          </div>
+        </ng-container>
 
-          <input type="text" 
-                 class="doc-comment-input" 
-                 [(ngModel)]="doc.comentarioRevision"
-                 placeholder="Escribe un motivo o comentario de revisión (opcional)...">
-        </div>
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DIOSES'">
+          <div class="info-item">
+            <label>Modalidad</label>
+            <p>{{ inscripcion?.agrupacion?.modalidad === 1 ? 'Dios/Diosa' : 'Nivel ' + inscripcion?.agrupacion?.modalidad }}</p>
+          </div>
+          <div class="info-item">
+            <label>Diseñador/a</label>
+            <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Modelo de Disfraz/Tipo</label>
+            <p>{{ inscripcion?.agrupacion?.modelo || 'No indicado' }}</p>
+          </div>
+        </ng-container>
 
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DRAG'">
+          <div class="info-item">
+            <label>Nombre Artístico Drag</label>
+            <p class="bold-text text-purple">{{ inscripcion?.agrupacion?.nombreArtisticodrag || 'Sin nombre artístico' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Diseñador/a del Vestuario</label>
+            <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'OTRO'">
+          <div class="info-item full-width">
+            <label>Comentarios Destacables de la Inscripción</label>
+            <p class="comments-box">{{ inscripcion?.agrupacion?.comentariosDestacables || 'Sin comentarios.' }}</p>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="actions-row">
+        <button class="btn-approve" (click)="actualizarEstadoInscripcion('APROBADO')">
+          <i class="fas fa-check"></i> Aprobar Inscripción
+        </button>
+        <button class="btn-reject" (click)="actualizarEstadoInscripcion('RECHAZADO')">
+          <i class="fas fa-times"></i> Rechazar Inscripción
+        </button>
       </div>
     </div>
 
-    <div class="pagination-actions-row">
-      <button class="btn-secondary" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
-        <i class="fas fa-chevron-left"></i> Anteriores
-      </button>
-      <span class="pagination-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
-      <button class="btn-secondary" (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
-        Siguientes <i class="fas fa-chevron-right"></i>
-      </button>
+    <div class="shadow-card">
+      <div class="card-header-row">
+        <h3>Representante y Componentes</h3>
+        <button class="btn-pdf-download" (click)="descargarPDF()">
+          <i class="fas fa-download"></i> Descargar Listado PDF
+        </button>
+      </div>
+
+      <div class="rep-info-block">
+        <p class="rep-name">{{ inscripcion?.agrupacion?.representante?.nombre || 'Sin asignar' }}</p>
+        <p class="rep-email">
+          Email: {{ inscripcion?.agrupacion?.representante?.email || 'sin email' }} | 
+          Teléfono: {{ inscripcion?.agrupacion?.representante?.telefono || 'sin teléfono' }} |
+          Emergencia: {{ inscripcion?.agrupacion?.representante?.contacto_emergencia || 'sin teléfono de emergencia' }}
+        </p>
+      </div>
+
+      <p class="section-sub-title">Componentes Artísticos</p>
+      <div class="table-container">
+        <table class="participants-table">
+          <thead>
+            <tr>
+              <th>Nombre Completo</th>
+              <th>DNI/NIE</th>
+              <th>Fecha Nacimiento</th>
+              <th>Rol / Instrumento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of participantes">
+              <td class="bold-text">{{ p?.nombre }}</td>
+              <td>{{ p?.dni }}</td>
+              <td>{{ p?.fechaNacimiento }}</td>
+              <td><span class="role-badge">{{ p?.rol || 'Componente' }}</span></td>
+            </tr>
+            <tr *ngIf="participantes.length === 0">
+              <td colspan="4" style="text-align: center; color: #adb5bd; padding: 20px;">
+                No hay componentes registrados en esta inscripción.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
-  </div>
-  
+    <div class="shadow-card">
+      <div class="card-header-row">
+        <div>
+          <h3>Gestión de Documentación</h3>
+          <p class="subtitle">Validación de archivos obligatorios cargados por el representante</p>
+        </div>
+        
+        <div class="header-actions-right" *ngIf="!fianzaSubida && !mostrandoFormularioFianza" style="display: flex; align-items: center; gap: 15px;">
+          <button class="btn-fianza-header" (click)="abrirFormularioFianza()">
+            <i class="fas fa-file-invoice-dollar"></i> Adjuntar Fianza (.pdf)
+          </button>
+        </div>
+      </div>
 
+      <div class="fianza-upload-form" *ngIf="mostrandoFormularioFianza" style="background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 15px; padding: 20px; margin-bottom: 30px;">
+        <h4 style="margin-top: 0; color: #2b8a3e; font-weight: 700; margin-bottom: 15px;">
+          <i class="fas fa-money-check-alt"></i> Registrar Datos de la Fianza
+        </h4>
+        
+        <div class="fianza-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
+            <label style="font-size: 0.75rem; font-weight: 700; color: #495057; text-transform: uppercase;">Importe (€)</label>
+            <input type="number" [(ngModel)]="datosFianza.importe" class="doc-comment-input" style="width: 100%;">
+          </div>
+          
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
+            <label style="font-size: 0.75rem; font-weight: 700; color: #495057; text-transform: uppercase;">Fecha de Pago</label>
+            <input type="datetime-local" [(ngModel)]="datosFianza.fechaPago" class="doc-comment-input" style="width: 100%;">
+          </div>
+          
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
+            <label style="font-size: 0.75rem; font-weight: 700; color: #495057; text-transform: uppercase;">Justificante PDF</label>
+            <input type="file" (change)="prepararArchivoFianza($event)" accept=".pdf" style="font-size: 0.85rem; padding-top: 5px;">
+          </div>
+        </div>
+        
+        <div class="fianza-form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn-doc-approve" 
+            [disabled]="!archivoFianzaSeleccionado || !datosFianza.importe || !datosFianza.fechaPago" 
+            (click)="guardarFianzaCompleta()">
+            <i class="fas fa-save"></i> Guardar Fianza
+          </button>
+          <button class="btn-doc-reject" (click)="cancelarFianza()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer; background-color: #6c757d; color: white;">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div class="docs-review-container" *ngIf="fianzaSubida && inscripcion?.fianza" style="margin-bottom: 30px; border-bottom: 2px dashed #e9ecef; padding-bottom: 25px;">
+        <p class="section-sub-title" style="margin-top: 0; font-weight: 700; color: #2b8a3e;"><i class="fas fa-shield-alt"></i> Fianza de la Inscripción</p>
+        
+        <div class="doc-review-item-card" style="border-left: 5px solid #2b8a3e; background-color: #f6ffed;">
+          <div class="doc-review-main-row" style="margin-bottom: 0; align-items: center;">
+            <div class="doc-meta-info">
+              <h4 style="margin-bottom: 4px; font-weight: 700; color: #1e4620;">Resguardo Contable: {{ inscripcion.fianza.importe }} €</h4>
+              <p style="font-size: 0.85rem; color: #555; margin: 0 0 8px 0;" *ngIf="inscripcion.fianza.fechaPago">
+                <strong>Fecha de Pago registrada:</strong> {{ inscripcion.fianza.fechaPago | date:'dd/MM/yyyy HH:mm' }}
+              </p>
+              
+              <button class="btn-download-file" 
+                      (click)="descargarArchivo(inscripcion.fianza.rutaRecibo, 'Fianza_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')" 
+                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left; font-weight: 600; color: #2b8a3e;">
+                <i class="far fa-file-pdf"></i> Descargar Comprobante ({{ inscripcion.fianza.rutaRecibo }})
+              </button>
+            </div>
+            
+            <button class="btn-delete-fianza" (click)="eliminarFianza()">
+              <i class="fas fa-trash-alt"></i> Borrar Fianza
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-sub-title" *ngIf="fianzaSubida" style="font-weight: 600; color: #495057; margin-bottom: 15px;">Resto de la Documentación</p>
+      
+      <div class="docs-review-container">
+        <div class="doc-review-item-card" *ngFor="let doc of documentosPaginados">
+          
+          <div class="doc-review-main-row">
+            <div class="doc-meta-info">
+              <h4>{{ doc.nombre }}</h4>
+              <button class="btn-download-file" 
+                      *ngIf="doc.urlArchivo" 
+                      (click)="descargarArchivo(doc.urlArchivo, doc.nombre + '_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')" 
+                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left;">
+                <i class="far fa-file-pdf"></i> {{ doc.urlArchivo }}
+              </button>
+              <span class="btn-download-file" *ngIf="!doc.urlArchivo" style="opacity: 0.5; cursor: not-allowed; text-decoration: none;">
+                <i class="far fa-file-pdf"></i> No presentado
+              </span>
+            </div>
+            
+            <span class="badge-status" [ngClass]="{
+              'bg-pendiente': doc.estado === 'PENDIENTE',
+              'bg-aprobado': doc.estado === 'APROBADO',
+              'bg-rechazado': doc.estado === 'RECHAZADO'
+            }">
+              {{ doc.estado }}
+            </span>
+          </div>
+
+          <div class="doc-admin-actions" *ngIf="doc.urlArchivo">
+            <div class="doc-buttons-group">
+              <button class="btn-doc-approve" [class.active]="doc.estado === 'APROBADO'" (click)="evaluarDocumento(doc, 'APROBADO')">
+                <i class="fas fa-check"></i> Aprobar
+              </button>
+              <button class="btn-doc-reject" [class.active]="doc.estado === 'RECHAZADO'" (click)="evaluarDocumento(doc, 'RECHAZADO')">
+                <i class="fas fa-times"></i> Rechazar
+              </button>
+            </div>
+
+            <input type="text" 
+                   class="doc-comment-input" 
+                   [(ngModel)]="doc.comentarioRevision"
+                   placeholder="Escribe un motivo o comentario de revisión (opcional)...">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="pagination-actions-row">
+        <button class="btn-secondary" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+          <i class="fas fa-chevron-left"></i> Anteriores
+        </button>
+        <span class="pagination-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <button class="btn-secondary" (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+          Siguientes <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+    </div>
 </div>

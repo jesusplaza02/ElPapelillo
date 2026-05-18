@@ -11,6 +11,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import es.uma.ajdp.tfg.elpapelillo.models.enums.EstadoAdministrativo;
 import es.uma.ajdp.tfg.elpapelillo.models.enums.RolParticipante;
@@ -45,7 +46,8 @@ public class Inscripcion {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_fianza")
-    @JsonIgnore
+    //@JsonIgnore con esto funcionaba
+    @JsonManagedReference
     private Fianza fianza;
 
     @OneToMany(mappedBy = "inscripcion", cascade = CascadeType.ALL, orphanRemoval = true)

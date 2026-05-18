@@ -43,8 +43,12 @@ public class UsuarioService {
 
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
 
 
+
+    @org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
     public Usuario registrarUsuario(Usuario usuario, Integer idEjecutor) throws Exception {
         // 1. Validaciones de DNI y Email
         if (!validarDNI(usuario.getDNI())) {
@@ -55,7 +59,6 @@ public class UsuarioService {
         }
 
         // 2. GENERAR CONTRASEÑA ALEATORIA SEGURA (Texto plano)
-        // Usamos las reglas que tenías: 2 mayúsculas, 2 dígitos, 1 minúscula
         CharacterRule letras = new CharacterRule(EnglishCharacterData.UpperCase, 2);
         CharacterRule digitos = new CharacterRule(EnglishCharacterData.Digit, 2);
         CharacterRule minusculas = new CharacterRule(EnglishCharacterData.LowerCase, 1);
@@ -63,26 +66,61 @@ public class UsuarioService {
         
         String passwordPlana = gen.generatePassword(10, letras, digitos, minusculas);
 
-        // 3. CIFRAR PARA LA BASE DE DATOS ($2a$10$...)
-        // IMPORTANTE: Se guarda el hash cifrado, nunca la plana
-        usuario.setPassword(passwordEncoder.encode(passwordPlana));
+        // 3. CIFRAR CONTRASEÑA
+        String passwordCifrada = passwordEncoder.encode(passwordPlana);
         usuario.setActivo(true);
-        
-        // 4. GUARDAR EN BD
-        Usuario usuarioGuardado = usuarioRepository.save(usuario);
+
+        // Variable para guardar el resultado final
+        Usuario usuarioGuardado;
+        String rolUsuario = usuario.getRol() != null ? usuario.getRol().toUpperCase() : "";
+
+        // 4. GUARDADO SEGÚN EL ROL (POLIMORFISMO DE JPA)
+        if ("SYSADMIN".equals(rolUsuario) || "ADMINISTRADOR".equals(rolUsuario)) {
+            // Creamos la entidad Hija directamente
+            Administrador nuevoAdmin = new Administrador();
+            
+            // Copiamos los datos que venían del Front al nuevo objeto Administrador
+            nuevoAdmin.setNombre(usuario.getNombre());
+            nuevoAdmin.setEmail(usuario.getEmail());
+            nuevoAdmin.setPassword(passwordCifrada);
+            nuevoAdmin.setDNI(usuario.getDNI());
+            nuevoAdmin.setTelefono(usuario.getTelefono());
+            nuevoAdmin.setDireccion(usuario.getDireccion());
+            nuevoAdmin.setRol(usuario.getRol());
+            nuevoAdmin.setActivo(true);
+            
+            // Asignamos las propiedades específicas de la tabla Administrador
+            if ("SYSADMIN".equals(rolUsuario)) {
+                nuevoAdmin.setCargo("SYSADMIN");
+                nuevoAdmin.setOrganizacion(null);
+            } else {
+                nuevoAdmin.setCargo("ADMINISTRADOR");
+                // nuevoAdmin.setOrganizacion(...);
+            }
+
+            // ¡MAGIA DE JPA! Al guardar en el repositorio de Administrador,
+            // Hibernate inserta automáticamente en 'usuario', genera el ID, 
+            // y luego inserta en 'administrador' usando ese ID. Todo solo y sin fallar.
+            usuarioGuardado = administradorRepository.save(nuevoAdmin);
+            log.info("[HERENCIA] Guardado Sysadmin/Admin completo mediante JPA.");
+            
+        } else {
+            // Si es un Representante o cualquier otro rol base, se guarda normal
+            usuario.setPassword(passwordCifrada);
+            usuarioGuardado = usuarioRepository.save(usuario);
+            log.info("[BASE] Guardado usuario estándar completo.");
+        }
 
         // 5. ENVIAR EMAIL CON LA CLAVE PLANA
-        // Le pasamos la 'passwordPlana' para que el usuario reciba la que puede leer
         emailService.enviarEmailInstrucciones(usuarioGuardado.getEmail(), passwordPlana);
 
-        // 6. Auditoría
+        // 6. Auditoría de la acción
         Usuario ejecutor = usuarioRepository.findById(idEjecutor)
                 .orElseThrow(() -> new Exception("Ejecutor no válido"));
         registrarLog(ejecutor.getEmail(), "CREAR_USUARIO", "Usuario creado con éxito: " + usuarioGuardado.getEmail());
 
         return usuarioGuardado;
     }
-
     // OBTENER TODOS 
     public List<Usuario> obtenerTodos() {
         return usuarioRepository.findAll();
