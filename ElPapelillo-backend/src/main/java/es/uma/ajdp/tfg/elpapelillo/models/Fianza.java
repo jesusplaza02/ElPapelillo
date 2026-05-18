@@ -26,4 +26,6 @@ public class Fianza {
     @OneToOne(mappedBy = "fianza")
     @JsonIgnore
     private Inscripcion inscripcion;
+
+    
 }

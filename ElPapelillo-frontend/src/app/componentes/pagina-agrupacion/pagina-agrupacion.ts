@@ -315,7 +315,35 @@ export class DetalleAgrupacionComponent implements OnInit {
    * CORREGIDO: Declaramos el método que faltaba y que reclamaba tu plantilla HTML
    */
   descargarPDF(): void { 
-    alert('Descargando el listado oficial de componentes en formato PDF...'); 
+    if (!this.idInscripcion) return;
+
+    const nombreAgrup = this.inscripcion?.agrupacion?.nombre?.replace(/ /g, '_') || 'Agrupacion';
+    const url = `http://localhost:8080/api/inscripciones/${this.idInscripcion}/exportar-pdf`;
+
+    this.http.get(url, { responseType: 'blob' }).subscribe({
+      next: (blob: Blob) => {
+        const urlLocal = window.URL.createObjectURL(blob);
+        const enlaceFantasma = document.createElement('a');
+        enlaceFantasma.href = urlLocal;
+        enlaceFantasma.download = `Listado_${nombreAgrup}.pdf`;
+        document.body.appendChild(enlaceFantasma);
+        enlaceFantasma.click();
+        
+        // Limpieza del DOM
+        document.body.removeChild(enlaceFantasma);
+        window.URL.revokeObjectURL(urlLocal);
+
+        // Registramos la acción en la auditoría
+        this.registrarAuditoria(
+          'DESCARGA_PDF_COMPONENTES', 
+          `El administrador ha descargado el PDF oficial de componentes de la agrupación: ${this.inscripcion?.agrupacion?.nombre}.`
+        );
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error al descargar el PDF desde el servidor:', err);
+        alert('No se pudo generar o descargar el archivo PDF en este momento.');
+      }
+    });
   }
   
   volver(): void { 

@@ -27,7 +27,6 @@ public class Participacion {
 
     @ManyToOne
     @JoinColumn(name = "id_participante")
-    @JsonIgnore
     private Participante participante;
 
     @Enumerated(EnumType.STRING)

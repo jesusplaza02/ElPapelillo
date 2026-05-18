@@ -120,7 +120,7 @@
         </p>
       </div>
 
-      <p class="section-sub-title">Componentes Artísticos</p>
+     <p class="section-sub-title">Componentes Artísticos</p>
       <div class="table-container">
         <table class="participants-table">
           <thead>
@@ -132,13 +132,19 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let p of participantes">
-              <td class="bold-text">{{ p?.nombre }}</td>
-              <td>{{ p?.dni }}</td>
-              <td>{{ p?.fechaNacimiento }}</td>
-              <td><span class="role-badge">{{ p?.rol || 'Componente' }}</span></td>
+            <tr *ngFor="let p of inscripcion?.participaciones">
+              <td class="bold-text">{{ p?.participante?.nombre }}</td>
+              <td>{{ p?.participante?.dni }}</td>
+              <td>{{ p?.participante?.fechaNacimiento }}</td>
+              
+              <td>
+                <span class="role-badge">
+                  {{ p?.rol || 'Componente' }}
+                </span>
+              </td>
             </tr>
-            <tr *ngIf="participantes.length === 0">
+
+            <tr *ngIf="!inscripcion?.participaciones || inscripcion?.participaciones?.length === 0">
               <td colspan="4" style="text-align: center; color: #adb5bd; padding: 20px;">
                 No hay componentes registrados en esta inscripción.
               </td>
@@ -146,7 +152,6 @@
           </tbody>
         </table>
       </div>
-    </div>
 
     <div class="shadow-card">
       <div class="card-header-row">

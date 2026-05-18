@@ -1,9 +1,11 @@
 package es.uma.ajdp.tfg.elpapelillo.controllers;
-
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import es.uma.ajdp.tfg.elpapelillo.models.Inscripcion;
 import es.uma.ajdp.tfg.elpapelillo.services.InscripcionService;
+
 
 @RestController
 @RequestMapping("/api/inscripciones")
@@ -75,6 +78,40 @@ public class InscripcionController {
             return ResponseEntity.ok(actualizada);
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @CrossOrigin(origins = "http://localhost:4200")
+    @GetMapping("/{id}/exportar-pdf")
+    public ResponseEntity<byte[]> exportarListadoComponentesPdf(@PathVariable Integer id) {
+        try {
+            Inscripcion inscripcion = inscripcionService.obtenerInscripcionPorId(id);
+            if (inscripcion == null) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            // 1. Llamamos al generador real que usa com.lowagie.text
+            byte[] pdfBytes = inscripcionService.generarPdfComponentes(inscripcion);
+            
+            // 2. Configuramos las cabeceras HTTP usando clases puras de Spring
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+            
+            // Reemplazamos espacios por guiones bajos para que el nombre del archivo no se rompa
+            String nombreAgrupacion = "Agrupacion";
+            if (inscripcion.getAgrupacion() != null && inscripcion.getAgrupacion().getNombre() != null) {
+                nombreAgrupacion = inscripcion.getAgrupacion().getNombre().replace(" ", "_");
+            }
+            
+            String nombreArchivo = "Listado_" + nombreAgrupacion + ".pdf";
+            headers.setContentDispositionFormData("attachment", nombreArchivo);
+            
+            // 3. Devolvemos la respuesta con estado 200 OK y los bytes del PDF
+            return new ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+            
+        } catch (Exception e) {
+            System.err.println("Error en el controlador al exportar PDF: " + e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

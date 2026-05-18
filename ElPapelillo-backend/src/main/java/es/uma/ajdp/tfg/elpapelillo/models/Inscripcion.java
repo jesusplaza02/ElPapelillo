@@ -56,7 +56,6 @@ public class Inscripcion {
 
     // Apunta a la clase de asociación Participacion
     @OneToMany(mappedBy = "inscripcion", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<Participacion> participaciones = new ArrayList<>();
 
     // --- MÉTODOS DE LÓGICA DE NEGOCIO ---
@@ -69,5 +68,22 @@ public class Inscripcion {
 
     public boolean esValida() {
         return !documentos.isEmpty() && estadoInscripcion != EstadoAdministrativo.RECHAZADO;
+    }
+
+    public List<Participante> getParticipantes() {
+        List<Participante> listaParticipantes = new ArrayList<>();
+        if (this.participaciones != null) {
+            for (Participacion p : this.participaciones) {
+                if (p.getParticipante() != null) {
+                    listaParticipantes.add(p.getParticipante());
+                }
+            }
+        }
+        return listaParticipantes;
+    }
+
+    // Si necesitas el setter (aunque para el PDF no hace falta), puedes dejarlo así:
+    public void setParticipantes(List<Participante> participantes) {
+        // Lógica opcional o dejar vacío si manejas las participaciones con añadirParticipante()
     }
 }
