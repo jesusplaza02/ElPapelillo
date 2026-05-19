@@ -1,4 +1,5 @@
 package es.uma.ajdp.tfg.elpapelillo.controllers;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpHeaders;
@@ -14,9 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.uma.ajdp.tfg.elpapelillo.models.Inscripcion;
+import es.uma.ajdp.tfg.elpapelillo.repositories.InscripcionRepository;
 import es.uma.ajdp.tfg.elpapelillo.services.InscripcionService;
 
 
@@ -27,6 +30,10 @@ public class InscripcionController {
 
     @Autowired
     private InscripcionService inscripcionService;
+
+    @Autowired
+    private InscripcionRepository inscripcionRepository; 
+
 
     // 1. Obtener inscripciones de un representante
     @GetMapping("/representante/{idRepresentante}")
@@ -114,4 +121,59 @@ public class InscripcionController {
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    // =========================================================================
+    // NUEVO 7: Exportar el Listado Resumen General de todo el Concurso (Por ID)
+    // =========================================================================
+    @PostMapping("/exportar-pdf-general")
+    public ResponseEntity<byte[]> descargarPdfGeneral(
+            @RequestParam("idConcurso") Long idConcurso,
+            @RequestParam("nombreConcurso") String nombreConcurso) {
+        try {
+            // El propio backend recupera las inscripciones limpias de la base de datos
+            List<Inscripcion> inscripciones = inscripcionService.obtenerInscripcionesPorConcurso(idConcurso); 
+
+            byte[] pdfBytes = inscripcionService.generarPdfGeneralConcurso(nombreConcurso, inscripciones);
+            
+            if (pdfBytes == null || pdfBytes.length == 0) {
+                return ResponseEntity.noContent().build();
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Listado_General_Concurso.pdf");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace(); 
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // =========================================================================
+    // NUEVO 8: Exportar fichas de los componentes de grupos SELECCIONADOS (Checkbox)
+    // =========================================================================
+   @PostMapping("/exportar-pdf-seleccionados")
+public ResponseEntity<byte[]> exportarPdfSeleccionados(@RequestBody List<Integer> idsInscripcionesInt) {
+    try {
+        if (idsInscripcionesInt == null || idsInscripcionesInt.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        // Le pasamos la lista de Integer directamente al servicio, SIN conversiones raras
+        byte[] pdfBytes = inscripcionService.generarPdfSeleccionadosPorIds(idsInscripcionesInt);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "Fichas_Componentes_Seleccionados.pdf");
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+    } catch (Exception e) {
+        System.err.println("Error al exportar seleccionados: " + e.getMessage());
+        e.printStackTrace();
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
 }

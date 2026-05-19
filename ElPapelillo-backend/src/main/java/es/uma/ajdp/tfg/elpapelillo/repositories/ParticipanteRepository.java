@@ -11,4 +11,5 @@ import es.uma.ajdp.tfg.elpapelillo.models.Participante;
 public interface ParticipanteRepository extends JpaRepository<Participante, Integer> {
     // Busca un participante exacto por su DNI
     Optional<Participante> findByDni(String dni);
+    
 }

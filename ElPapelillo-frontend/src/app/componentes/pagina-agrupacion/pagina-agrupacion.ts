@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms'; 
+import { Location } from '@angular/common';
 
 @Component({
   selector: 'detalle-agrupacion',
@@ -38,6 +39,8 @@ export class DetalleAgrupacionComponent implements OnInit {
   // Paginación para las tablas/listas
   paginaActual: number = 1;
   elementosPorPagina: number = 5;
+
+  constructor(private location: Location) {}
 
   ngOnInit(): void {
     this.idInscripcion = Number(this.route.snapshot.paramMap.get('id')) || 1;
@@ -346,8 +349,8 @@ export class DetalleAgrupacionComponent implements OnInit {
     });
   }
   
-  volver(): void { 
-    this.router.navigate(['/panel-control-administrador']); 
+  volver(): void {
+    this.location.back(); // Retorna automáticamente a la url anterior (la del concurso)
   }
 
   descargarArchivo(rutaArchivo: string, nombreDescarga: string): void {

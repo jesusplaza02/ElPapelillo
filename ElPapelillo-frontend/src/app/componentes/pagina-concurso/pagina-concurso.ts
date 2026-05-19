@@ -135,11 +135,7 @@ export class DetalleConcursoComponent implements OnInit {
     this.cdRef.detectChanges();
   }
 
-  generarPDF(): void {
-    console.log('Generando listado general en PDF...');
-    alert('Función de exportación PDF en desarrollo para el TFG');
-  }
-
+  
   irADetalleAgrupacion(idInscripcion: number): void {
     if (idInscripcion) {
       this.router.navigate(['/detalle-agrupacion', idInscripcion]);
@@ -158,16 +154,105 @@ export class DetalleConcursoComponent implements OnInit {
     this.inscripcionesFiltradas.forEach((ins: any) => ins.seleccionado = checked);
   }
 
+  generarPDF(): void {
+    if (!this.concurso) {
+      alert('No hay datos del concurso disponibles para exportar.');
+      return;
+    }
+
+    const nombreConcurso = this.concurso.nombre;
+    const url = `http://localhost:8080/api/inscripciones/exportar-pdf-general?idConcurso=${this.idConcurso}&nombreConcurso=${encodeURIComponent(nombreConcurso)}`;
+
+    this.http.post(url, {}, { responseType: 'blob' }).subscribe({
+      next: (blob: Blob) => {
+        const urlLocal = window.URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = urlLocal;
+        enlace.download = `Listado_General_${nombreConcurso.replace(/\s+/g, '_')}.pdf`;
+        document.body.appendChild(enlace);
+        enlace.click();
+        
+        document.body.removeChild(enlace);
+        window.URL.revokeObjectURL(urlLocal);
+
+        // === LLAMADA EXACTA A TU SISTEMA DE AUDITORÍA ===
+        this.registrarAuditoria(
+          'DESCARGA_PDF_GENERAL',
+          `El administrador ha descargado el PDF de control general para el concurso: ${nombreConcurso}.`
+        );
+        // ===============================================
+      },
+      error: (err) => {
+        console.error('Error al generar el PDF General en el frontend:', err);
+        alert('Hubo un problema al procesar el archivo PDF general.');
+      }
+    });
+  }
+
 
   generarPdfParticipantesSeleccionados(): void {
-    if (!this.inscripcionesFiltradas) return;
+  if (!this.inscripcionesFiltradas || this.inscripcionesFiltradas.length === 0) {
+    return;
+  }
+
+  // 1. Extraemos los números en caliente
+  const listaPrimitiva: number[] = [];
+  
+  for (const ins of this.inscripcionesFiltradas) {
+    if (ins && ins.seleccionado === true) {
+      const idVal = ins.idInscripcion ?? ins.id;
+      if (idVal !== undefined && idVal !== null) {
+        listaPrimitiva.push(Number(idVal));
+      }
+    }
+  }
+
+  if (listaPrimitiva.length === 0) {
+    alert('Por favor, selecciona primero al menos una agrupación utilizando las casillas de verificación.');
+    return;
+  }
+
+  // 2. OBLIGAMOS A ANGULAR A ENVIAR EL ARRAY PLANO (Sin envolturas de objetos)
+  const cuerpoPeticion = Array.from(listaPrimitiva);
+
+  const url = 'http://localhost:8080/api/inscripciones/exportar-pdf-seleccionados';
+
+  // 3. Enviamos el cuerpo directamente
+  this.http.post(url, cuerpoPeticion, { responseType: 'blob' }).subscribe({
+    next: (blob: Blob) => {
+      const urlLocal = window.URL.createObjectURL(blob);
+      const enlace = document.createElement('a');
+      enlace.href = urlLocal;
+      enlace.download = 'Fichas_Componentes_Seleccionados.pdf';
+      document.body.appendChild(enlace);
+      enlace.click();
+      
+      document.body.removeChild(enlace);
+      window.URL.revokeObjectURL(urlLocal);
+    },
+    error: (err) => {
+      console.error('Error en la petición POST del PDF:', err);
+      alert('Ocurrió un error al intentar generar las fichas seleccionadas.');
+    }
+  });
+}
+
+  private registrarAuditoria(accion: string, descripcion: string): void {
+    const adminIdGuardado = localStorage.getItem('idUsuario') || 
+                            localStorage.getItem('idAdministrador') || 
+                            localStorage.getItem('id');
     
-    // Filtramos las inscripciones que el usuario ha seleccionado con el checkbox
-    const seleccionadas = this.inscripcionesFiltradas.filter((ins: any) => ins.seleccionado === true);
-    
-    console.log('Generando PDF de participantes para las agrupaciones:', seleccionadas);
-    
-    // Aquí puedes mapear los IDs seleccionados para enviarlos a tu InscripcionService
-    // Ejemplo: const ids = seleccionadas.map((ins: any) => ins.idInscripcion);
+    const administradorId = adminIdGuardado ? Number(adminIdGuardado) : 1;
+
+    const payloadAuditoria = {
+      administradorId: administradorId, 
+      accion: accion,                    
+      descripcion: descripcion            
+    };
+
+    this.http.post('http://localhost:8080/api/auditoria', payloadAuditoria).subscribe({
+      next: () => console.log(`[Auditoría] Registro guardado con éxito para el Admin ID (${administradorId}): ${accion}`),
+      error: (err) => console.error('[Auditoría] Error al insertar en logauditoria:', err)
+    });
   }
 }
