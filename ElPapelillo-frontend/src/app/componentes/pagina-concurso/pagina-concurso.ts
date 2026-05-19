@@ -229,6 +229,11 @@ export class DetalleConcursoComponent implements OnInit {
       
       document.body.removeChild(enlace);
       window.URL.revokeObjectURL(urlLocal);
+
+       this.registrarAuditoria(
+          'DESCARGA_PDF_AGRUPACIONES_SELECCIONADAS',
+          `El administrador ha descargado el PDF de control de las agrupaciones seleccionadas para el concurso: ${this.concurso?.nombre || 'N/A'}.`
+        );
     },
     error: (err) => {
       console.error('Error en la petición POST del PDF:', err);
