@@ -64,28 +64,39 @@
         placeholder="Buscar por nombre de agrupación o representante...">
     </div>
     
-    <div class="filters-row">
-      <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
+    <div class="filters-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px; flex-wrap: wrap;">
+      <div class="select-filters" style="display: flex; align-items: center; gap: 10px;">
+        <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
 
-      <select [(ngModel)]="filtroCategoria" (change)="filtrarAgrupaciones()">
-        <option value="">Todas las categorías</option>
-        <option value="ADULTOS">Adultos</option>
-        <option value="JUVENIL">Juvenil</option>
-        <option value="INFANTIL">Infantil</option>
-      </select>
+        <select [(ngModel)]="filtroCategoria" (change)="filtrarAgrupaciones()">
+          <option value="">Todas las categorías</option>
+          <option value="ADULTOS">Adultos</option>
+          <option value="JUVENIL">Juvenil</option>
+          <option value="INFANTIL">Infantil</option>
+        </select>
 
-      <select [(ngModel)]="filtroEstado" (change)="filtrarAgrupaciones()">
-        <option value="">Todos los estados</option>
-        <option value="APROBADO">Aprobados</option>
-        <option value="PENDIENTE">Pendientes</option>
-        <option value="RECHAZADO">Rechazados</option>
-      </select>
+        <select [(ngModel)]="filtroEstado" (change)="filtrarAgrupaciones()">
+          <option value="">Todos los estados</option>
+          <option value="APROBADO">Aprobados</option>
+          <option value="PENDIENTE">Pendientes</option>
+          <option value="RECHAZADO">Rechazados</option>
+        </select>
 
-      <select [(ngModel)]="filtroFianza" (change)="filtrarAgrupaciones()">
-        <option value="">Todas las fianzas</option>
-        <option value="PAGADA">Pagada</option>
-        <option value="PENDIENTE">Pendiente</option>
-      </select>
+        <select [(ngModel)]="filtroFianza" (change)="filtrarAgrupaciones()">
+          <option value="">Todas las fianzas</option>
+          <option value="PAGADA">Pagada</option>
+          <option value="PENDIENTE">Pendiente</option>
+        </select>
+      </div>
+
+      <button class="btn-pdf-participants" 
+              [disabled]="!tieneSeleccionados()"
+              (click)="generarPdfParticipantesSeleccionados()"
+              style="background-color: #2b8a3e; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;"
+              [style.opacity]="tieneSeleccionados() ? '1' : '0.5'"
+              [style.cursor]="tieneSeleccionados() ? 'pointer' : 'not-allowed'">
+        <i class="fas fa-file-pdf"></i> Generar listado pdf participantes
+      </button>
     </div>
   </div>
 
@@ -93,7 +104,7 @@
     <table>
       <thead>
         <tr>
-          <th><input type="checkbox"></th>
+          <th><input type="checkbox" (change)="seleccionarTodos($event)"></th>
           <th>Nombre</th>
           <th>Modalidad</th>
           <th>Categoría</th>
@@ -107,7 +118,11 @@
             (click)="irADetalleAgrupacion(ins?.idInscripcion)"
             style="cursor: pointer;">
           
-          <td><input type="checkbox" (click)="$event.stopPropagation()"></td>
+          <td>
+            <input type="checkbox" 
+                   [(ngModel)]="ins.seleccionado" 
+                   (click)="$event.stopPropagation()">
+          </td>
           
           <td class="bold-text">{{ ins?.agrupacion?.nombre }}</td>
           <td>
@@ -122,6 +137,7 @@
           </td>
           <td>
             {{ ins?.agrupacion?.representante?.nombre || 'Sin asignar' }} 
+          </td>
           <td>
             <span class="status" [ngClass]="{
               'st-aprobado': ins?.estadoInscripcion === 'APROBADO' || ins?.estadoInscripcion === 'Aprobada',
@@ -132,13 +148,13 @@
             </span>
           </td>
           <td>
-            <span class="status" [class.st-pagada]="ins?.fianza === true || ins?.fianza === 'PAGADA' || ins?.fianza === 'Pagada'">
-              <i *ngIf="ins?.fianza === true || ins?.fianza === 'PAGADA' || ins?.fianza === 'Pagada'" class="fas fa-check-circle"></i> 
-              {{ (ins?.fianza === true || ins?.fianza === 'PAGADA' || ins?.fianza === 'Pagada') ? 'PAGADA' : 'PENDIENTE' }}
-            </span>
-          </td>
+  <span class="status" [class.st-pagada]="ins?.fianza?.idFianza != null">
+    <i *ngIf="ins?.fianza?.idFianza != null" class="fas fa-check-circle"></i> 
+    {{ (ins?.fianza?.idFianza != null) ? 'PAGADA' : 'PENDIENTE' }}
+  </span>
+</td>
         </tr>
-        <tr *ngIf="inscripcionesFiltradas.length === 0">
+        <tr *ngIf="inscripcionesFiltradas && inscripcionesFiltradas.length === 0">
           <td colspan="7" style="text-align: center; color: var(--text-light); padding: 30px;">
             No se han encontrado agrupaciones que coincidan con los filtros seleccionados.
           </td>

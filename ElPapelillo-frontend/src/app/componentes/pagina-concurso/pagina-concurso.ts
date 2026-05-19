@@ -141,8 +141,33 @@ export class DetalleConcursoComponent implements OnInit {
   }
 
   irADetalleAgrupacion(idInscripcion: number): void {
-  if (idInscripcion) {
-    this.router.navigate(['/detalle-agrupacion', idInscripcion]);
+    if (idInscripcion) {
+      this.router.navigate(['/detalle-agrupacion', idInscripcion]);
+    }
   }
-}
+
+  tieneSeleccionados(): boolean {
+    if (!this.inscripcionesFiltradas) return false;
+    return this.inscripcionesFiltradas.some((ins: any) => ins.seleccionado === true);
+  }
+
+
+  seleccionarTodos(event: any): void {
+    if (!this.inscripcionesFiltradas) return;
+    const checked = event.target.checked;
+    this.inscripcionesFiltradas.forEach((ins: any) => ins.seleccionado = checked);
+  }
+
+
+  generarPdfParticipantesSeleccionados(): void {
+    if (!this.inscripcionesFiltradas) return;
+    
+    // Filtramos las inscripciones que el usuario ha seleccionado con el checkbox
+    const seleccionadas = this.inscripcionesFiltradas.filter((ins: any) => ins.seleccionado === true);
+    
+    console.log('Generando PDF de participantes para las agrupaciones:', seleccionadas);
+    
+    // Aquí puedes mapear los IDs seleccionados para enviarlos a tu InscripcionService
+    // Ejemplo: const ids = seleccionadas.map((ins: any) => ins.idInscripcion);
+  }
 }
