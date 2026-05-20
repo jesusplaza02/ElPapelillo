@@ -45,3 +45,27 @@
   text-decoration: underline !important;
   opacity: 0.8 !important;
 }
+
+@media (max-width: 768px) {
+  .main-footer {
+    height: auto !important; /* Permitimos que crezca si el texto rompe en dos líneas */
+    padding: 8px 4px !important; /* Un poco de respiro arriba y abajo */
+  }
+
+  .footer-content {
+    gap: 12px !important; /* Reducimos el hueco de 50px a 12px para que quepa en un iPhone */
+    flex-wrap: wrap !important; /* Si aun así no cabe, que baje a la siguiente línea sin romperse */
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* Letra un pelín más compacta para garantizar espacio */
+  .footer-content p, 
+  .footer-content nav,
+  .footer-content span,
+  .footer-content a, 
+  .footer-content a:link, 
+  .footer-content a:visited {
+    font-size: 11px !important; 
+  }
+}

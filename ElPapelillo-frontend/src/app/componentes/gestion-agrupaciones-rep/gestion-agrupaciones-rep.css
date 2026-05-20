@@ -263,3 +263,62 @@
         font-size: 1.3rem;
     }
 }
+
+@media (max-width: 768px) {
+  
+  /* 1. Forzar a que el contenedor del formulario no sature los bordes */
+  form, 
+  .card,
+  div[style*="grid-column"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 12px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  /* 2. Desactivar el Grid horizontal: pasamos todo a una sola columna */
+  /* Reemplaza '.tu-contenedor-grid' por la clase real de tu formulario si la tiene */
+  .container, form {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 15px !important;
+  }
+
+  /* 3. Romper las celdas compartidas (como la de Nombre y Nombre Última Participación) */
+  .form-field {
+    grid-column: 1 / span 1 !important; /* Deja de ocupar 2 columnas */
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* 4. Asegurar que NINGÚN input o select se estire más allá de la pantalla */
+  .form-input-styled,
+  .form-select,
+  input[type="text"],
+  select,
+  textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    font-size: 16px !important; /* 🔑 Truco extra: Evita que iOS haga zoom automático al pulsar */
+  }
+
+  /* 5. Ajustar los radio buttons de arriba para que no se pisen */
+  .form-check-inline {
+    display: flex !important;
+    align-items: center !important;
+    margin-bottom: 8px !important;
+    margin-right: 0 !important;
+  }
+
+  /* 6. Hacer que los botones de Confirmar y Cancelar ocupen todo el ancho y no se solapen */
+  button[type="submit"],
+  .btn {
+    width: 100% !important;
+    margin-top: 5px !important;
+    padding: 12px !important;
+  }
+}

@@ -149,3 +149,38 @@
 .dropdown-content.show {
   display: block !important;
 }
+
+@media (max-width: 768px) {
+  .main-header {
+    padding: 0 1rem; /* Reducimos el espacio de los lados */
+    height: 60px;    /* Un pelo más bajo para ganar pantalla */
+  }
+
+  .brand-name {
+    font-size: 1.2rem; /* Texto un poco más pequeño para que quepa bien */
+  }
+
+  .logo-img {
+    height: 38px; /* Ajustamos el logo */
+  }
+
+  /* El contenedor del usuario se hace más compacto */
+  .user-info {
+    padding: 4px 10px;
+    gap: 6px;
+    max-width: 180px; /* Forzamos un ancho máximo en móvil */
+  }
+
+  /* 🔑 EL TRUCO: Si el email es muy largo, lo corta con "..." en lugar de empujar el logo */
+  .user-email {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block; 
+  }
+  
+  /* Si prefieres directamente ocultar el texto en pantallas críticamente pequeñas (como iPhone SE) 
+     y dejar solo el icono blanco del usuario, descomenta esta línea: */
+  /* .user-email { display: none; } */
+}
