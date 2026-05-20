@@ -119,16 +119,19 @@ export class DetalleConcursoComponent implements OnInit {
       const cumpleEstado = !this.filtroEstado || 
         ins.estadoInscripcion?.toUpperCase() === this.filtroEstado.toUpperCase();
 
-      // 4. Filtro por Fianza (Controla booleanos true/false y strings de BD)
       let cumpleFianza = true;
-      if (this.filtroFianza === 'PAGADA') {
-        cumpleFianza = ins.fianza === true || ins.fianza === 'PAGADA' || ins.fianza === 'Pagada';
-      } else if (this.filtroFianza === 'PENDIENTE') {
-        cumpleFianza = !ins.fianza || ins.fianza === 'PENDIENTE' || ins.fianza === 'Pendiente' || ins.fianza === false;
-      }
+    
+    // Comprobamos si tiene fianza válida (mirando si existe el objeto fianza y su id no es null)
+    const tieneFianzaPagada = ins.fianza !== null && ins.fianza !== undefined && (ins.fianza.idFianza ?? ins.fianza.id) !== null;
 
-      // La inscripción pasa si cumple los 4 filtros simultáneamente
-      return cumpleTexto && cumpleCategoria && cumpleEstado && cumpleFianza;
+    if (this.filtroFianza === 'PAGADA') {
+      cumpleFianza = tieneFianzaPagada;
+    } else if (this.filtroFianza === 'PENDIENTE') {
+      cumpleFianza = !tieneFianzaPagada;
+    }
+
+    // La inscripción pasa si cumple los 4 filtros simultáneamente
+    return cumpleTexto && cumpleCategoria && cumpleEstado && cumpleFianza;
     });
 
     // Sincroniza los cambios con la vista al instante
