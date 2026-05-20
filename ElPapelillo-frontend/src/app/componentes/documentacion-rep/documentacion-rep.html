@@ -10,14 +10,14 @@
     <div class="header-titles">
       <h1>Documentación de Inscripción</h1>
       
-      @if (listaDocs.length > 0 && listaDocs[0].inscripcion) {
+      @if (inscripcionActiva) {
         <p class="subtitle-context">
-          <strong>{{ listaDocs[0].inscripcion.agrupacion?.nombre }}</strong> 
+          <strong>{{ inscripcionActiva.agrupacion?.nombre }}</strong> 
           <span class="separator">|</span> 
-          {{ listaDocs[0].inscripcion.concurso?.nombre }}
+          {{ inscripcionActiva.concurso?.nombre }}
         </p>
       } @else {
-        <p class="subtitle-context text-muted">Expediente digital de archivos adjuntos</p>
+        <p class="subtitle-context text-muted">Cargando datos del expediente...</p>
       }
     </div>
 

@@ -121,7 +121,6 @@
     </div>
   }
 
-  
   <div class="cards-grid">
     @if (loading) { <p>Cargando inscripciones...</p> }
     
@@ -151,7 +150,10 @@
         
         <div class="card-actions">
           <a class="btn-action">Gestión de participantes</a>
-          <a [routerLink]="['/documentacion-agrupacion-rep', ins.agrupacion?.idAgrupacion]" class="btn-action">Gestión de documentación</a>
+          
+          <a [routerLink]="['/documentacion-agrupacion-rep', ins.idInscripcion]" class="btn-action">
+            Gestión de documentación
+          </a>
         </div>
       </div>
     } @empty {

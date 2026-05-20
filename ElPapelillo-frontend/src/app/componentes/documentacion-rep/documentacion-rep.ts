@@ -16,6 +16,9 @@ export class DocumentacionRepComponent implements OnInit {
   listaDocs: any[] = [];
   idInscripcionActual: string | null = null;
   
+  // 🔑 CONTEXTO DE INSCRIPCIÓN: Declarado explícitamente para limpiar los errores del HTML
+  inscripcionActiva: any = null; 
+  
   // ID del usuario activo para auditorías (obtenido del localStorage)
   usuarioIdActual: number = 1; 
 
@@ -35,13 +38,18 @@ export class DocumentacionRepComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // 🔑 Capturamos el ID del usuario del almacenamiento local
+    // 1. Capturamos el ID del usuario del almacenamiento local
     const idLogueado = localStorage.getItem('idUsuario');
     if (idLogueado) {
       this.usuarioIdActual = Number(idLogueado);
     }
 
-    // 🔑 Capturamos el ID de la INSCRIPCIÓN desde la URL en lugar de la agrupación
+    // 2. LIMPIEZA PREVENTIVA: Reseteamos los estados para evitar fugas visuales entre pantallas
+    this.listaDocs = [];
+    this.inscripcionActiva = null;
+    this.loading = true;
+
+    // 3. Capturamos el ID de la INSCRIPCIÓN desde la URL
     this.idInscripcionActual = this.route.snapshot.paramMap.get('id');
     if (this.idInscripcionActual) {
       this.cargarDocs(this.idInscripcionActual);
@@ -126,13 +134,11 @@ export class DocumentacionRepComponent implements OnInit {
 
     const formData = new FormData();
     formData.append('file', this.archivoSeleccionado);
-    // 🔑 Cambiado a idInscripcion para que el endpoint de tu backend lo asocie correctamente
     formData.append('idInscripcion', this.idInscripcionActual);
     formData.append('nombreDoc', this.nuevoDocNombre);
     formData.append('tipo', this.nuevoDocTipo);
     formData.append('usuarioId', this.usuarioIdActual.toString()); 
 
-    // 🔑 Endpoint redirigido al recurso de inscripciones
     this.http.post('http://localhost:8080/api/documentos/upload', formData)
       .subscribe({
         next: () => {
@@ -151,17 +157,43 @@ export class DocumentacionRepComponent implements OnInit {
   // --- MÉTODOS DE DATOS ---
   cargarDocs(idInscripcion: string) {
     this.loading = true;
-    // 🔑 Endpoint adaptado para buscar documentos por la Inscripción
+    this.listaDocs = []; 
+
     this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${idInscripcion}`)
       .subscribe({
         next: (data) => {
-          this.listaDocs = data;
+          this.listaDocs = data ? data : [];
+          
+          // 🔑 ESTRATEGIA DE CONTEXTO FIJO:
+          // Si la inscripción ya cuenta con documentos, extraemos el objeto inscripción del primer registro
+          if (this.listaDocs.length > 0 && this.listaDocs[0].inscripcion) {
+            this.inscripcionActiva = this.listaDocs[0].inscripcion;
+          } else {
+            // Si la inscripción está vacía (como tu ID 22), solicitamos los datos básicos de la inscripción al backend
+            this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}`)
+              .subscribe({
+                next: (res) => {
+                  this.inscripcionActiva = res;
+                },
+                error: (err) => {
+                  console.error('No se pudo mapear el contexto de la inscripción vacía:', err);
+                  // Backup de seguridad para que la plantilla HTML no rompa bajo ninguna circunstancia
+                  this.inscripcionActiva = {
+                    agrupacion: { nombre: 'Cargando Agrupación...' },
+                    concurso: { nombre: 'Concurso Local' }
+                  };
+                }
+              });
+          }
+          
           this.loading = false;
           this.cd.detectChanges();
         },
         error: (err) => {
-          console.error('Error al cargar documentos', err);
+          console.error('Error al cargar documentos de la inscripción:', err);
+          this.listaDocs = [];
           this.loading = false;
+          this.cd.detectChanges();
         }
       });
   }
