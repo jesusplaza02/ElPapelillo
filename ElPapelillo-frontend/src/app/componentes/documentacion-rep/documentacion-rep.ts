@@ -14,10 +14,9 @@ import { FormsModule } from '@angular/forms';
 export class DocumentacionRepComponent implements OnInit {
   
   listaDocs: any[] = [];
-  idAgrupacionActual: string | null = null;
+  idInscripcionActual: string | null = null;
   
-  // ID del usuario que realiza la acción (para la tabla registroactividad)
-  // En un entorno real, este ID se obtendría del login.
+  // ID del usuario activo para auditorías (obtenido del localStorage)
   usuarioIdActual: number = 1; 
 
   // --- VARIABLES DE ESTADO Y FORMULARIO ---
@@ -36,10 +35,18 @@ export class DocumentacionRepComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    // Capturamos el ID de la agrupación desde la URL
-    this.idAgrupacionActual = this.route.snapshot.paramMap.get('id');
-    if (this.idAgrupacionActual) {
-      this.cargarDocs(this.idAgrupacionActual);
+    // 🔑 Capturamos el ID del usuario del almacenamiento local
+    const idLogueado = localStorage.getItem('idUsuario');
+    if (idLogueado) {
+      this.usuarioIdActual = Number(idLogueado);
+    }
+
+    // 🔑 Capturamos el ID de la INSCRIPCIÓN desde la URL en lugar de la agrupación
+    this.idInscripcionActual = this.route.snapshot.paramMap.get('id');
+    if (this.idInscripcionActual) {
+      this.cargarDocs(this.idInscripcionActual);
+    } else {
+      this.irAlPanel();
     }
   }
 
@@ -75,14 +82,14 @@ export class DocumentacionRepComponent implements OnInit {
     const archivo = event.target.files[0];
 
     if (archivo) {
-      // VALIDACIÓN RF21: Solo PDF
+      // VALIDACIÓN: Solo PDF
       if (archivo.type !== 'application/pdf') {
         this.mensajeError = 'Error: Solo se permiten archivos en formato PDF.';
         this.resetearInput(event);
         return;
       }
 
-      // VALIDACIÓN RF21: Máximo 5MB
+      // VALIDACIÓN: Máximo 5MB
       const maxTamano = 5 * 1024 * 1024;
       if (archivo.size > maxTamano) {
         this.mensajeError = 'Error: El archivo supera el límite de 5MB.';
@@ -92,14 +99,14 @@ export class DocumentacionRepComponent implements OnInit {
 
       this.archivoSeleccionado = archivo;
       
-      // Lógica de nombre automático según el tipo (RF11)
+      // Lógica de nombre automático adaptado a la Inscripción
       if (!this.nuevoDocNombre) {
         switch (this.nuevoDocTipo) {
           case 'DNI':
-            this.nuevoDocNombre = `DNI_Rep_${this.idAgrupacionActual}`;
+            this.nuevoDocNombre = `DNI_Ins_${this.idInscripcionActual}`;
             break;
           case 'REPERTORIO':
-            this.nuevoDocNombre = `Letras_${this.idAgrupacionActual}`;
+            this.nuevoDocNombre = `Letras_Ins_${this.idInscripcionActual}`;
             break;
           default:
             this.nuevoDocNombre = archivo.name.replace(/\.[^/.]+$/, "");
@@ -112,29 +119,29 @@ export class DocumentacionRepComponent implements OnInit {
   confirmarSubida() {
     this.mensajeError = null;
 
-    if (!this.archivoSeleccionado || !this.idAgrupacionActual || !this.nuevoDocNombre) {
+    if (!this.archivoSeleccionado || !this.idInscripcionActual || !this.nuevoDocNombre) {
       this.mensajeError = 'Por favor, rellena todos los campos obligatorios.';
       return;
     }
 
     const formData = new FormData();
     formData.append('file', this.archivoSeleccionado);
-    formData.append('idAgrupacion', this.idAgrupacionActual);
+    // 🔑 Cambiado a idInscripcion para que el endpoint de tu backend lo asocie correctamente
+    formData.append('idInscripcion', this.idInscripcionActual);
     formData.append('nombreDoc', this.nuevoDocNombre);
     formData.append('tipo', this.nuevoDocTipo);
-    // Enviamos el usuarioId para el registro de auditoría en el backend (RF22)
     formData.append('usuarioId', this.usuarioIdActual.toString()); 
 
+    // 🔑 Endpoint redirigido al recurso de inscripciones
     this.http.post('http://localhost:8080/api/documentos/upload', formData)
       .subscribe({
         next: () => {
           alert('¡Archivo guardado con éxito!');
           this.mostrarForm = false;
           this.limpiarFormulario();
-          this.cargarDocs(this.idAgrupacionActual!);
+          this.cargarDocs(this.idInscripcionActual!);
         },
         error: (err) => {
-          // Captura el error de validación del backend (RF21)
           this.mensajeError = err.error?.error || 'Error técnico al subir el documento.';
           console.error('Error al subir', err);
         }
@@ -142,26 +149,30 @@ export class DocumentacionRepComponent implements OnInit {
   }
 
   // --- MÉTODOS DE DATOS ---
-  cargarDocs(id: string) {
-    this.http.get<any[]>(`http://localhost:8080/api/documentos/agrupacion/${id}`)
+  cargarDocs(idInscripcion: string) {
+    this.loading = true;
+    // 🔑 Endpoint adaptado para buscar documentos por la Inscripción
+    this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${idInscripcion}`)
       .subscribe({
         next: (data) => {
           this.listaDocs = data;
+          this.loading = false;
           this.cd.detectChanges();
         },
-        error: (err) => console.error('Error al cargar documentos', err)
+        error: (err) => {
+          console.error('Error al cargar documentos', err);
+          this.loading = false;
+        }
       });
   }
 
   descargarArchivo(url: string, nombreArchivo: string) {
-    // La URL llega desde el backend como "archivos/nombre_archivo.pdf"
     this.http.get(`http://localhost:8080/${url}`, { responseType: 'blob' })
       .subscribe({
         next: (blob) => {
           const urlBlob = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = urlBlob;
-          // Forzamos extensión pdf en el nombre de descarga
           a.download = nombreArchivo.toLowerCase().endsWith('.pdf') ? nombreArchivo : `${nombreArchivo}.pdf`;
           document.body.appendChild(a);
           a.click();

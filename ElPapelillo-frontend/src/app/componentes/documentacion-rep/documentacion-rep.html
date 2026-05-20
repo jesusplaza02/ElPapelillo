@@ -1,76 +1,103 @@
 <div class="main-container">
+  
+  <div class="navigation-row">
+    <button class="btn-back" (click)="irAlPanel()">
+      <i class="fas fa-arrow-left"></i> Volver al Panel de Control
+    </button>
+  </div>
+
   <div class="doc-header">
-    <h1>Documentación</h1>
+    <div class="header-titles">
+      <h1>Documentación de Inscripción</h1>
+      
+      @if (listaDocs.length > 0 && listaDocs[0].inscripcion) {
+        <p class="subtitle-context">
+          <strong>{{ listaDocs[0].inscripcion.agrupacion?.nombre }}</strong> 
+          <span class="separator">|</span> 
+          {{ listaDocs[0].inscripcion.concurso?.nombre }}
+        </p>
+      } @else {
+        <p class="subtitle-context text-muted">Expediente digital de archivos adjuntos</p>
+      }
+    </div>
+
     <button class="btn-upload" (click)="toggleFormulario()">
       <i class="fas" [class.fa-plus]="!mostrarForm" [class.fa-times]="mostrarForm"></i> 
       {{ mostrarForm ? ' Cancelar' : ' Subir Documento' }}
     </button>
   </div>
 
-  <div class="upload-form-card" *ngIf="mostrarForm">
-    <h3>Nueva Carga de Documento</h3>
-    <div class="form-grid">
-      <div class="form-group">
-        <label>Nombre para mostrar</label>
-        <input type="text" [(ngModel)]="nuevoDocNombre" placeholder="Ej: Certificado ignifugidad" class="form-control">
+  @if (mostrarForm) {
+    <div class="upload-form-card">
+      <h3>Nueva Carga de Documento</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre para mostrar</label>
+          <input type="text" [(ngModel)]="nuevoDocNombre" placeholder="Ej: Certificado ignifugidad" class="form-control">
+        </div>
+        
+        <div class="form-group">
+          <label>Tipo de documento</label>
+          <select [(ngModel)]="nuevoDocTipo" class="form-control">
+            <option value="DNI">Identificación / DNIs</option>
+            <option value="REPERTORIO">Repertorio (Letras)</option>
+            <option value="AUTORIZACION">Autorización Menores</option>
+            <option value="OTROS">Otros</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Seleccionar archivo (PDF máx 5MB)</label>
+          <input type="file" (change)="prepararArchivo($event)" class="file-input-custom" accept="application/pdf">
+        </div>
       </div>
       
-      <div class="form-group">
-        <label>Tipo de documento</label>
-        <select [(ngModel)]="nuevoDocTipo" class="form-control">
-          <option value="DNI">Identificación / DNIs</option>
-          <option value="REPERTORIO">Repertorio (Letras)</option>
-          <option value="AUTORIZACION">Autorización Menores</option>
-          <option value="OTROS">Otros</option>
-        </select>
-      </div>
+      @if (mensajeError) {
+        <div class="error-container">
+          <i class="fas fa-exclamation-circle"></i> {{ mensajeError }}
+        </div>
+      }
 
-      <div class="form-group">
-        <label>Seleccionar archivo (PDF máx 5MB)</label>
-        <input type="file" (change)="prepararArchivo($event)" class="file-input-custom" accept="application/pdf">
+      <div class="form-actions">
+        <button class="btn-confirm" (click)="confirmarSubida()" [disabled]="!archivoSeleccionado">
+          <i class="fas fa-cloud-upload-alt"></i> Confirmar y Guardar
+        </button>
       </div>
     </div>
-    
-    <div *ngIf="mensajeError" class="error-container">
-      <i class="fas fa-exclamation-circle"></i> {{ mensajeError }}
-    </div>
-
-    <div class="form-actions">
-      <button class="btn-confirm" (click)="confirmarSubida()" [disabled]="!archivoSeleccionado">
-        <i class="fas fa-cloud-upload-alt"></i> Confirmar y Guardar
-      </button>
-    </div>
-  </div>
+  }
 
   <div class="doc-card-container">
     
-    <ng-container *ngIf="listaDocs.length > 0">
-      <div class="doc-item" *ngFor="let doc of listaDocs">
-        <div class="doc-main-content clickable" (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
-          <div class="doc-left">
-            <div class="icon-box">
-              <i class="fas fa-file-pdf"></i>
+    @if (listaDocs.length > 0) {
+      @for (doc of listaDocs; track doc.idDocumento || doc.urlArchivo) {
+        <div class="doc-item">
+          <div class="doc-main-content clickable" (click)="descargarArchivo(doc.urlArchivo, doc.nombre)">
+            <div class="doc-left">
+              <div class="icon-box">
+                <i class="fas fa-file-pdf"></i>
+              </div>
+              <div class="doc-info">
+                <span class="doc-name">{{ doc.nombre }}</span>
+                <span class="doc-type-label">{{ doc.tipo || 'Archivo General' }}</span>
+              </div>
             </div>
-            <div class="doc-info">
-              <span class="doc-name">{{ doc.nombre }}</span>
-              <span class="doc-type-label">{{ doc.tipo || 'Archivo General' }}</span>
+            <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
+                {{ getTextoEstado(doc.estado) }}
             </div>
           </div>
-          <div [ngClass]="['status-badge', getClaseEstado(doc.estado)]">
-              {{ getTextoEstado(doc.estado) }}
-          </div>
-        </div>
 
-        <div *ngIf="doc.comentarioRevision" class="revision-comment">
-          <strong>Nota del revisor:</strong> {{ doc.comentarioRevision }}
+          @if (doc.comentarioRevision) {
+            <div class="revision-comment">
+              <strong>Nota del revisor:</strong> {{ doc.comentarioRevision }}
+            </div>
+          }
         </div>
+      }
+    } @else if (!loading) {
+      <div class="no-docs-placeholder">
+        <i class="fas fa-folder-open"></i>
+        <p>No se han encontrado documentos adjuntos para esta inscripción.</p>
       </div>
-    </ng-container>
-
-    <div class="no-docs-placeholder" *ngIf="listaDocs.length === 0">
-      <i class="fas fa-folder-open"></i>
-      <p>No se han encontrado documentos para esta agrupación.</p>
-    </div>
-
+    }
   </div>
 </div>

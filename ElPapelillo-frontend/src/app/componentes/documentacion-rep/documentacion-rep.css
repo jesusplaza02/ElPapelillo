@@ -276,3 +276,39 @@ html, body {
   font-style: italic;
   border-radius: 4px;
 }
+
+.navigation-row {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #1a3a63;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  padding: 5px 0;
+  transition: opacity 0.2s;
+}
+
+.btn-back:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.subtitle-context {
+  margin: 5px 0 0 0;
+  font-size: 1.05rem;
+  color: #57606f;
+}
+
+.subtitle-context .separator {
+  margin: 0 8px;
+  color: #ced6e0;
+}
