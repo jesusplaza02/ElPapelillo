@@ -24,5 +24,7 @@ public interface InscripcionRepository extends JpaRepository<Inscripcion, Intege
    @Query(value = "SELECT * FROM inscripciones WHERE id_concurso = :idConcurso", nativeQuery = true)
     List<Inscripcion> findByConcursoIdManual(@Param("idConcurso") Long idConcurso);
 
+    boolean existsByConcurso_IdConcursoAndAgrupacion_NombreIgnoreCase(Integer idConcurso, String nombreAgrupacion);
+
 
 }

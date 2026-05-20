@@ -35,9 +35,14 @@
           <div class="form-field" style="grid-column: 1 / span 2; background: #f9f9f9; padding: 15px; border-radius: 8px;">
             <label>Tus agrupaciones previas</label>
             <select name="agrupacionExistente" [(ngModel)]="agrupacionExistenteSeleccionada" required class="form-input-styled">
-              <option [ngValue]="null" disabled>Selecciona una...</option>
-              @for (ag of misAgrupacionesBase; track ag.idAgrupacion) {
-                <option [ngValue]="ag">{{ ag.nombre }} ({{ ag.categoria }})</option>
+              <option [ngValue]="null" disabled selected>Selecciona una...</option>
+              
+              @for (ins of misAgrupacionesBase; track ins.idInscripcion ?? $index) {
+                @if (ins.agrupacion) {
+                  <option [ngValue]="ins.agrupacion">
+                    {{ ins.agrupacion.nombre }} ({{ ins.agrupacion.categoria }})
+                  </option>
+                }
               }
             </select>
           </div>
@@ -67,6 +72,16 @@
             <div class="form-field"><label>Autor Letra</label><input type="text" name="autorLetra" ngModel required class="form-input-styled"></div>
             <div class="form-field"><label>Autor Música</label><input type="text" name="autorMusica" ngModel required class="form-input-styled"></div>
             <div class="form-field"><label>Dirección</label><input type="text" name="direccion" ngModel required class="form-input-styled"></div>
+            <div class="form-field" style="grid-column: 1 / span 2;">
+              <label>Modalidad</label>
+              <select name="modalidad" ngModel required class="form-input-styled">
+                <option value="ROMANCERO">Romancero</option>
+                <option value="MURGA">Murga</option>
+                <option value="COMPARSA">Comparsa</option>
+                <option value="CUARTETO">Cuarteto</option>
+                <option value="CORO">Coro</option>
+              </select>
+            </div>
           }
 
           @if (tipoDerivado === 'DRAG') {
@@ -77,6 +92,20 @@
           @if (tipoDerivado === 'DIOSES') {
             <div class="form-field"><label>Modelo</label><input type="text" name="modelo" ngModel required class="form-input-styled"></div>
             <div class="form-field"><label>Diseñador/a</label><input type="text" name="disenador" ngModel required class="form-input-styled"></div>
+            <div class="form-field" style="grid-column: 1 / span 2;">
+              <label>Modalidad (Tipo de Dios)</label>
+              <select name="modalidadDios" ngModel required class="form-input-styled">
+                <option value="DIOS">Dios</option>
+                <option value="DIOSA">Diosa</option>
+              </select>
+            </div>
+          }
+
+          @if (tipoDerivado === 'OTRO') {
+            <div class="form-field" style="grid-column: 1 / span 2;">
+              <label>Comentarios Destacables / Observaciones de la Modalidad</label>
+              <textarea name="comentariosDestacables" ngModel class="form-input-styled" rows="3" placeholder="Escribe aquí detalles sobre la modalidad o la presentación..."></textarea>
+            </div>
           }
         }
 

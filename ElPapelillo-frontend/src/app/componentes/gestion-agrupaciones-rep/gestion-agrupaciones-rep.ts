@@ -15,11 +15,13 @@ import { Inscripcion, Agrupacion } from './gestion-agrupaciones-rep.model';
 export class GestionAgrupacionesRepComponent implements OnInit {
   
   inscripciones: Inscripcion[] = [];
-  misAgrupacionesBase: Agrupacion[] = [];
+  // CAMBIO CLAVE 1: Lo cambiamos a any[] o Inscripcion[] porque el backend manda objetos Inscripcion
+  misAgrupacionesBase: any[] = []; 
   concursosActivos: any[] = [];
   
   concursoSeleccionado: any = null;
-  agrupacionExistenteSeleccionada: Agrupacion | null = null;
+  // CAMBIO CLAVE 2: Guardará el objeto agrupación de la inscripción seleccionada
+  agrupacionExistenteSeleccionada: any = null; 
   
   modoFormulario: 'NUEVA' | 'EXISTENTE' = 'NUEVA';
   anioCalculado: number | null = null;
@@ -45,7 +47,7 @@ export class GestionAgrupacionesRepComponent implements OnInit {
   cargarDatos(idRep: number) {
     this.loading = true;
 
-    // 1. Cargar las Inscripciones
+    // 1. Cargar las Inscripciones para la tabla principal
     this.agrupacionService.getInscripcionesPorRepresentante(idRep).subscribe({
       next: (data) => {
         this.inscripciones = data;
@@ -58,14 +60,40 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       }
     });
 
-    // 2. Cargar Agrupaciones Base para "Existente"
+    // 2. Cargar Agrupaciones Base para "Existente" (Filtrando duplicados del historial de inscripciones)
     this.agrupacionService.getMisAgrupacionesBase(idRep).subscribe({
-      next: (data) => this.misAgrupacionesBase = data
+      next: (data: any[]) => {
+        if (data && Array.isArray(data)) {
+          const mapeoIds = new Set();
+          
+          // Filtramos el array dejando solo la primera aparición de cada idAgrupacion
+          this.misAgrupacionesBase = data.filter(ins => {
+            const idAgrup = ins.agrupacion?.idAgrupacion;
+            if (idAgrup && !mapeoIds.has(idAgrup)) {
+              mapeoIds.add(idAgrup);
+              return true; // Nos quedamos con esta inscripción porque su agrupación aparece por primera vez
+            }
+            return false; // Saltamos las siguientes inscripciones de la misma agrupación
+          });
+        } else {
+          this.misAgrupacionesBase = [];
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al cargar o filtrar agrupaciones base:', err);
+      }
     });
 
-    // 3. Cargar Concursos Activos
+    // 3. Cargar Concursos Activos para el primer desplegable
     this.agrupacionService.getConcursosActivos().subscribe({
-      next: (data) => this.concursosActivos = data
+      next: (data) => {
+        this.concursosActivos = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al cargar concursos activos:', err);
+      }
     });
   }
 
@@ -97,58 +125,107 @@ export class GestionAgrupacionesRepComponent implements OnInit {
     const idLogueado = localStorage.getItem('idUsuario');
     if (!idLogueado || !this.concursoSeleccionado) return;
 
+    // ======================================================================
+    // 1. VALIDACIÓN: Evitar duplicar la misma agrupación en el mismo concurso
+    // ======================================================================
+    if (this.modoFormulario === 'EXISTENTE' && this.agrupacionExistenteSeleccionada) {
+      const yaInscrita = this.inscripciones.some(ins => 
+        ins.concurso?.idConcurso === this.concursoSeleccionado.idConcurso &&
+        ins.agrupacion?.idAgrupacion === this.agrupacionExistenteSeleccionada?.idAgrupacion
+      );
+
+      if (yaInscrita) {
+        alert(`La agrupación "${this.agrupacionExistenteSeleccionada.nombre}" ya se encuentra inscrita en el concurso "${this.concursoSeleccionado.nombre}".`);
+        return; // Detiene la ejecución aquí
+      }
+    }
+
+    // ======================================================================
+    // 2. CONSTRUCCIÓN DEL PAYLOAD PARA EL BACKEND
+    // ======================================================================
     let payload: any = {
       concurso: { idConcurso: this.concursoSeleccionado.idConcurso }
     };
 
+    // --- ESCENARIO A: REUTILIZAR AGRUPACIÓN EXISTENTE ---
     if (this.modoFormulario === 'EXISTENTE') {
-      if (!this.agrupacionExistenteSeleccionada) return;
-      // Solo enlazamos el ID de la agrupación que ya existe en la BD
+      if (!this.agrupacionExistenteSeleccionada) {
+        alert('Por favor, selecciona una agrupación válida.');
+        return;
+      }
+      // Mandamos solo el ID de la fila que ya existe en la BD
       payload.agrupacion = { idAgrupacion: this.agrupacionExistenteSeleccionada.idAgrupacion };
       
+    // --- ESCENARIO B: CREAR NUEVA AGRUPACIÓN DESDE CERO ---
     } else {
       if (!formulario.valid) return;
       const v = formulario.value;
       
-      // Creamos la agrupación y le inyectamos el ID del representante
+      // Objeto base de la Agrupación (Campos de la tabla Madre 'agrupacion')
       payload.agrupacion = {
         nombre: v.nombre,
         nombreUltimaParticipacion: v.nombreUltimaParticipacion,
-        categoria: v.categoria,
-        tipo: this.tipoDerivado,
-        representante: { idUsuario: Number(idLogueado) } // ¡Perfecto!
+        categoria: v.categoria, // Salva correctamente INFANTIL, JUVENIL, ADULTO...
+        anio: this.anioCalculado,
+        tipoConcurso: this.tipoDerivado, // 'CANTO', 'DRAG', 'DIOSES', 'OTRO'
+        representante: { idUsuario: Number(idLogueado) }
       };
 
+      // Estructuración de los datos específicos de las subclases (Tablas Hijas)
       if (this.tipoDerivado === 'CANTO') {
         payload.agrupacion.agrupacionCanto = {
+          modalidad: v.modalidad, // 'ROMANCERO', 'MURGA', 'COMPARSA'...
           autorLetra: v.autorLetra,
           autorMusica: v.autorMusica,
           direccion: v.direccion
         };
+
       } else if (this.tipoDerivado === 'DRAG') {
+        // Si no se definió categoría arriba, aseguramos un valor por defecto
+        if (!payload.agrupacion.categoria) {
+          payload.agrupacion.categoria = 'ADULTO';
+        }
+        
         payload.agrupacion.agrupacionDrag = {
           nombreArtisticoDrag: v.nombreArtisticoDrag,
           disenador: v.disenador
         };
+
       } else if (this.tipoDerivado === 'DIOSES') {
+        // En Dioses mapeamos la opción (DIOS/DIOSA) tanto en la madre como en la hija
+        payload.agrupacion.categoria = v.modalidadDios; 
+        
         payload.agrupacion.agrupacionDioses = {
+          modalidadDios: v.modalidadDios,
           modelo: v.modelo,
           disenador: v.disenador
+        };
+
+      } else if (this.tipoDerivado === 'OTRO') {
+        if (!payload.agrupacion.categoria) {
+          payload.agrupacion.categoria = 'OTRO';
+        }
+        
+        payload.agrupacion.agrupacionOtro = {
+          comentariosDestacables: v.comentariosDestacables
         };
       }
     }
 
-    // Enviamos a /api/inscripciones
+    // ======================================================================
+    // 3. ENVÍO DE LA PETICIÓN AL SERVICIO
+    // ======================================================================
     this.agrupacionService.crearInscripcion(payload).subscribe({
       next: () => {
         alert('¡Inscripción realizada con éxito!');
-        this.toggleFormulario(false);
-        formulario.resetForm();
+        this.toggleFormulario(false); // Cierra el modal/formulario en la vista
+        formulario.resetForm(); // Limpia los inputs del HTML
+        // Recarga el listado de la tabla principal dejando un pequeño margen para la BD
         setTimeout(() => this.cargarDatos(Number(idLogueado)), 200);
       },
       error: (err) => {
-        console.error(err);
-        alert('Error al procesar la inscripción.');
+        console.error('Error al procesar la inscripción:', err);
+        alert('Hubo un error en el servidor al guardar la inscripción.');
       }
     });
   }

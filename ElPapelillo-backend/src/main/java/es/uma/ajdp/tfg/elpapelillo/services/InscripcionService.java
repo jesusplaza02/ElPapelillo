@@ -44,11 +44,11 @@ public class InscripcionService {
         return inscripcionRepository.findByAgrupacion_Representante_IdUsuario(idRepresentante);
     }
 
-    // 2. Crear una nueva inscripción con la lógica de negocio aplicada
     public Inscripcion crearInscripcion(Inscripcion nuevaInscripcion) {
         nuevaInscripcion.setFechaInscripcion(LocalDateTime.now());
         nuevaInscripcion.setEstadoInscripcion(EstadoAdministrativo.PENDIENTE);
         
+        // 2. Guardamos directamente usando tu JpaRepository
         return inscripcionRepository.save(nuevaInscripcion);
     }
 

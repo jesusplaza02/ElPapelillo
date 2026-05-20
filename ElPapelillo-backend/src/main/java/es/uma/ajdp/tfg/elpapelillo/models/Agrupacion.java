@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 @Entity
@@ -26,9 +27,11 @@ public abstract class Agrupacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idAgrupacion")
+    @JsonProperty("idAgrupacion")
     private Integer idAgrupacion;
 
     @Column(name = "nombre", nullable = false)
+    @JsonProperty("nombre")
     private String nombre;
 
     @Column(name = "nombreUltimaParticipacion")
