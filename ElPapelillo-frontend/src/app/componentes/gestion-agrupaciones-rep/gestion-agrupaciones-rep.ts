@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, RouterLink } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms'; 
 import { AgrupacionService } from './gestion-agrupaciones-rep.service';
 import { Inscripcion, Agrupacion } from './gestion-agrupaciones-rep.model';
@@ -8,7 +8,7 @@ import { Inscripcion, Agrupacion } from './gestion-agrupaciones-rep.model';
 @Component({
   selector: 'app-gestion-agrupaciones-rep',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, RouterLink],
   templateUrl: './gestion-agrupaciones-rep.html',
   styleUrl: './gestion-agrupaciones-rep.css'
 })

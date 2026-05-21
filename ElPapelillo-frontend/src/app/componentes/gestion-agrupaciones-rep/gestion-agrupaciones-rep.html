@@ -149,7 +149,9 @@
         </div>
         
         <div class="card-actions">
-          <a class="btn-action">Gestión de participantes</a>
+          <a [routerLink]="['/participantes-rep', ins.idInscripcion]" class="btn-action" style="cursor: pointer;">
+            Gestión de participantes
+          </a>
           
           <a [routerLink]="['/documentacion-agrupacion-rep', ins.idInscripcion]" class="btn-action">
             Gestión de documentación

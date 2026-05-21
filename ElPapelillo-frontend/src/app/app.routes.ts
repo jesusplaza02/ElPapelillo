@@ -9,11 +9,15 @@ import { GestionAgrupacionesRepComponent } from './componentes/gestion-agrupacio
 import { PanelControlAdministradorComponent } from './componentes/panel-control-administrador/panel-control-administrador';
 import { DocumentacionRepComponent } from './componentes/documentacion-rep/documentacion-rep';
 
+// 🔑 IMPORTACIÓN NUEVA: Tu nuevo componente de participantes
+import { GestionParticipantesComponent } from './componentes/participantes-rep/participantes-rep';
+
 import { EditarUsuarioComponent } from './componentes/editar-usuario/editar-usuario'; 
 import { PoliticaPrivacidadComponent } from './componentes/politica-privacidad/politica-privacidad';
 
 import { DetalleConcursoComponent } from './componentes/pagina-concurso/pagina-concurso';
 import { DetalleAgrupacionComponent } from './componentes/pagina-agrupacion/pagina-agrupacion';
+
 // FUNCIÓN GUARD CON CONTROL DE ROLES
 const roleGuard = (allowedRoles: string[]) => {
   return () => {
@@ -42,7 +46,7 @@ export const routes: Routes = [
   { path: 'registro', component: RegistroComponent },
   { path: 'politica-privacidad', component: PoliticaPrivacidadComponent },
   
-  // RUTA DE EDICIÓN DE USUARIO (Para ambos roles, o ajusta según prefieras)
+  // RUTA DE EDICIÓN DE USUARIO (Para ambos roles)
   { 
     path: 'editar-usuario', 
     component: EditarUsuarioComponent,
@@ -50,12 +54,12 @@ export const routes: Routes = [
   },
 
   { 
-    path: 'editar-usuario/:id', // Agregamos esta otra vez para que no te eche al login
+    path: 'editar-usuario/:id', 
     component: EditarUsuarioComponent,
     canActivate: [roleGuard(['REPRESENTANTE', 'ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
   },
 
-  // SOLO PARA REPRESENTANTES
+  // 🎭 SOLO PARA REPRESENTANTES
   { 
     path: 'panel-representante', 
     component: GestionAgrupacionesRepComponent,
@@ -68,7 +72,14 @@ export const routes: Routes = [
     canActivate: [roleGuard(['REPRESENTANTE'])]
   },
 
-  // SOLO PARA ADMINISTRADORES
+  // 🔑 RUTA NUEVA: Gestión de componentes vinculada al ID de Inscripción
+  {
+    path: 'participantes-rep/:id',
+    component: GestionParticipantesComponent,
+    canActivate: [roleGuard(['REPRESENTANTE'])]
+  },
+
+  // 💼 SOLO PARA ADMINISTRADORES
   { 
     path: 'panel-control-administrador', 
     component: PanelControlAdministradorComponent,
@@ -81,7 +92,8 @@ export const routes: Routes = [
     canActivate: [roleGuard(['ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
   },
 
-  { path: 'detalle-agrupacion/:id', 
+  { 
+    path: 'detalle-agrupacion/:id', 
     component: DetalleAgrupacionComponent,
     canActivate: [roleGuard(['ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
   },
