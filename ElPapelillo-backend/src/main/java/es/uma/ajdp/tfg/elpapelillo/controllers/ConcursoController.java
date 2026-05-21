@@ -1,12 +1,23 @@
 package es.uma.ajdp.tfg.elpapelillo.controllers;
 
 import es.uma.ajdp.tfg.elpapelillo.models.Concurso;
+import es.uma.ajdp.tfg.elpapelillo.models.Inscripcion;
 import es.uma.ajdp.tfg.elpapelillo.services.ConcursoService;
+import es.uma.ajdp.tfg.elpapelillo.services.EmailService;
+import es.uma.ajdp.tfg.elpapelillo.repositories.InscripcionRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/concursos")
@@ -16,6 +27,70 @@ public class ConcursoController {
     @Autowired
     private ConcursoService concursoService;
 
+    @Autowired
+    private InscripcionRepository inscripcionRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+   @PostMapping(value = "/enviar-circular", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> enviarCircularRepresentantes(
+            @RequestParam("asunto") String asunto,
+            @RequestParam("cuerpo") String cuerpo,
+            @RequestParam("idsInscripciones") String idsInscripcionesJson,
+            @RequestParam(value = "archivo", required = false) MultipartFile[] archivos) { // 🌟 Cambiado a array []
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<Integer> idsInscripciones = mapper.readValue(idsInscripcionesJson, new TypeReference<List<Integer>>(){});
+
+            if (idsInscripciones == null || idsInscripciones.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "No se han recibido destinatarios válidos."));
+            }
+
+            List<Inscripcion> listaInscripciones = inscripcionRepository.findAllById(idsInscripciones);
+
+            Set<String> correosDestinatarios = listaInscripciones.stream()
+                .filter(ins -> ins != null && ins.getAgrupacion() != null && ins.getAgrupacion().getRepresentante() != null)
+                .map(ins -> ins.getAgrupacion().getRepresentante().getEmail())
+                .filter(email -> email != null && !email.trim().isEmpty())
+                .collect(Collectors.toSet());
+
+            if (correosDestinatarios.isEmpty()) {
+                return ResponseEntity.ok(Map.of("mensaje", "No hay correos válidos registrados para la selección."));
+            }
+
+            // 🌟 4. Procesamos los múltiples archivos a listas en memoria antes del hilo asíncrono
+            List<byte[]> listaArchivosBytes = new ArrayList<>();
+            List<String> listaNombresArchivos = new ArrayList<>();
+            
+            if (archivos != null && archivos.length > 0) {
+                for (MultipartFile file : archivos) {
+                    if (file != null && !file.isEmpty()) {
+                        listaArchivosBytes.add(file.getBytes());
+                        listaNombresArchivos.add(file.getOriginalFilename());
+                    }
+                }
+            }
+
+            // Enviamos las listas completas de adjuntos
+            for (String email : correosDestinatarios) {
+                emailService.enviarEmailCircularConAdjunto(email, asunto, cuerpo, listaArchivosBytes, listaNombresArchivos);
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "status", "OK", 
+                "mensaje", "Envío masivo iniciado con múltiples adjuntos para " + correosDestinatarios.size() + " destinatarios."
+            ));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", "Fallo al procesar el envío masivo: " + e.getMessage()));
+        }
+    }
+    // Método auxiliar privado para limpiar la lectura del repositorio en el stream
+    private List<Inscripcion> srcInscripciones(List<Integer> ids) {
+        return inscripcionRepository.findAllById(ids);
+    }
     /**
      * Endpoint principal para la tabla de concursos.
      * Filtra automáticamente: 

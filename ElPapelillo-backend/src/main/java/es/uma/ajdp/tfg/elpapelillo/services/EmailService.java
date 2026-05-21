@@ -1,9 +1,15 @@
 package es.uma.ajdp.tfg.elpapelillo.services;
 
+import java.util.List;
+
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
+import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -77,5 +83,44 @@ public class EmailService {
         // No hace falta setFecha(), el @PrePersist lo hace solo
         
         logAuditoriaRepository.save(auditoria);
+    }
+
+    @Async
+    @Retryable(
+        value = { Exception.class }, 
+        maxAttempts = 3, 
+        backoff = @Backoff(delay = 2000)
+    )
+    public void enviarEmailCircularConAdjunto(String correoDestinatario, String asunto, String cuerpo, 
+                                             List<byte[]> listaArchivosBytes, List<String> listaNombresArchivos) { // 🌟 Cambiado a Listas
+        try {
+            MimeMessage mensaje = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
+            
+            helper.setFrom("ElPapelillo@gmail.com");
+            helper.setTo(correoDestinatario);
+            helper.setSubject(asunto);
+            helper.setText(cuerpo, false); 
+
+            // 🌟 Recorremos todos los elementos adjuntos y los añadimos secuencialmente al helper
+            if (listaArchivosBytes != null && !listaArchivosBytes.isEmpty()) {
+                for (int i = 0; i < listaArchivosBytes.size(); i++) {
+                    byte[] bytes = listaArchivosBytes.get(i);
+                    String nombre = listaNombresArchivos.get(i);
+                    
+                    if (bytes != null && bytes.length > 0 && nombre != null) {
+                        ByteArrayResource recursoAdjunto = new ByteArrayResource(bytes);
+                        helper.addAttachment(nombre, recursoAdjunto);
+                    }
+                }
+            }
+
+            mailSender.send(mensaje);
+            log.info("Circular masiva enviada con (" + (listaArchivosBytes != null ? listaArchivosBytes.size() : 0) + ") adjuntos a: " + correoDestinatario);
+            
+        } catch (Exception e) {
+            log.error("Error al estructurar correo con múltiples adjuntos para: " + correoDestinatario, e);
+            throw new RuntimeException(e); 
+        }
     }
 }

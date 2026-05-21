@@ -42,6 +42,17 @@ export class DetalleConcursoComponent implements OnInit {
     fianzasPendientes: 0
   };
 
+  // ==========================================================================
+  // 📧 GESTIÓN DE CIRCULARES INFORMATIVAS CON ACUMULACIÓN DE ADJUNTOS Y ESTADOS
+  // ==========================================================================
+  mostrarModalCircular: boolean = false;
+  circularAsunto: string = '';
+  circularCuerpo: string = '';
+  archivosCircularSeleccionados: File[] = []; // Colección que acumula los archivos
+  
+  enviandoCircular: boolean = false;          // Controla el estado de carga (Spinner)
+  errorCircular: string | null = null;        // Almacena el mensaje de error para el formulario
+
   ngOnInit(): void {
     this.idConcurso = Number(this.route.snapshot.paramMap.get('id'));
     this.cargarDatosConcurso();
@@ -121,24 +132,23 @@ export class DetalleConcursoComponent implements OnInit {
 
       let cumpleFianza = true;
     
-    // Comprobamos si tiene fianza válida (mirando si existe el objeto fianza y su id no es null)
-    const tieneFianzaPagada = ins.fianza !== null && ins.fianza !== undefined && (ins.fianza.idFianza ?? ins.fianza.id) !== null;
+      // Comprobamos si tiene fianza válida (mirando si existe el objeto fianza y su id no es null)
+      const tieneFianzaPagada = ins.fianza !== null && ins.fianza !== undefined && (ins.fianza.idFianza ?? ins.fianza.id) !== null;
 
-    if (this.filtroFianza === 'PAGADA') {
-      cumpleFianza = tieneFianzaPagada;
-    } else if (this.filtroFianza === 'PENDIENTE') {
-      cumpleFianza = !tieneFianzaPagada;
-    }
+      if (this.filtroFianza === 'PAGADA') {
+        cumpleFianza = tieneFianzaPagada;
+      } else if (this.filtroFianza === 'PENDIENTE') {
+        cumpleFianza = !tieneFianzaPagada;
+      }
 
-    // La inscripción pasa si cumple los 4 filtros simultáneamente
-    return cumpleTexto && cumpleCategoria && cumpleEstado && cumpleFianza;
+      // La inscripción pasa si cumple los 4 filtros simultáneamente
+      return cumpleTexto && cumpleCategoria && cumpleEstado && cumpleFianza;
     });
 
     // Sincroniza los cambios con la vista al instante
     this.cdRef.detectChanges();
   }
 
-  
   irADetalleAgrupacion(idInscripcion: number): void {
     if (idInscripcion) {
       this.router.navigate(['/detalle-agrupacion', idInscripcion]);
@@ -149,7 +159,6 @@ export class DetalleConcursoComponent implements OnInit {
     if (!this.inscripcionesFiltradas) return false;
     return this.inscripcionesFiltradas.some((ins: any) => ins.seleccionado === true);
   }
-
 
   seleccionarTodos(event: any): void {
     if (!this.inscripcionesFiltradas) return;
@@ -178,12 +187,10 @@ export class DetalleConcursoComponent implements OnInit {
         document.body.removeChild(enlace);
         window.URL.revokeObjectURL(urlLocal);
 
-        // === LLAMADA EXACTA A TU SISTEMA DE AUDITORÍA ===
         this.registrarAuditoria(
           'DESCARGA_PDF_GENERAL',
           `El administrador ha descargado el PDF de control general para el concurso: ${nombreConcurso}.`
         );
-        // ===============================================
       },
       error: (err) => {
         console.error('Error al generar el PDF General en el frontend:', err);
@@ -192,58 +199,149 @@ export class DetalleConcursoComponent implements OnInit {
     });
   }
 
-
   generarPdfParticipantesSeleccionados(): void {
-  if (!this.inscripcionesFiltradas || this.inscripcionesFiltradas.length === 0) {
-    return;
-  }
+    if (!this.inscripcionesFiltradas || this.inscripcionesFiltradas.length === 0) {
+      return;
+    }
 
-  // 1. Extraemos los números en caliente
-  const listaPrimitiva: number[] = [];
-  
-  for (const ins of this.inscripcionesFiltradas) {
-    if (ins && ins.seleccionado === true) {
-      const idVal = ins.idInscripcion ?? ins.id;
-      if (idVal !== undefined && idVal !== null) {
-        listaPrimitiva.push(Number(idVal));
+    const listaPrimitiva: number[] = [];
+    
+    for (const ins of this.inscripcionesFiltradas) {
+      if (ins && ins.seleccionado === true) {
+        const idVal = ins.idInscripcion ?? ins.id;
+        if (idVal !== undefined && idVal !== null) {
+          listaPrimitiva.push(Number(idVal));
+        }
       }
     }
-  }
 
-  if (listaPrimitiva.length === 0) {
-    alert('Por favor, selecciona primero al menos una agrupación utilizando las casillas de verificación.');
-    return;
-  }
+    if (listaPrimitiva.length === 0) {
+      alert('Por favor, selecciona primero al menos una agrupación utilizando las casillas de verificación.');
+      return;
+    }
 
-  // 2. OBLIGAMOS A ANGULAR A ENVIAR EL ARRAY PLANO (Sin envolturas de objetos)
-  const cuerpoPeticion = Array.from(listaPrimitiva);
+    const cuerpoPeticion = Array.from(listaPrimitiva);
+    const url = 'http://localhost:8080/api/inscripciones/exportar-pdf-seleccionados';
 
-  const url = 'http://localhost:8080/api/inscripciones/exportar-pdf-seleccionados';
+    this.http.post(url, cuerpoPeticion, { responseType: 'blob' }).subscribe({
+      next: (blob: Blob) => {
+        const urlLocal = window.URL.createObjectURL(blob);
+        const enlace = document.createElement('a');
+        enlace.href = urlLocal;
+        enlace.download = 'Fichas_Componentes_Seleccionados.pdf';
+        document.body.appendChild(enlace);
+        enlace.click();
+        
+        document.body.removeChild(enlace);
+        window.URL.revokeObjectURL(urlLocal);
 
-  // 3. Enviamos el cuerpo directamente
-  this.http.post(url, cuerpoPeticion, { responseType: 'blob' }).subscribe({
-    next: (blob: Blob) => {
-      const urlLocal = window.URL.createObjectURL(blob);
-      const enlace = document.createElement('a');
-      enlace.href = urlLocal;
-      enlace.download = 'Fichas_Componentes_Seleccionados.pdf';
-      document.body.appendChild(enlace);
-      enlace.click();
-      
-      document.body.removeChild(enlace);
-      window.URL.revokeObjectURL(urlLocal);
-
-       this.registrarAuditoria(
+        this.registrarAuditoria(
           'DESCARGA_PDF_AGRUPACIONES_SELECCIONADAS',
           `El administrador ha descargado el PDF de control de las agrupaciones seleccionadas para el concurso: ${this.concurso?.nombre || 'N/A'}.`
         );
-    },
-    error: (err) => {
-      console.error('Error en la petición POST del PDF:', err);
-      alert('Ocurrió un error al intentar generar las fichas seleccionadas.');
+      },
+      error: (err) => {
+        console.error('Error en la petición POST del PDF:', err);
+        alert('Ocurrió un error al intentar generar las fichas seleccionadas.');
+      }
+    });
+  }
+
+  // ==========================================
+  // 📧 MÉTODOS DEL MODAL DE LA CIRCULAR MASIVA
+  // ==========================================
+
+  abrirModalCircular(): void {
+    this.circularAsunto = '';
+    this.circularCuerpo = '';
+    this.archivosCircularSeleccionados = [];
+    this.enviandoCircular = false; 
+    this.errorCircular = null;     
+    this.mostrarModalCircular = true;
+  }
+
+  cerrarModalCircular(): void {
+    if (this.enviandoCircular) return; 
+    this.mostrarModalCircular = false;
+  }
+
+  prepararArchivoCircular(event: any): void {
+    if (event.target.files && event.target.files.length > 0) {
+      const nuevosArchivos = Array.from(event.target.files) as File[];
+      
+      nuevosArchivos.forEach((nuevo: File) => {
+        const yaExiste = this.archivosCircularSeleccionados.some(
+          f => f.name === nuevo.name && f.size === nuevo.size
+        );
+        if (!yaExiste) {
+          this.archivosCircularSeleccionados.push(nuevo);
+        }
+      });
     }
-  });
-}
+  }
+
+  procesarEnvioCircular(): void {
+    if (!this.circularAsunto.trim() || !this.circularCuerpo.trim() || this.enviandoCircular) return;
+
+    let idsAEnviar: number[] = [];
+
+    if (this.tieneSeleccionados()) {
+      idsAEnviar = this.inscripcionesFiltradas
+        .filter(ins => ins.seleccionado === true)
+        .map(ins => Number(ins.idInscripcion ?? ins.id));
+    } else {
+      idsAEnviar = this.inscripcionesFiltradas.map(ins => Number(ins.idInscripcion ?? ins.id));
+    }
+
+    if (idsAEnviar.length === 0) {
+      this.errorCircular = 'No se han encontrado destinatarios válidos para realizar el envío.';
+      return;
+    }
+
+    this.enviandoCircular = true;
+    this.errorCircular = null;
+    this.cdRef.detectChanges();
+
+    const formData = new FormData();
+    formData.append('asunto', this.circularAsunto.trim());
+    formData.append('cuerpo', this.circularCuerpo.trim());
+    formData.append('idsInscripciones', JSON.stringify(idsAEnviar)); 
+    
+    if (this.archivosCircularSeleccionados.length > 0) {
+      this.archivosCircularSeleccionados.forEach((file: File) => {
+        formData.append('archivo', file);
+      });
+    }
+
+    this.http.post('http://localhost:8080/api/concursos/enviar-circular', formData)
+      .subscribe({
+        next: (res: any) => {
+          // 🌟 CAMBIO AQUÍ: Se desactiva la carga y se cierra el formulario en completo silencio sin alert()
+          this.enviandoCircular = false;
+          this.mostrarModalCircular = false; 
+          this.cdRef.detectChanges();
+
+          const tipoEnvio = this.tieneSeleccionados() ? 'PARCIAL_MULTIPLE_ADJUNTO' : 'GLOBAL_MULTIPLE_ADJUNTO';
+          this.registrarAuditoria(
+            `CIRCULAR_INFORMATIVA_${tipoEnvio}`,
+            `El administrador ha lanzado una circular con (${this.archivosCircularSeleccionados.length}) adjuntos para ${idsAEnviar.length} agrupaciones.`
+          );
+        },
+        error: (err) => {
+          this.enviandoCircular = false;
+          console.error('Error al tramitar la circular multi-adjunto:', err);
+          
+          if (err.error && err.error.error) {
+            this.errorCircular = 'Error del servidor: ' + err.error.error;
+          } else if (err.status === 413) {
+            this.errorCircular = 'Los archivos adjuntos son demasiado grandes para el servidor.';
+          } else {
+            this.errorCircular = 'Hubo un problema al procesar los archivos o iniciar el envío masivo.';
+          }
+          this.cdRef.detectChanges();
+        }
+      });
+  }
 
   private registrarAuditoria(accion: string, descripcion: string): void {
     const adminIdGuardado = localStorage.getItem('idUsuario') || 
