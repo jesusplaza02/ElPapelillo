@@ -32,21 +32,28 @@
         </div>
 
         @if (modoFormulario === 'EXISTENTE') {
-          <div class="form-field" style="grid-column: 1 / span 2; background: #f9f9f9; padding: 15px; border-radius: 8px;">
-            <label>Tus agrupaciones previas</label>
-            <select name="agrupacionExistente" [(ngModel)]="agrupacionExistenteSeleccionada" required class="form-input-styled">
-              <option [ngValue]="null" disabled selected>Selecciona una...</option>
-              
-              @for (ins of misAgrupacionesBase; track ins.idInscripcion ?? $index) {
-                @if (ins.agrupacion) {
-                  <option [ngValue]="ins.agrupacion">
-                    {{ ins.agrupacion.nombre }} ({{ ins.agrupacion.categoria }})
-                  </option>
-                }
+        <div class="form-field" style="grid-column: 1 / span 2; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+          <label>Tus agrupaciones previas</label>
+          
+          @if (!concursoSeleccionado) {
+            <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">⚠️ Selecciona primero un concurso destino para ver tus agrupaciones compatibles.</p>
+          } @else if (misAgrupacionesFiltradas.length === 0) {
+            <p style="color: #c53030; font-size: 0.9rem; margin-top: 5px;">❌ No tienes ninguna agrupación previa registrada que sea de tipo <strong>{{ tipoDerivado }}</strong>.</p>
+          }
+
+          <select name="agrupacionExistente" [(ngModel)]="agrupacionExistenteSeleccionada" required class="form-input-styled" [disabled]="!concursoSeleccionado || misAgrupacionesFiltradas.length === 0">
+            <option [ngValue]="null" disabled selected>Selecciona una...</option>
+            
+            @for (ins of misAgrupacionesFiltradas; track ins.idInscripcion ?? $index) {
+              @if (ins.agrupacion) {
+                <option [ngValue]="ins.agrupacion">
+                  {{ ins.agrupacion.nombre }} ({{ ins.agrupacion.categoria }})
+                </option>
               }
-            </select>
-          </div>
-        }
+            }
+          </select>
+        </div>
+      }
 
         @if (modoFormulario === 'NUEVA') {
           <div class="form-field">

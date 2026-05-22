@@ -19,7 +19,11 @@ export class GestionAgrupacionesRepComponent implements OnInit {
   private router = inject(Router);
 
   inscripciones: Inscripcion[] = [];
+  
+  // 🎯 Mantenemos el máster de agrupaciones y creamos el array que se mostrará en el HTML
   misAgrupacionesBase: any[] = []; 
+  misAgrupacionesFiltradas: any[] = []; 
+  
   concursosActivos: any[] = [];
   
   concursoSeleccionado: any = null;
@@ -31,7 +35,6 @@ export class GestionAgrupacionesRepComponent implements OnInit {
   loading: boolean = true;
   mostrandoFormulario: boolean = false;
 
-  // 🌟 VARIABLES DE CONTROL PARA VENTANAS MODALES INTEGRADAS
   mostrarModalExito: boolean = false;
   mostrarModalDuplicado: boolean = false;
   mensajeErrorDuplicado: string = '';
@@ -61,7 +64,7 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       }
     });
 
-    // 2. Cargar Agrupaciones Base para "Existente" (Filtrando duplicados)
+    // 2. Cargar Agrupaciones Base para "Existente" (Filtrando duplicados de ID)
     this.agrupacionService.getMisAgrupacionesBase(idRep).subscribe({
       next: (data: any[]) => {
         if (data && Array.isArray(data)) {
@@ -75,8 +78,12 @@ export class GestionAgrupacionesRepComponent implements OnInit {
             }
             return false; 
           });
+          
+          // 🎯 Inicialmente vacías hasta que se escoja un concurso en el form
+          this.misAgrupacionesFiltradas = [];
         } else {
           this.misAgrupacionesBase = [];
+          this.misAgrupacionesFiltradas = [];
         }
         this.cdr.detectChanges();
       },
@@ -85,10 +92,17 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       }
     });
 
-    // 3. Cargar Concursos Activos para el desplegable
+    // 3. CARGAR Y FILTRAR CONCURSOS (Excluyendo estrictamente HISTORICO)
     this.agrupacionService.getConcursosActivos().subscribe({
-      next: (data) => {
-        this.concursosActivos = data;
+      next: (data: any[]) => {
+        if (data && Array.isArray(data)) {
+          this.concursosActivos = data.filter(c => {
+            const estado = c?.estadoConcurso ? String(c.estadoConcurso).trim().toUpperCase() : '';
+            return estado !== 'HISTORICO';
+          });
+        } else {
+          this.concursosActivos = [];
+        }
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -97,15 +111,29 @@ export class GestionAgrupacionesRepComponent implements OnInit {
     });
   }
 
+  // ======================================================================
+  // 🎯 INTERCEPTOR CLAVE: Al cambiar el concurso, filtramos por tipo de concurso
+  // ======================================================================
   onConcursoChange(): void {
+    // Reseteamos siempre la selección previa para evitar mezclas erróneas
+    this.agrupacionExistenteSeleccionada = null; 
+
     if (this.concursoSeleccionado) {
       const fecha = new Date(this.concursoSeleccionado.fechaInicio);
       this.anioCalculado = fecha.getFullYear();
       this.tipoDerivado = this.concursoSeleccionado.tipoConcurso;
+
+      // Filtrado estricto: la agrupación base debe pertenecer al mismo tipo que el concurso destino
+      this.misAgrupacionesFiltradas = this.misAgrupacionesBase.filter(ins => {
+        return ins.agrupacion?.tipoConcurso === this.tipoDerivado;
+      });
+
     } else {
       this.anioCalculado = null;
       this.tipoDerivado = '';
+      this.misAgrupacionesFiltradas = [];
     }
+    this.cdr.detectChanges();
   }
 
   toggleFormulario(estado: boolean): void {
@@ -119,9 +147,9 @@ export class GestionAgrupacionesRepComponent implements OnInit {
     this.anioCalculado = null;
     this.tipoDerivado = '';
     this.modoFormulario = 'NUEVA';
+    this.misAgrupacionesFiltradas = [];
   }
 
-  // 🌟 CIERRE DEL MODAL DE ÉXITO (Limpia formulario y refresca la rejilla)
   confirmarCierreModalExito(): void {
     this.mostrarModalExito = false;
     this.toggleFormulario(false); 
@@ -137,9 +165,6 @@ export class GestionAgrupacionesRepComponent implements OnInit {
     const idLogueado = localStorage.getItem('idUsuario');
     if (!idLogueado || !this.concursoSeleccionado) return;
 
-    // ======================================================================
-    // 1. VALIDACIÓN INTERNA: Evitar duplicar la misma agrupación en el mismo concurso
-    // ======================================================================
     if (this.modoFormulario === 'EXISTENTE' && this.agrupacionExistenteSeleccionada) {
       const yaInscrita = this.inscripciones.some(ins => 
         ins.concurso?.idConcurso === this.concursoSeleccionado.idConcurso &&
@@ -147,7 +172,6 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       );
 
       if (yaInscrita) {
-        // Activamos modal interno de advertencia en vez de un alert nativo
         this.mensajeErrorDuplicado = `La agrupación "${this.agrupacionExistenteSeleccionada.nombre}" ya se encuentra inscrita en el concurso "${this.concursoSeleccionado.nombre}".`;
         this.mostrarModalDuplicado = true;
         this.cdr.detectChanges();
@@ -155,9 +179,6 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       }
     }
 
-    // ======================================================================
-    // 2. CONSTRUCCIÓN DEL PAYLOAD PARA EL BACKEND
-    // ======================================================================
     let payload: any = {
       concurso: { idConcurso: this.concursoSeleccionado.idConcurso }
     };
@@ -210,12 +231,8 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       }
     }
 
-    // ======================================================================
-    // 3. ENVÍO DE LA PETICIÓN AL SERVICIO
-    // ======================================================================
     this.agrupacionService.crearInscripcion(payload).subscribe({
       next: () => {
-        // Lanzamos modal estético propio e inicializamos el form
         this.mostrarModalExito = true;
         formulario.resetForm(); 
         this.cdr.detectChanges();

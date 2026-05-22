@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,12 +35,15 @@ public class ConcursoController {
     @Autowired
     private EmailService emailService;
 
-   @PostMapping(value = "/enviar-circular", consumes = {"multipart/form-data"})
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @PostMapping(value = "/enviar-circular", consumes = {"multipart/form-data"})
     public ResponseEntity<?> enviarCircularRepresentantes(
             @RequestParam("asunto") String asunto,
             @RequestParam("cuerpo") String cuerpo,
             @RequestParam("idsInscripciones") String idsInscripcionesJson,
-            @RequestParam(value = "archivo", required = false) MultipartFile[] archivos) { // 🌟 Cambiado a array []
+            @RequestParam(value = "archivo", required = false) MultipartFile[] archivos) {
         try {
             ObjectMapper mapper = new ObjectMapper();
             List<Integer> idsInscripciones = mapper.readValue(idsInscripcionesJson, new TypeReference<List<Integer>>(){});
@@ -59,7 +64,6 @@ public class ConcursoController {
                 return ResponseEntity.ok(Map.of("mensaje", "No hay correos válidos registrados para la selección."));
             }
 
-            // 🌟 4. Procesamos los múltiples archivos a listas en memoria antes del hilo asíncrono
             List<byte[]> listaArchivosBytes = new ArrayList<>();
             List<String> listaNombresArchivos = new ArrayList<>();
             
@@ -72,7 +76,6 @@ public class ConcursoController {
                 }
             }
 
-            // Enviamos las listas completas de adjuntos
             for (String email : correosDestinatarios) {
                 emailService.enviarEmailCircularConAdjunto(email, asunto, cuerpo, listaArchivosBytes, listaNombresArchivos);
             }
@@ -87,10 +90,11 @@ public class ConcursoController {
             return ResponseEntity.status(500).body(Map.of("error", "Fallo al procesar el envío masivo: " + e.getMessage()));
         }
     }
-    // Método auxiliar privado para limpiar la lectura del repositorio en el stream
+
     private List<Inscripcion> srcInscripciones(List<Integer> ids) {
         return inscripcionRepository.findAllById(ids);
     }
+
     /**
      * Endpoint principal para la tabla de concursos.
      * Filtra automáticamente: 
@@ -116,13 +120,23 @@ public class ConcursoController {
     }
 
     /**
-     * Ejemplo de cómo podrías tener el detalle de un concurso específico.
+     * Endpoint para obtener el detalle de un concurso específico de forma verídica.
+     * Fuerza la sincronización de Hibernate con el registro real de la base de datos.
+     */
+    /**
+     * Endpoint principal para obtener el detalle de un concurso específico.
      */
     @GetMapping("/{id}")
     public ResponseEntity<Concurso> getById(@PathVariable Integer id) {
-        // Asumiendo que añades este método al service después
         return concursoService.findById(id) 
-                .map(ResponseEntity::ok)
+                .map(concurso -> {
+                    // Mapeo correcto con la propiedad de tu entidad
+                    System.out.println("====== [BACKEND] ENVIANDO CONCURSO ======");
+                    System.out.println("Nombre: " + concurso.getNombre());
+                    System.out.println("Estado Real del Enum: " + concurso.getEstadoConcurso());
+                    System.out.println("=========================================");
+                    return ResponseEntity.ok(concurso);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
@@ -142,7 +156,6 @@ public class ConcursoController {
     @PutMapping("/{id}")
     public ResponseEntity<Concurso> actualizarConcurso(@PathVariable Integer id, @RequestBody Concurso concurso) {
         try {
-            // Aseguramos que el objeto tenga el ID correcto antes de guardar
             concurso.setIdConcurso(id); 
             Concurso actualizado = concursoService.guardar(concurso);
             return ResponseEntity.ok(actualizado);
@@ -157,7 +170,6 @@ public class ConcursoController {
             concursoService.eliminarConcurso(id);
             return ResponseEntity.ok().body("{\"message\": \"Concurso eliminado permanentemente\"}");
         } catch (RuntimeException e) {
-            // Enviamos el mensaje de error de las reglas (ej: "tiene agrupaciones")
             return ResponseEntity.status(400).body("{\"message\": \"" + e.getMessage() + "\"}");
         }
     }

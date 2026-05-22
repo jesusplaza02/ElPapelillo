@@ -1,4 +1,3 @@
-
 <main>
 
   @if (rolSesionActual?.toUpperCase() === 'SYSADMIN') {
@@ -77,7 +76,6 @@
             <span class="material-symbols-outlined">{{ modoFormOrg === 'crear' ? 'add_business' : 'edit_note' }}</span>
             {{ modoFormOrg === 'crear' ? 'Registrar Nueva Organización' : 'Actualizar Datos' }}
           </h3>
-          
         </div>
 
         <form (ngSubmit)="guardarOrganizacion()" #fOrg="ngForm">
@@ -127,164 +125,162 @@
     </div>
   }
 
- 
-
   <details>
-  <summary>
-    <div class="summary-title">
-      <div class="summary-icon trophy-icon"><span class="material-symbols-outlined">trophy</span></div>
-      <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos y bases</span></div>
-    </div>
-    <span class="material-symbols-outlined">expand_more</span>
-  </summary>
+    <summary>
+      <div class="summary-title">
+        <div class="summary-icon trophy-icon"><span class="material-symbols-outlined">trophy</span></div>
+        <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos y bases</span></div>
+      </div>
+      <span class="material-symbols-outlined">expand_more</span>
+    </summary>
 
-   @if (mostrandoFormularioConcurso) {
-  <div class="form-card" style="margin-bottom: 30px;">
-    <div class="form-title-container" style="display: flex; justify-content: space-between; align-items: center;">
-        <h3 class="form-title">{{ modoFormularioConcurso === 'crear' ? 'Nuevo Concurso' : 'Editar Concurso' }}</h3>
-        <button class="btn-action" (click)="cerrarFormularioConcurso()">
+    @if (mostrandoFormularioConcurso) {
+      <div class="form-card" style="margin-bottom: 30px;">
+        <div class="form-title-container" style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 class="form-title">{{ modoFormularioConcurso === 'crear' ? 'Nuevo Concurso' : 'Editar Concurso' }}</h3>
+          <button class="btn-action" (click)="cerrarFormularioConcurso()">
             <span class="material-symbols-outlined">close</span>
-        </button>
-    </div>
+          </button>
+        </div>
 
-    <div class="form-grid">
-      <div class="form-group">
-        <label>NOMBRE</label>
-        <input type="text" [(ngModel)]="concursoSeleccionado.nombre">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>NOMBRE</label>
+            <input type="text" [(ngModel)]="concursoSeleccionado.nombre">
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de Concurso</label>
+            <select [(ngModel)]="concursoSeleccionado.tipoConcurso" name="tipoConcurso" required>
+              <option value="" disabled selected>Selecciona un tipo...</option>
+              <option value="CANTO">Canto</option>
+              <option value="DRAG">Drag</option>
+              <option value="DIOSES">Dioses</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>ESTADO</label>
+            <select [(ngModel)]="concursoSeleccionado.estadoConcurso" class="filter-select">
+              <option value="ACTIVO">ACTIVO</option>
+              <option value="HISTORICO">HISTÓRICO</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="rolSesionActual === 'SYSADMIN'">
+            <label>ORGANIZACIÓN RESPONSABLE *</label>
+            <select [(ngModel)]="concursoSeleccionado.id_organizacion" class="filter-select">
+              <option [ngValue]="null" disabled>Selecciona una organización</option>
+              <option *ngFor="let org of organizaciones" [value]="org.idOrganizacion">
+                {{ org.nombre }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>FECHA INICIO CONCURSO</label>
+            <input type="date" [(ngModel)]="concursoSeleccionado.fechaInicio">
+          </div>
+          <div class="form-group">
+            <label>FECHA FIN CONCURSO</label>
+            <input type="date" [(ngModel)]="concursoSeleccionado.fechaFin">
+          </div>
+
+          <div class="form-group">
+            <label>INICIO INSCRIPCIÓN</label>
+            <input type="date" [(ngModel)]="concursoSeleccionado.fechaInicioInscripcion">
+          </div>
+          <div class="form-group">
+            <label>FIN INSCRIPCIÓN</label>
+            <input type="date" [(ngModel)]="concursoSeleccionado.fechaFinInscripcion">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+          <button class="btn-create" (click)="guardarConcurso()" style="padding: 10px 40px;">
+            {{ modoFormularioConcurso === 'crear' ? 'Crear' : 'Guardar Cambios' }}
+          </button>
+        </div>
       </div>
-
-      <div class="form-group">
-        <label>Tipo de Concurso</label>
-        <select [(ngModel)]="concursoSeleccionado.tipoConcurso" name="tipoConcurso" required>
-          <option value="" disabled selected>Selecciona un tipo...</option>
-          <option value="CANTO">Canto</option>
-          <option value="DRAG">Drag</option>
-          <option value="DIOSES">Dioses</option>
-          <option value="OTRO">Otro</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>ESTADO</label>
-        <select [(ngModel)]="concursoSeleccionado.estadoConcurso" class="filter-select">
-          <option value="ACTIVO">ACTIVO</option>
-          <option value="HISTORICO">HISTÓRICO</option>
-        </select>
-      </div>
-
-      <div class="form-group" *ngIf="rolSesionActual === 'SYSADMIN'">
-        <label>ORGANIZACIÓN RESPONSABLE *</label>
-        <select [(ngModel)]="concursoSeleccionado.id_organizacion" class="filter-select">
-          <option [ngValue]="null" disabled>Selecciona una organización</option>
-          <option *ngFor="let org of organizaciones" [value]="org.idOrganizacion">
-            {{ org.nombre }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>FECHA INICIO CONCURSO</label>
-        <input type="date" [(ngModel)]="concursoSeleccionado.fechaInicio">
-      </div>
-      <div class="form-group">
-        <label>FECHA FIN CONCURSO</label>
-        <input type="date" [(ngModel)]="concursoSeleccionado.fechaFin">
-      </div>
-
-      <div class="form-group">
-        <label>INICIO INSCRIPCIÓN</label>
-        <input type="date" [(ngModel)]="concursoSeleccionado.fechaInicioInscripcion">
-      </div>
-      <div class="form-group">
-        <label>FIN INSCRIPCIÓN</label>
-        <input type="date" [(ngModel)]="concursoSeleccionado.fechaFinInscripcion">
-      </div>
-    </div>
-
-    <div style="display: flex; justify-content: center; margin-top: 20px;">
-      <button class="btn-create" (click)="guardarConcurso()" style="padding: 10px 40px;">
-        {{ modoFormularioConcurso === 'crear' ? 'Crear' : 'Guardar Cambios' }}
-      </button>
-    </div>
-  </div>
-}
-
-  <div class="details-content">
-    <div class="table-controls">
-      <input type="text" placeholder="Buscar concurso..." [(ngModel)]="terminoBusquedaConcurso" (input)="filtrarConcursos()" class="filter-input">
-      
-      <select [(ngModel)]="filtroEstadoConcurso" (change)="filtrarConcursos()" class="filter-select">
-        <option value="">Todos los estados</option>
-        <option value="ACTIVO">Activos</option>
-        <option value="HISTORICO">Históricos</option>
-      </select>
-
-      @if (rolSesionActual === 'SYSADMIN') {
-        <select [(ngModel)]="filtroOrgConcurso" (change)="filtrarConcursos()" class="filter-select">
-          <option value="">Todas las organizaciones</option>
-          @for (org of organizaciones; track org.idOrganizacion) {
-            <option [value]="org.nombre">{{ org.nombre }}</option>
-          }
-        </select>
-      }
-      
-      <button class="btn-create" (click)="crearNuevoConcurso()">Nuevo Concurso</button>
-    </div>
-
-    @if (concursosPaginados.length > 0) {
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Organización</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (concurso of concursosPaginados; track concurso.idConcurso) {
-              <tr>
-                <td><strong>{{ concurso.nombre }}</strong></td>
-                <td><span class="org-badge">{{ concurso.nombreOrganizacion || 'N/A' }}</span></td>
-                <td>
-                  <span class="badge" [ngClass]="concurso.estadoConcurso?.toLowerCase()">
-                    {{ concurso.estadoConcurso }}
-                  </span>
-                </td>
-                <td class="actions-cell">
-                  <button class="btn-action view" (click)="verDetallesConcurso(concurso)">
-                    <span class="material-symbols-outlined">visibility</span>
-                  </button>
-                  <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action edit" (click)="editarConcurso(concurso)">
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action delete" (click)="abrirModalBorradoConcurso(concurso)">
-                      <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="pagination-controls" *ngIf="totalPaginasConcursos > 1">
-        <button [disabled]="paginaActualConcursos === 1" class="btn-pag" (click)="paginaActualConcursos = paginaActualConcursos - 1; actualizarPaginacionConcursos()">
-          &laquo; Anterior
-        </button>
-        <span class="info-pag">
-          Página <strong>{{ paginaActualConcursos }}</strong> de {{ totalPaginasConcursos }}
-        </span>
-        <button [disabled]="paginaActualConcursos === totalPaginasConcursos" class="btn-pag" (click)="paginaActualConcursos = paginaActualConcursos + 1; actualizarPaginacionConcursos()">
-          Siguiente &raquo;
-        </button>
-      </div>
-    } @else {
-      <p class="empty-state">No hay concursos que coincidan con los filtros.</p>
     }
-  </div>
-</details>
+
+    <div class="details-content">
+      <div class="table-controls">
+        <input type="text" placeholder="Buscar concurso..." [(ngModel)]="terminoBusquedaConcurso" (input)="filtrarConcursos()" class="filter-input">
+        
+        <select [(ngModel)]="filtroEstadoConcurso" (change)="filtrarConcursos()" class="filter-select">
+          <option value="">Todos los estados</option>
+          <option value="ACTIVO">Activos</option>
+          <option value="HISTORICO">Históricos</option>
+        </select>
+
+        @if (rolSesionActual === 'SYSADMIN') {
+          <select [(ngModel)]="filtroOrgConcurso" (change)="filtrarConcursos()" class="filter-select">
+            <option value="">Todas las organizaciones</option>
+            @for (org of organizaciones; track org.idOrganizacion) {
+              <option [value]="org.nombre">{{ org.nombre }}</option>
+            }
+          </select>
+        }
+        
+        <button class="btn-create" (click)="crearNuevoConcurso()">Nuevo Concurso</button>
+      </div>
+
+      @if (concursosPaginados.length > 0) {
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Organización</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (concurso of concursosPaginados; track concurso.idConcurso) {
+                <tr>
+                  <td><strong>{{ concurso.nombre }}</strong></td>
+                  <td><span class="org-badge">{{ concurso.nombreOrganizacion || 'N/A' }}</span></td>
+                  <td>
+                    <span class="badge" [ngClass]="concurso.estadoConcurso?.toLowerCase()">
+                      {{ concurso.estadoConcurso }}
+                    </span>
+                  </td>
+                  <td class="actions-cell">
+                    <button class="btn-action view" (click)="verDetallesConcurso(concurso)">
+                      <span class="material-symbols-outlined">visibility</span>
+                    </button>
+                    <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action edit" (click)="editarConcurso(concurso)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action delete" (click)="abrirModalBorradoConcurso(concurso)">
+                        <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-controls" *ngIf="totalPaginasConcursos > 1">
+          <button [disabled]="paginaActualConcursos === 1" class="btn-pag" (click)="paginaActualConcursos = paginaActualConcursos - 1; actualizarPaginacionConcursos()">
+            &laquo; Anterior
+          </button>
+          <span class="info-pag">
+            Página <strong>{{ paginaActualConcursos }}</strong> de {{ totalPaginasConcursos }}
+          </span>
+          <button [disabled]="paginaActualConcursos === totalPaginasConcursos" class="btn-pag" (click)="paginaActualConcursos = paginaActualConcursos + 1; actualizarPaginacionConcursos()">
+            Siguiente &raquo;
+          </button>
+        </div>
+      @} @else {
+        <p class="empty-state">No hay concursos que coincidan con los filtros.</p>
+      }
+    </div>
+  </details>
 
   <details>
     <summary>
@@ -306,79 +302,75 @@
         </button>
       </div>
 
-      
       @if (mostrandoFormulario) {
-  <div class="user-form-container">
-    <h3 class="form-title">
-      {{ modoFormulario === 'crear' ? 'Nuevo Registro' : (modoFormulario === 'editar' ? 'Editar Usuario' : 'Detalles del Usuario') }}
-    </h3>
-    
-    <form (ngSubmit)="guardarFormulario()" class="form-grid">
-      <div class="form-group"><label>Nombre</label><input type="text" [(ngModel)]="nuevoUsuario.nombre" name="n" [disabled]="modoFormulario === 'ver'"></div>
-      <div class="form-group"><label>DNI</label><input type="text" [(ngModel)]="nuevoUsuario.dni" name="d" [disabled]="modoFormulario === 'ver' || modoFormulario === 'editar'"></div>
-      <div class="form-group"><label>Teléfono</label><input type="text" [(ngModel)]="nuevoUsuario.telefono" name="t" [disabled]="modoFormulario === 'ver'"></div>
-      <div class="form-group"><label>Email</label>
-        <input type="email" [(ngModel)]="nuevoUsuario.email" name="e" [disabled]="modoFormulario === 'ver' || modoFormulario === 'editar'">
-      </div>
-      
-      <div class="form-group">
-        <label>Rol</label>
-        <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver'">
-          @if (rolSesionActual === 'SYSADMIN') {
-            <option value="SYSADMIN">Sysadmin</option>
-            <option value="REPRESENTANTE">Representante</option>
-          }
-          @if (rolSesionActual === 'SYSADMIN' || rolSesionActual === 'SUPERADMIN') {
-            <option value="SUPERADMIN">Superadmin</option>
-            <option value="ADMINISTRADOR">Administrador</option>
-          }
+        <div class="user-form-container">
+          <h3 class="form-title">
+            {{ modoFormulario === 'crear' ? 'Nuevo Registro' : (modoFormulario === 'editar' ? 'Editar Usuario' : 'Detalles del Usuario') }}
+          </h3>
+          
+          <form (ngSubmit)="guardarFormulario()" class="form-grid">
+            <div class="form-group"><label>Nombre</label><input type="text" [(ngModel)]="nuevoUsuario.nombre" name="n" [disabled]="modoFormulario === 'ver'"></div>
+            <div class="form-group"><label>DNI</label><input type="text" [(ngModel)]="nuevoUsuario.dni" name="d" [disabled]="modoFormulario === 'ver' || modoFormulario === 'editar'"></div>
+            <div class="form-group"><label>Teléfono</label><input type="text" [(ngModel)]="nuevoUsuario.telefono" name="t" [disabled]="modoFormulario === 'ver'"></div>
+            <div class="form-group"><label>Email</label>
+              <input type="email" [(ngModel)]="nuevoUsuario.email" name="e" [disabled]="modoFormulario === 'ver' || modoFormulario === 'editar'">
+            </div>
+            
+            <div class="form-group">
+              <label>Rol</label>
+              <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver'">
+                @if (rolSesionActual === 'SYSADMIN') {
+                  <option value="SYSADMIN">Sysadmin</option>
+                  <option value="REPRESENTANTE">Representante</option>
+                }
+                @if (rolSesionActual === 'SYSADMIN' || rolSesionActual === 'SUPERADMIN') {
+                  <option value="SUPERADMIN">Superadmin</option>
+                  <option value="ADMINISTRADOR">Administrador</option>
+                }
+                @if (rolSesionActual === 'ADMINISTRADOR' || rolSesionActual === 'SUPERADMIN') {
+                  <option value="REPRESENTANTE">Representante</option>
+                }
+              </select>
+            </div>
 
-          @if (rolSesionActual === 'ADMINISTRADOR' || rolSesionActual === 'SUPERADMIN') {
-            <option value="REPRESENTANTE">Representante</option>
-          }
-
-
-        </select>
-      </div>
-
-      @if (rolSesionActual === 'SYSADMIN' && (nuevoUsuario.rol === 'SUPERADMIN' || nuevoUsuario.rol === 'ADMINISTRADOR')) {
-        <div class="form-group">
-          <label>Organización Vinculada</label>
-          <select [(ngModel)]="nuevoUsuario.id_organizacion" name="idOrg" [disabled]="modoFormulario === 'ver'">
-            <option [value]="null" disabled>Seleccione una organización</option>
-            @for (org of organizaciones; track org.idOrganizacion) {
-              <option [value]="org.idOrganizacion">{{ org.nombre }}</option>
+            @if (rolSesionActual === 'SYSADMIN' && (nuevoUsuario.rol === 'SUPERADMIN' || nuevoUsuario.rol === 'ADMINISTRADOR')) {
+              <div class="form-group">
+                <label>Organización Vinculada</label>
+                <select [(ngModel)]="nuevoUsuario.id_organizacion" name="idOrg" [disabled]="modoFormulario === 'ver'">
+                  <option [value]="null" disabled>Seleccione una organización</option>
+                  @for (org of organizaciones; track org.idOrganizacion) {
+                    <option [value]="org.idOrganizacion">{{ org.nombre }}</option>
+                  }
+                </select>
+              </div>
             }
-          </select>
+
+            <div class="form-group"><label>Dirección</label><input type="text" [(ngModel)]="nuevoUsuario.direccion" name="dir" [disabled]="modoFormulario === 'ver'"></div>
+
+            @if (nuevoUsuario.rol?.toUpperCase() === 'REPRESENTANTE') {
+              <div class="form-group">
+                <label>Teléfono de Emergencia</label>
+                <input type="text" [(ngModel)]="nuevoUsuario.contacto_emergencia" name="telemer" [disabled]="modoFormulario === 'ver'">
+              </div>
+            }
+
+            @if (nuevoUsuario.rol?.toUpperCase() === 'ADMINISTRADOR' || nuevoUsuario.rol?.toUpperCase() === 'SUPERADMIN') {
+              <div class="form-group">
+                <label>Cargo en la Organización</label>
+                <input type="text" [(ngModel)]="nuevoUsuario.cargo" name="cargo" [disabled]="modoFormulario === 'ver'">
+              </div>
+            }
+            
+            <div class="form-actions">
+              @if (modoFormulario !== 'ver') {
+                <button type="submit" class="btn-save">
+                  {{ modoFormulario === 'crear' ? 'Guardar' : 'Actualizar' }}
+                </button>
+              }
+            </div>
+          </form>
         </div>
       }
-
-      <div class="form-group"><label>Dirección</label><input type="text" [(ngModel)]="nuevoUsuario.direccion" name="dir" [disabled]="modoFormulario === 'ver'"></div>
-
-      @if (nuevoUsuario.rol?.toUpperCase() === 'REPRESENTANTE') {
-        <div class="form-group">
-          <label>Teléfono de Emergencia</label>
-          <input type="text" [(ngModel)]="nuevoUsuario.contacto_emergencia" name="telemer" [disabled]="modoFormulario === 'ver'">
-        </div>
-      }
-
-      @if (nuevoUsuario.rol?.toUpperCase() === 'ADMINISTRADOR' || nuevoUsuario.rol?.toUpperCase() === 'SUPERADMIN') {
-        <div class="form-group">
-          <label>Cargo en la Organización</label>
-          <input type="text" [(ngModel)]="nuevoUsuario.cargo" name="cargo" [disabled]="modoFormulario === 'ver'">
-        </div>
-      }
-      
-      <div class="form-actions">
-        @if (modoFormulario !== 'ver') {
-          <button type="submit" class="btn-save">
-            {{ modoFormulario === 'crear' ? 'Guardar' : 'Actualizar' }}
-          </button>
-        }
-      </div>
-    </form>
-  </div>
-}
 
       <div class="table-responsive">
         <table>
@@ -409,22 +401,15 @@
         </table>
       </div>
     </div>
+    
     <div class="pagination-controls" *ngIf="totalPaginas > 1">
-      <button 
-        (click)="cambiarPagina(paginaActual - 1)" 
-        [disabled]="paginaActual === 1"
-        class="btn-pag">
+      <button (click)="cambiarPagina(paginaActual - 1)" [disabled]="paginaActual === 1" class="btn-pag">
         &laquo; Anterior
       </button>
-
       <span class="info-pag">
         Página <strong>{{ paginaActual }}</strong> de {{ totalPaginas }}
       </span>
-
-      <button 
-        (click)="cambiarPagina(paginaActual + 1)" 
-        [disabled]="paginaActual === totalPaginas"
-        class="btn-pag">
+      <button (click)="cambiarPagina(paginaActual + 1)" [disabled]="paginaActual === totalPaginas" class="btn-pag">
         Siguiente &raquo;
       </button>
     </div>
@@ -457,7 +442,6 @@
         <button (click)="limpiarFiltros()" class="btn-filter-clear">
           <span class="material-symbols-outlined">filter_alt_off</span> Limpiar
         </button>
-        
       </div>
 
       <div class="activity-list">
@@ -469,15 +453,12 @@
             
             <div class="activity-info">
               <p class="activity-msg"><strong>{{ log.msg }}</strong></p>
-              
               <div class="activity-meta">
                 <span class="date-text">
                   <span class="material-symbols-outlined" style="font-size: 14px;">calendar_month</span> 
                   {{ log.fecha }} • {{ log.time }}
                 </span>
-                
                 <span class="tag-badge">{{ log.cat }}</span>
-                
                 <span class="tag-badge">
                   <span class="material-symbols-outlined" style="font-size: 14px;">person</span> 
                   {{ log.responsableNombre }}
@@ -489,24 +470,16 @@
       </div>
     </div>
     <div class="pagination-controls" *ngIf="totalPaginasLogs > 1">
-        <button 
-          (click)="cambiarPaginaLogs(paginaActualLogs - 1)" 
-          [disabled]="paginaActualLogs === 1"
-          class="btn-pag">
-          &laquo; Anterior
-        </button>
-
-        <span class="info-pag">
-          Página <strong>{{ paginaActualLogs }}</strong> de {{ totalPaginasLogs }}
-        </span>
-
-        <button 
-          (click)="cambiarPaginaLogs(paginaActualLogs + 1)" 
-          [disabled]="paginaActualLogs === totalPaginasLogs"
-          class="btn-pag">
-          Siguiente &raquo;
-        </button>
-      </div>
+      <button (click)="cambiarPaginaLogs(paginaActualLogs - 1)" [disabled]="paginaActualLogs === 1" class="btn-pag">
+        &laquo; Anterior
+      </button>
+      <span class="info-pag">
+        Página <strong>{{ paginaActualLogs }}</strong> de {{ totalPaginasLogs }}
+      </span>
+      <button (click)="cambiarPaginaLogs(paginaActualLogs + 1)" [disabled]="paginaActualLogs === totalPaginasLogs" class="btn-pag">
+        Siguiente &raquo;
+      </button>
+    </div>
   </details>
 </main>
 
@@ -521,29 +494,24 @@
 
 <div class="modalborradoconcurso-overlay" *ngIf="mostrarModalBorradoConcurso">
   <div class="modalborradoconcurso-card" [class.error-state-concurso]="esErrorModalBorradoConcurso">
-    
     <div class="modalborradoconcurso-header">
       <span class="material-symbols-outlined icon-status-concurso">
         {{ esErrorModalBorradoConcurso ? 'cancel' : 'warning' }}
       </span>
       <h3>{{ tituloModalBorradoConcurso }}</h3>
     </div>
-
     <div class="modalborradoconcurso-body">
       <p>{{ mensajeModalBorradoConcurso }}</p>
     </div>
-
     <div class="modalborradoconcurso-actions">
       <button *ngIf="esErrorModalBorradoConcurso" (click)="cerrarModalBorradoConcurso()" class="btn-entendido-concurso">
         Entendido
       </button>
-
       <ng-container *ngIf="!esErrorModalBorradoConcurso">
         <button (click)="cerrarModalBorradoConcurso()" class="btn-cancelar-concurso">Cancelar</button>
         <button (click)="confirmarBorradoConcurso()" class="btn-eliminar-concurso">Eliminar del tirón</button>
       </ng-container>
     </div>
-    
   </div>
 </div>
 
@@ -563,3 +531,21 @@
     </div>
   </div>
 }
+
+<div class="modal-overlay" *ngIf="mostrarModalExitoGlobal">
+  <div class="modal-content card" style="max-width: 450px; text-align: center; padding: 25px;">
+    <span class="material-symbols-outlined" style="color: #10b981; font-size: 54px; margin-bottom: 10px;">check_circle</span>
+    <h3 style="margin-bottom: 10px; font-size: 1.4rem; color: #111827;">{{ tituloModalExitoGlobal }}</h3>
+    <p style="color: #4b5563; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5;">{{ contenidoModalExitoGlobal }}</p>
+    <button class="btn-create" (click)="mostrarModalExitoGlobal = false" style="width: 100%; padding: 12px; font-weight: 600;">Aceptar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModalErrorGlobal">
+  <div class="modal-content card" style="max-width: 450px; text-align: center; padding: 25px;">
+    <span class="material-symbols-outlined" style="color: #ef4444; font-size: 54px; margin-bottom: 10px;">cancel</span>
+    <h3 style="margin-bottom: 10px; font-size: 1.4rem; color: #111827;">{{ tituloModalErrorGlobal }}</h3>
+    <p style="color: #4b5563; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5;">{{ contenidoModalErrorGlobal }}</p>
+    <button class="btn-cancel" (click)="mostrarModalErrorGlobal = false" style="width: 100%; padding: 12px; font-weight: 600; background-color: #ef4444; color: white;">Cerrar</button>
+  </div>
+</div>

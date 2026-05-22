@@ -24,17 +24,19 @@ export class DetalleConcursoComponent implements OnInit {
     fechaInicioInscripcion: '',
     fechaFinInscripcion: '',
     fechaInicio: '',
-    fechaFin: ''
+    fechaFin: '',
+    estadoConcurso: 'ACTIVO' 
   };
 
   inscripciones: any[] = [];
   inscripcionesFiltradas: any[] = [];
   
-  // Variables de control de filtros activas (Modalidad eliminada)
   filtroTexto: string = '';
   filtroCategoria: string = '';
   filtroEstado: string = '';
   filtroFianza: string = '';
+
+  esHistorico: boolean = false;
 
   stats = {
     totalGrupos: 0,
@@ -43,15 +45,23 @@ export class DetalleConcursoComponent implements OnInit {
   };
 
   // ==========================================================================
-  // 📧 GESTIÓN DE CIRCULARES INFORMATIVAS CON ACUMULACIÓN DE ADJUNTOS Y ESTADOS
+  // 📧 GESTIÓN DE CIRCULARES INFORMATIVAS
   // ==========================================================================
   mostrarModalCircular: boolean = false;
   circularAsunto: string = '';
   circularCuerpo: string = '';
-  archivosCircularSeleccionados: File[] = []; // Colección que acumula los archivos
-  
-  enviandoCircular: boolean = false;          // Controla el estado de carga (Spinner)
-  errorCircular: string | null = null;        // Almacena el mensaje de error para el formulario
+  archivosCircularSeleccionados: File[] = []; 
+  enviandoCircular: boolean = false;          
+  errorCircular: string | null = null;        
+
+  // 🏛️ MODALES INTERNOS GENERALES (REEMPLAZAN ALERTS)
+  mostrarModalExitoGlobal: boolean = false;
+  tituloModalExitoGlobal: string = '';
+  contenidoModalExitoGlobal: string = '';
+
+  mostrarModalErrorGlobal: boolean = false;
+  tituloModalErrorGlobal: string = '';
+  contenidoModalErrorGlobal: string = '';
 
   ngOnInit(): void {
     this.idConcurso = Number(this.route.snapshot.paramMap.get('id'));
@@ -59,11 +69,26 @@ export class DetalleConcursoComponent implements OnInit {
     this.cargarInscripciones();
   }
 
+  lanzarModalInformativo(titulo: string, contenido: string, tipo: 'success' | 'error'): void {
+    if (tipo === 'success') {
+      this.tituloModalExitoGlobal = titulo;
+      this.contenidoModalExitoGlobal = contenido;
+      this.mostrarModalExitoGlobal = true;
+    } else {
+      this.tituloModalErrorGlobal = titulo;
+      this.contenidoModalErrorGlobal = contenido;
+      this.mostrarModalErrorGlobal = true;
+    }
+    this.cdRef.detectChanges();
+  }
+
   cargarDatosConcurso(): void {
     this.http.get(`http://localhost:8080/api/concursos/${this.idConcurso}`).subscribe({
       next: (data: any) => {
         if (data) {
           this.concurso = data;
+          const estadoEnum = data?.estadoConcurso;
+          this.esHistorico = estadoEnum && String(estadoEnum).trim().toUpperCase() === 'HISTORICO';
         } else {
           this.concurso = null;
         }
@@ -72,23 +97,62 @@ export class DetalleConcursoComponent implements OnInit {
       error: (err) => {
         console.error('Error al cargar datos del concurso:', err);
         this.concurso = null;
-        this.cdRef.detectChanges();
+        this.lanzarModalInformativo('Error de Conexión', 'No se ha podido sincronizar la ficha técnica de este concurso.', 'error');
       }
     });
   }
 
+  // 🔄 NUEVO MÉTODO: Conmutar entre Activo / Histórico
+  conmutarEstadoConcurso(): void {
+    if (!this.concurso) return;
+
+    const nuevoEstado = this.esHistorico ? 'ACTIVO' : 'HISTORICO';
+    
+    // Clonamos el objeto actual del concurso y modificamos su estado
+    const concursoModificado = {
+      ...this.concurso,
+      estadoConcurso: nuevoEstado
+    };
+
+    // Usamos la ruta CRUD clásica que ya existe en tu controlador de Spring Boot
+    const url = `http://localhost:8080/api/concursos/${this.idConcurso}`;
+
+    this.http.put(url, concursoModificado).subscribe({
+      next: (concursoActualizado: any) => {
+        this.concurso = concursoActualizado || concursoModificado;
+        
+        this.esHistorico = String(this.concurso.estadoConcurso).trim().toUpperCase() === 'HISTORICO';
+        this.cdRef.detectChanges();
+
+        this.registrarAuditoria(
+          'CAMBIO_ESTADO_CONCURSO',
+          `El administrador ha cambiado el estado del concurso "${this.concurso?.nombre}" a ${nuevoEstado}.`
+        );
+
+        this.lanzarModalInformativo(
+          'Estado Actualizado', 
+          `El concurso ahora se encuentra en estado: ${nuevoEstado}.`, 
+          'success'
+        );
+      },
+      error: (err) => {
+        console.error('Error al conmutar el estado del concurso:', err);
+        this.lanzarModalInformativo(
+          'Error de Operación', 
+          'No se pudo actualizar el estado utilizando el mapeo general.', 
+          'error'
+        );
+      }
+    });
+  }
   cargarInscripciones(): void {
     this.http.get<any[]>(`http://localhost:8080/api/inscripciones/concurso/${this.idConcurso}`).subscribe({
       next: (data) => {
-        if (data && data.length > 0) {
-          this.inscripciones = data;
-        } else {
-          this.inscripciones = [];
-        }
+        this.inscripciones = data && data.length > 0 ? data : [];
         this.finalizarCarga();
       },
       error: (err) => {
-        console.error('El backend ha dado un error 500 para este concurso:', err);
+        console.error('El backend ha dado un error para este concurso:', err);
         this.inscripciones = []; 
         this.finalizarCarga();
       }
@@ -113,26 +177,19 @@ export class DetalleConcursoComponent implements OnInit {
     ).length;
   }
 
-  // Lógica de Filtrado Combinado Multi-Criterio (Sin Modalidad)
   filtrarAgrupaciones(): void {
     this.inscripcionesFiltradas = this.inscripciones.filter(ins => {
-      
-      // 1. Filtro por cuadro de texto (Busca por nombre de agrupación o representante)
       const cumpleTexto = !this.filtroTexto.trim() || 
         ins.agrupacion?.nombre?.toLowerCase().includes(this.filtroTexto.toLowerCase()) ||
         ins.agrupacion?.representante?.nombre?.toLowerCase().includes(this.filtroTexto.toLowerCase());
 
-      // 2. Filtro por Categoría
       const cumpleCategoria = !this.filtroCategoria || 
         ins.agrupacion?.categoria?.toUpperCase() === this.filtroCategoria.toUpperCase();
 
-      // 3. Filtro por Estado de la Inscripción
       const cumpleEstado = !this.filtroEstado || 
         ins.estadoInscripcion?.toUpperCase() === this.filtroEstado.toUpperCase();
 
       let cumpleFianza = true;
-    
-      // Comprobamos si tiene fianza válida (mirando si existe el objeto fianza y su id no es null)
       const tieneFianzaPagada = ins.fianza !== null && ins.fianza !== undefined && (ins.fianza.idFianza ?? ins.fianza.id) !== null;
 
       if (this.filtroFianza === 'PAGADA') {
@@ -141,11 +198,8 @@ export class DetalleConcursoComponent implements OnInit {
         cumpleFianza = !tieneFianzaPagada;
       }
 
-      // La inscripción pasa si cumple los 4 filtros simultáneamente
       return cumpleTexto && cumpleCategoria && cumpleEstado && cumpleFianza;
     });
-
-    // Sincroniza los cambios con la vista al instante
     this.cdRef.detectChanges();
   }
 
@@ -168,7 +222,7 @@ export class DetalleConcursoComponent implements OnInit {
 
   generarPDF(): void {
     if (!this.concurso) {
-      alert('No hay datos del concurso disponibles para exportar.');
+      this.lanzarModalInformativo('Acción Inválida', 'No hay datos del concurso disponibles para exportar.', 'error');
       return;
     }
 
@@ -191,21 +245,19 @@ export class DetalleConcursoComponent implements OnInit {
           'DESCARGA_PDF_GENERAL',
           `El administrador ha descargado el PDF de control general para el concurso: ${nombreConcurso}.`
         );
+        this.lanzarModalInformativo('Descarga Exitosa', 'El documento de control general se ha generado e iniciado correctamente.', 'success');
       },
       error: (err) => {
-        console.error('Error al generar el PDF General en el frontend:', err);
-        alert('Hubo un problema al procesar el archivo PDF general.');
+        console.error('Error al generar el PDF General:', err);
+        this.lanzarModalInformativo('Error de Exportación', 'Hubo un problema al estructurar el archivo PDF en el servidor.', 'error');
       }
     });
   }
 
   generarPdfParticipantesSeleccionados(): void {
-    if (!this.inscripcionesFiltradas || this.inscripcionesFiltradas.length === 0) {
-      return;
-    }
+    if (!this.inscripcionesFiltradas || this.inscripcionesFiltradas.length === 0) return;
 
     const listaPrimitiva: number[] = [];
-    
     for (const ins of this.inscripcionesFiltradas) {
       if (ins && ins.seleccionado === true) {
         const idVal = ins.idInscripcion ?? ins.id;
@@ -216,7 +268,7 @@ export class DetalleConcursoComponent implements OnInit {
     }
 
     if (listaPrimitiva.length === 0) {
-      alert('Por favor, selecciona primero al menos una agrupación utilizando las casillas de verificación.');
+      this.lanzarModalInformativo('Falta Selección', 'Por favor, selecciona primero al menos una agrupación utilizando las casillas de verificación.', 'error');
       return;
     }
 
@@ -239,19 +291,17 @@ export class DetalleConcursoComponent implements OnInit {
           'DESCARGA_PDF_AGRUPACIONES_SELECCIONADAS',
           `El administrador ha descargado el PDF de control de las agrupaciones seleccionadas para el concurso: ${this.concurso?.nombre || 'N/A'}.`
         );
+        this.lanzarModalInformativo('Fichas Listas', 'El lote de fichas de componentes seleccionados se ha descargado de forma idónea.', 'success');
       },
       error: (err) => {
         console.error('Error en la petición POST del PDF:', err);
-        alert('Ocurrió un error al intentar generar las fichas seleccionadas.');
+        this.lanzarModalInformativo('Fallo de Compilación', 'Ocurrió un error inesperado al unificar las fichas seleccionadas.', 'error');
       }
     });
   }
 
-  // ==========================================
-  // 📧 MÉTODOS DEL MODAL DE LA CIRCULAR MASIVA
-  // ==========================================
-
   abrirModalCircular(): void {
+    if (this.esHistorico) return; 
     this.circularAsunto = '';
     this.circularCuerpo = '';
     this.archivosCircularSeleccionados = [];
@@ -280,11 +330,16 @@ export class DetalleConcursoComponent implements OnInit {
     }
   }
 
+  eliminarArchivoDeCola(index: number): void {
+    if (this.archivosCircularSeleccionados) {
+      this.archivosCircularSeleccionados.splice(index, 1);
+    }
+  }
+
   procesarEnvioCircular(): void {
-    if (!this.circularAsunto.trim() || !this.circularCuerpo.trim() || this.enviandoCircular) return;
+    if (this.esHistorico || !this.circularAsunto.trim() || !this.circularCuerpo.trim() || this.enviandoCircular) return;
 
     let idsAEnviar: number[] = [];
-
     if (this.tieneSeleccionados()) {
       idsAEnviar = this.inscripcionesFiltradas
         .filter(ins => ins.seleccionado === true)
@@ -309,22 +364,26 @@ export class DetalleConcursoComponent implements OnInit {
     
     if (this.archivosCircularSeleccionados.length > 0) {
       this.archivosCircularSeleccionados.forEach((file: File) => {
-        formData.append('archivo', file);
+        formData.append('archivo', file); 
       });
     }
 
     this.http.post('http://localhost:8080/api/concursos/enviar-circular', formData)
       .subscribe({
         next: (res: any) => {
-          // 🌟 CAMBIO AQUÍ: Se desactiva la carga y se cierra el formulario en completo silencio sin alert()
           this.enviandoCircular = false;
           this.mostrarModalCircular = false; 
-          this.cdRef.detectChanges();
-
+          
           const tipoEnvio = this.tieneSeleccionados() ? 'PARCIAL_MULTIPLE_ADJUNTO' : 'GLOBAL_MULTIPLE_ADJUNTO';
           this.registrarAuditoria(
             `CIRCULAR_INFORMATIVA_${tipoEnvio}`,
             `El administrador ha lanzado una circular con (${this.archivosCircularSeleccionados.length}) adjuntos para ${idsAEnviar.length} agrupaciones.`
+          );
+
+          this.lanzarModalInformativo(
+            'Circular Desplegada', 
+            `La circular informativa ha sido enviada correctamente por correo electrónico a los representantes de las ${idsAEnviar.length} agrupaciones asociadas.`, 
+            'success'
           );
         },
         error: (err) => {
@@ -334,9 +393,9 @@ export class DetalleConcursoComponent implements OnInit {
           if (err.error && err.error.error) {
             this.errorCircular = 'Error del servidor: ' + err.error.error;
           } else if (err.status === 413) {
-            this.errorCircular = 'Los archivos adjuntos son demasiado grandes para el servidor.';
+            this.errorCircular = 'Los archivos adjuntos son demasiado grandes para la pasarela de red.';
           } else {
-            this.errorCircular = 'Hubo un problema al procesar los archivos o iniciar el envío masivo.';
+            this.errorCircular = 'Hubo un problema al inicializar el envío de paquetes masivos.';
           }
           this.cdRef.detectChanges();
         }
@@ -357,8 +416,8 @@ export class DetalleConcursoComponent implements OnInit {
     };
 
     this.http.post('http://localhost:8080/api/auditoria', payloadAuditoria).subscribe({
-      next: () => console.log(`[Auditoría] Registro guardado con éxito para el Admin ID (${administradorId}): ${accion}`),
-      error: (err) => console.error('[Auditoría] Error al insertar en logauditoria:', err)
+      next: () => console.log(`[Auditoría] Log guardado: ${accion}`),
+      error: (err) => console.error('[Auditoría] Error al insertar log:', err)
     });
   }
 }

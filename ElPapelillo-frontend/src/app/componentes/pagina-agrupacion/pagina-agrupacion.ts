@@ -27,21 +27,24 @@ export class DetalleAgrupacionComponent implements OnInit {
   fianzaSubida: boolean = false;
   mostrandoFormularioFianza: boolean = false;
 
-  // Variables para enlazar los inputs del formulario en el HTML
+  // 🔒 CONTROL DE EDICIÓN PARA CONCURSOS HISTÓRICOS/CERRADOS
+  esHistorico: boolean = false;
+
+  // Variables para enlazar los inputs del formulario de fianza
   datosFianza = {
     importe: 300, 
     fechaPago: new Date().toISOString().substring(0, 16) 
   };
   archivoFianzaSeleccionado: File | null = null;
 
-  // Lista de requerimientos comunes mapeados
+  // Lista de requerimientos de documentación
   documentosRequeridos: any[] = [];
 
   // Paginación para las tablas/listas
   paginaActual: number = 1;
   elementosPorPagina: number = 5;
 
-  // 🌟 VARIABLES DE CONTROL PARA VENTANAS MODALES INTEGRADAS
+  // Variables de control para ventanas modales integradas
   mostrarModalExito: boolean = false;
   mensajeModalExito: string = '';
   
@@ -61,15 +64,34 @@ export class DetalleAgrupacionComponent implements OnInit {
       next: (data: any) => {
         this.inscripcion = data;
         this.participantes = data?.agrupacion?.participantes || [];
-        this.comprobarEstadoFianza();
+        
+        console.log("--- [FRONTEND] DATA INTEGRAL RECIBIDA ---", data);
 
+        // 🎯 LEEMOS LA PROPIEDAD CORRECTA REVELADA POR EL MODELO: estadoConcurso
+        const estadoEnum = data?.concurso?.estadoConcurso; 
+        console.log("Valor real del Estado Enum en Angular:", estadoEnum);
+
+        // Evaluamos el string exacto que manda el @Enumerated(EnumType.STRING)
+        if (estadoEnum && String(estadoEnum).trim().toUpperCase() === 'HISTORICO') {
+          this.esHistorico = true;
+          console.log("🔒 VISTA BLOQUEADA: El concurso de esta inscripción es HISTORICO.");
+        } else {
+          this.esHistorico = false;
+          console.log("🔓 VISTA ACTIVA: El concurso está ACTIVO.");
+        }
+
+        // Renderizado del bloque de fianza
+        this.comprobarEstadoFianza();
+        this.cdRef.detectChanges(); // Forzamos el redibujado de los *ngIf en el HTML
+
+        // Carga de la documentación
         this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${this.idInscripcion}`).subscribe({
           next: (docs) => {
             this.documentosRequeridos = docs || [];
             this.cdRef.detectChanges();
           },
           error: (errDocs: HttpErrorResponse) => {
-            console.error('Error al obtener documentos reales:', errDocs);
+            console.error('Error al obtener documentos:', errDocs);
             this.cdRef.detectChanges();
           }
         });
@@ -112,12 +134,13 @@ export class DetalleAgrupacionComponent implements OnInit {
     };
 
     this.http.post('http://localhost:8080/api/auditoria', payloadAuditoria).subscribe({
-      next: () => console.log(`[Auditoría] Registro guardado para el Admin ID (${administradorId})`),
-      error: (err) => console.error('[Auditoría] Error en logauditoria:', err)
+      next: () => console.log(`[Auditoría] Registro guardado con éxito`),
+      error: (err) => console.error('[Auditoría] Error:', err)
     });
   }
 
   abrirFormularioFianza(): void {
+    if (this.esHistorico) return; 
     this.mostrandoFormularioFianza = true;
   }
 
@@ -129,7 +152,6 @@ export class DetalleAgrupacionComponent implements OnInit {
   prepararArchivoFianza(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      // 🌟 MODAL EN LUGAR DE ALERT: Validación de extensión PDF
       if (file.type !== 'application/pdf') {
         this.tituloModalError = 'Formato de Fichero Incorrecto';
         this.contenidoModalError = 'El resguardo contable adjunto debe ser de forma obligatoria un documento en formato PDF.';
@@ -142,7 +164,8 @@ export class DetalleAgrupacionComponent implements OnInit {
   }
 
   guardarFianzaCompleta(): void {
-    // 🌟 MODAL EN LUGAR DE ALERT: Validación de campos vacíos
+    if (this.esHistorico) return; 
+
     if (!this.archivoFianzaSeleccionado) {
       this.tituloModalError = 'Falta el Documento';
       this.contenidoModalError = 'Debes adjuntar el archivo digital en PDF correspondiente al resguardo del banco.';
@@ -159,7 +182,7 @@ export class DetalleAgrupacionComponent implements OnInit {
 
     if (!this.datosFianza.fechaPago || this.datosFianza.fechaPago.trim() === '') {
       this.tituloModalError = 'Fecha Obligatoria';
-      this.contenidoModalError = 'Es indispensable definir el momento exacto (fecha y hora) en que el representante efectuó el ingreso.';
+      this.contenidoModalError = 'Es indispensable definir el momento exacto en que el representante efectuó el ingreso.';
       this.mostrarModalError = true;
       return;
     }
@@ -183,27 +206,26 @@ export class DetalleAgrupacionComponent implements OnInit {
             `Se ha registrado la fianza de ${this.datosFianza.importe}€ para la agrupación: ${nombreAgrup}.`
           );
 
-          // Lanzar modal de confirmación limpio
           this.mensajeModalExito = 'Los datos contables de la fianza y su correspondiente extracto digital han quedado vinculados correctamente en el expediente.';
           this.mostrarModalExito = true;
           this.cargarDetalleInscripcion(); 
         },
         error: (err: HttpErrorResponse) => {
-          console.error('Error al guardar fianza completa:', err);
           this.tituloModalError = 'Error de Servidor';
-          this.contenidoModalError = 'No se ha podido almacenar la fianza. Verifica la integridad técnica de la conexión persistente con el backend.';
+          this.contenidoModalError = 'No se ha podido almacenar la fianza. Verifica la integridad técnica del backend.';
           this.mostrarModalError = true;
         }
       });
   }
 
   solicitarConfirmacionBorradoFianza(): void {
+    if (this.esHistorico) return;
     this.mostrarModalConfirmarBorrado = true;
   }
 
   ejecutarEliminarFianza(): void {
+    if (this.esHistorico) return;
     this.mostrarModalConfirmarBorrado = false;
-    if (!this.idInscripcion) return;
 
     this.http.delete(`http://localhost:8080/api/fianzas/inscripcion/${this.idInscripcion}`).subscribe({
       next: (res: any) => {
@@ -219,24 +241,25 @@ export class DetalleAgrupacionComponent implements OnInit {
           `Se ha eliminado permanentemente el registro de fianza asociado a la agrupación: ${nombreAgrup}.`
         );
 
-        this.mensajeModalExito = 'El documento de fianza y su histórico económico se han borrado de forma definitiva de la base de datos.';
+        this.mensajeModalExito = 'El documento de fianza y su histórico económico se han borrado de forma definitiva.';
         this.mostrarModalExito = true;
         this.cargarDetalleInscripcion(); 
       },
       error: (err: HttpErrorResponse) => {
-        console.error('Error al intentar eliminar la fianza del servidor:', err);
         this.tituloModalError = 'Denegación de Borrado';
-        this.contenidoModalError = 'El servidor no ha respondido adecuadamente a la petición de borrado físico del fichero.';
+        this.contenidoModalError = 'El servidor no ha respondido adecuadamente a la petición de borrado.';
         this.mostrarModalError = true;
       }
     });
   }
 
   evaluarDocumento(doc: any, nuevoEstado: 'APROBADO' | 'PENDIENTE' | 'RECHAZADO'): void {
+    if (this.esHistorico) return;
+
     if (!doc.comentarioRevision) doc.comentarioRevision = ''; 
     doc.estado = nuevoEstado;
     
-    const documentoDvd = {
+    const documentoPayload = {
       idDocumento: doc.idDocumento,
       nombre: doc.nombre,
       tipo: doc.tipo,
@@ -246,7 +269,7 @@ export class DetalleAgrupacionComponent implements OnInit {
       inscripcion: { idInscripcion: this.idInscripcion }
     };
 
-    this.http.put(`http://localhost:8080/api/documentos/${doc.idDocumento}`, documentoDvd).subscribe({
+    this.http.put(`http://localhost:8080/api/documentos/${doc.idDocumento}`, documentoPayload).subscribe({
       next: (response: any) => {
         const nombreAgrup = this.inscripcion?.agrupacion?.nombre || 'Agrupación';
         let descripcionAuditoria = `Se ha ${nuevoEstado.toLowerCase()} el documento "${doc.nombre}" de la agrupación: ${nombreAgrup}.`;
@@ -257,20 +280,20 @@ export class DetalleAgrupacionComponent implements OnInit {
 
         this.registrarAuditoria(`REVISIÓN_DOC_${nuevoEstado}`, descripcionAuditoria);
         
-        this.mensajeModalExito = `El documento "${doc.nombre}" ha sido marcado bajo el estado [${nuevoEstado}] de manera satisfactoria en la ficha del aspirante.`;
+        this.mensajeModalExito = `El documento "${doc.nombre}" ha sido actualizado a [${nuevoEstado}] correctamente.`;
         this.mostrarModalExito = true;
         this.cargarDetalleInscripcion(); 
       },
       error: (err: HttpErrorResponse) => {
         this.tituloModalError = 'Fallo de Persistencia';
-        this.contenidoModalError = 'No se ha podido procesar el cambio de estado en la revisión de la documentación.';
+        this.contenidoModalError = 'No se ha podido procesar el cambio de estado de la documentación.';
         this.mostrarModalError = true;
       }
     });
   }
 
   actualizarEstadoInscripcion(nuevoEstado: 'APROBADO' | 'RECHAZADO'): void {
-    if (!this.idInscripcion) return;
+    if (this.esHistorico || !this.idInscripcion) return;
     
     this.http.put(`http://localhost:8080/api/inscripciones/${this.idInscripcion}/estado`, { estado: nuevoEstado }).subscribe({
       next: () => {
@@ -285,7 +308,7 @@ export class DetalleAgrupacionComponent implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         this.tituloModalError = 'Error de Transición';
-        this.contenidoModalError = 'Hubo una anomalía interna en el servidor al intentar cambiar el estado del expediente.';
+        this.contenidoModalError = 'Hubo una anomalía interna al intentar cambiar el estado global de la inscripción.';
         this.mostrarModalError = true;
       }
     });
@@ -363,7 +386,7 @@ export class DetalleAgrupacionComponent implements OnInit {
       },
       error: (err) => {
         this.tituloModalError = 'Fichero No Encontrado';
-        this.contenidoModalError = 'El fichero solicitado no se localiza en el volumen físico del backend de ElPapelillo.';
+        this.contenidoModalError = 'El fichero solicitado no se localiza en el volumen físico del backend.';
         this.mostrarModalError = true;
       }
     });

@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
   templateUrl: './documentacion-rep.html',
-  styleUrls: ['./documentacion-rep.css']
+  styleUrl: './documentacion-rep.css' // 🌟 CORREGIDO: En singular para evitar el error de tipado string/array
 })
 export class DocumentacionRepComponent implements OnInit {
   
@@ -31,8 +31,11 @@ export class DocumentacionRepComponent implements OnInit {
   archivoSeleccionado: File | null = null;
   mensajeError: string | null = null; 
 
-  // 🌟 VARIABLES NUEVAS PARA LAS VENTANAS MODALES INTEGRADAS
+  // --- VARIABLES PARA LAS VENTANAS MODALES INTEGRADAS ---
   mostrarModalExito: boolean = false;
+  tituloModalExito: string = '';       // 🌟 NUEVO: Dinámico para cambiar el texto del modal de éxito
+  contenidoModalExito: string = '';    // 🌟 NUEVO: Dinámico para cambiar el contenido del modal de éxito
+  
   mostrarModalError: boolean = false;
   tituloModalError: string = '';
   contenidoModalError: string = '';
@@ -87,7 +90,6 @@ export class DocumentacionRepComponent implements OnInit {
     const archivo = event.target.files[0];
 
     if (archivo) {
-      // 🌟 CORRECCIÓN: Modal integrado si no es PDF
       if (archivo.type !== 'application/pdf') {
         this.tituloModalError = 'Formato no válido';
         this.contenidoModalError = 'El sistema de validación de ElPapelillo únicamente acepta archivos con extensión .pdf para asegurar su correcta lectura administrativa.';
@@ -97,7 +99,6 @@ export class DocumentacionRepComponent implements OnInit {
         return;
       }
 
-      // 🌟 CORRECCIÓN: Modal integrado si supera 5MB
       const maxTamano = 5 * 1024 * 1024;
       if (archivo.size > maxTamano) {
         this.tituloModalError = 'Tamaño de archivo excedido';
@@ -143,15 +144,16 @@ export class DocumentacionRepComponent implements OnInit {
 
     this.http.post('http://localhost:8080/api/documentos/upload', formData)
       .subscribe({
-        next: () => {
-          // 🌟 CORRECCIÓN: Cambiado el alert nativo por ventana modal integrada de éxito
+        next: () => { // 🌟 CORREGIDO: Cambiado de onNext a next
+          // Configuramos el modal de éxito para la subida de archivos
+          this.tituloModalExito = '¡Documento Subido!';
+          this.contenidoModalExito = 'El archivo se ha subido correctamente al repositorio y queda almacenado a la espera de la validación del administrador.';
           this.mostrarModalExito = true;
           this.mostrarForm = false;
           this.limpiarFormulario();
           this.cd.detectChanges();
         },
-        error: (err) => {
-          // 🌟 CORRECCIÓN: Cambiado el error suelto por ventana modal de fallo de red/servidor
+        error: (err) => { // 🌟 CORREGIDO: Cambiado de onError a error
           this.tituloModalError = 'Fallo en la carga';
           this.contenidoModalError = err.error?.error || 'No se ha podido establecer comunicación con el servidor de archivos o el registro se encuentra duplicado.';
           this.mostrarModalError = true;
@@ -160,7 +162,14 @@ export class DocumentacionRepComponent implements OnInit {
       });
   }
 
-  // 🌟 MÉTODO DE CIERRE CONTROLADO (Limpia y refresca la rejilla al dar al botón)
+  // 🌟 NOTA: Si en tu código tienes otra función que guarda al "Participante", puedes llamarla así para activar el modal:
+  // registrarParticipanteExito() {
+  //   this.tituloModalExito = '¡Participante Guardado!';
+  //   this.contenidoModalExito = 'El participante ha sido guardado correctamente en los registros de la inscripción.';
+  //   this.mostrarModalExito = true;
+  //   this.cd.detectChanges();
+  // }
+
   cerrarModalExitoYRefrescar() {
     this.mostrarModalExito = false;
     if (this.idInscripcionActual) {
@@ -175,7 +184,7 @@ export class DocumentacionRepComponent implements OnInit {
 
     this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${idInscripcion}`)
       .subscribe({
-        next: (data) => {
+        next: (data) => { // 🌟 CORREGIDO: Cambiado de onNext a next
           this.listaDocs = data ? data : [];
           
           if (this.listaDocs.length > 0 && this.listaDocs[0].inscripcion) {
@@ -183,23 +192,28 @@ export class DocumentacionRepComponent implements OnInit {
           } else {
             this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}`)
               .subscribe({
-                next: (res) => {
+                next: (res) => { // 🌟 CORREGIDO: Cambiado de onNext a next
                   this.inscripcionActiva = res;
                 },
-                error: (err) => {
-                  console.error('No se pudo mapear el contexto:', err);
+                error: () => { // 🌟 CORREGIDO: Cambiado de onError a error
+                  this.tituloModalError = 'Fallo de Contexto';
+                  this.contenidoModalError = 'No se ha podido mapear la información de la inscripción de origen en la base de datos de la plataforma.';
+                  this.mostrarModalError = true;
                   this.inscripcionActiva = {
                     agrupacion: { nombre: 'Gestión Documental' },
                     concurso: { nombre: 'Expediente' }
                   };
+                  this.cd.detectChanges();
                 }
               });
           }
           this.loading = false;
           this.cd.detectChanges();
         },
-        error: (err) => {
-          console.error('Error al cargar documentos:', err);
+        error: () => { // 🌟 CORREGIDO: Cambiado de onError a error
+          this.tituloModalError = 'Error de Lectura';
+          this.contenidoModalError = 'Se produjo un problema al intentar listar los documentos del repositorio para esta agrupación.';
+          this.mostrarModalError = true;
           this.listaDocs = [];
           this.loading = false;
           this.cd.detectChanges();
@@ -210,7 +224,7 @@ export class DocumentacionRepComponent implements OnInit {
   descargarArchivo(url: string, nombreArchivo: string) {
     this.http.get(`http://localhost:8080/${url}`, { responseType: 'blob' })
       .subscribe({
-        next: (blob) => {
+        next: (blob) => { // 🌟 CORREGIDO: Cambiado de onNext a next
           const urlBlob = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = urlBlob;
@@ -220,8 +234,7 @@ export class DocumentacionRepComponent implements OnInit {
           document.body.removeChild(a);
           window.URL.revokeObjectURL(urlBlob);
         },
-        error: (err) => {
-          console.error('Error en descarga:', err);
+        error: () => { // 🌟 CORREGIDO: Cambiado de onError a error
           this.tituloModalError = 'Descarga no disponible';
           this.contenidoModalError = 'El archivo físico solicitado no se encuentra en la ruta del servidor o careces de los permisos de lectura necesarios.';
           this.mostrarModalError = true;

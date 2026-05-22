@@ -9,7 +9,7 @@ import { FormsModule, NgForm } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
   templateUrl: './participantes-rep.html',
-  styleUrls: ['./participantes-rep.css']
+  styleUrl: './participantes-rep.css' // 🌟 CORREGIDO: Propiedad en singular para evitar fallos de compilación
 })
 export class GestionParticipantesComponent implements OnInit {
 
@@ -24,13 +24,25 @@ export class GestionParticipantesComponent implements OnInit {
   mostrarFormulario: boolean = false;
   mensajeErrorForm: string | null = null;
 
+  // 🌟 VARIABLES PARA LAS VENTANAS MODALES INTEGRADAS
+  mostrarModalExito: boolean = false;
+  tituloModalExito: string = '';
+  contenidoModalExito: string = '';
+
+  mostrarModalError: boolean = false;
+  tituloModalError: string = '';
+  contenidoModalError: string = '';
+
+  mostrarModalConfirmar: boolean = false;
+  idParticipacionAEliminar: number | null = null;
+
   // --- MODELOS DE BÚSQUEDA E INSERCIÓN ---
   dniBusqueda: string = '';
   participanteEncontradoHistorico: any = null;
   
   nuevoParticipante: any = {
     idParticipacion: null,
-    idParticipanteBase: null, // 🔑 ID de la tabla maestra 'participante'
+    idParticipanteBase: null, 
     nombre: '',
     dni: '',
     fechaNacimiento: '',
@@ -63,8 +75,7 @@ export class GestionParticipantesComponent implements OnInit {
     this.router.navigate(['/panel-representante']);
   }
 
-  // --- 🧮 VALIDACIÓN DE FORMATO DE DNI ---
-  validarFormatoDni(dni: string): boolean {
+  validarFormFormatDni(dni: string): boolean {
     const d = dni.trim().toUpperCase();
     const regexDni = /^[0-9]{8}[TRWAGMYFPDXBNJZSQVHLCKE]$/;
     
@@ -80,7 +91,6 @@ export class GestionParticipantesComponent implements OnInit {
     return letraAsignada === letraCorrecta;
   }
 
-  // --- FLUJO DE CONTROL DE FORMULARIO ---
   abrirFormulario() {
     this.mostrarFormulario = true;
     this.limpiarFormulario();
@@ -110,7 +120,6 @@ export class GestionParticipantesComponent implements OnInit {
     }
   }
 
-  // --- 🔍 BÚSQUEDA POR DNI CON VALIDACIÓN DE AGREGACIÓN ACTUAL ---
   buscarParticipantePorDni() {
     this.mensajeErrorForm = null;
     this.participanteEncontradoHistorico = null;
@@ -120,12 +129,11 @@ export class GestionParticipantesComponent implements OnInit {
       return;
     }
 
-    if (!this.validarFormatoDni(this.dniBusqueda)) {
+    if (!this.validarFormFormatDni(this.dniBusqueda)) {
       this.mensajeErrorForm = '⚠️ El formato del DNI introducido no es válido o la letra de control es incorrecta.';
       return;
     }
 
-    // 🔒 REGLA DE NEGOCIO 1: Impedir duplicar el mismo DNI dentro de la inscripción de la misma agrupación
     const yaExisteEnEstaInscripcion = this.listaParticipantes.some(
       p => p.participante?.dni?.toUpperCase() === this.dniBusqueda.trim().toUpperCase()
     );
@@ -141,7 +149,10 @@ export class GestionParticipantesComponent implements OnInit {
           if (res) {
             this.participanteEncontradoHistorico = res;
           } else {
-            alert('No se registran participaciones previas con este DNI en el sistema. Complete la ficha manualmente.');
+            // 🌟 CORREGIDO: Eliminado alert nativo informando que no hay histórico
+            this.tituloModalExito = 'Sin registros previos';
+            this.contenidoModalExito = 'No se registran participaciones previas con este DNI en el sistema. Complete la ficha manualmente.';
+            this.mostrarModalExito = true;
             this.nuevoParticipante.dni = this.dniBusqueda.trim().toUpperCase();
           }
           this.cd.detectChanges();
@@ -154,15 +165,13 @@ export class GestionParticipantesComponent implements OnInit {
       });
   }
 
-  // --- 📥 REPARACIÓN CLAVE DE IMPORTACIÓN ---
   importarParticipanteEncontrado() {
     if (this.participanteEncontradoHistorico) {
-      // Forzamos la obtención correcta de la ID primaria ('id' o 'idParticipante') dependiendo de tu modelo Java
       const idBase = this.participanteEncontradoHistorico.id || this.participanteEncontradoHistorico.idParticipante;
 
       this.nuevoParticipante = {
-        idParticipacion: null, // Sigue siendo un alta de fila intermedia nueva...
-        idParticipanteBase: idBase, // 🔑 ¡ESTO ARREGLA EL PROBLEMA! Le inyectamos el ID maestro real mapeado para que Java no intente crear un clon duplicado
+        idParticipacion: null,
+        idParticipanteBase: idBase, 
         nombre: this.participanteEncontradoHistorico.nombre,
         dni: this.participanteEncontradoHistorico.dni || this.dniBusqueda.toUpperCase(), 
         fechaNacimiento: this.participanteEncontradoHistorico.fechaNacimiento ? this.participanteEncontradoHistorico.fechaNacimiento.split('T')[0] : '',
@@ -170,12 +179,11 @@ export class GestionParticipantesComponent implements OnInit {
       };
       
       this.participanteEncontradoHistorico = null;
-      this.mensajeErrorForm = null; // Limpiamos alertas previas de advertencia
+      this.mensajeErrorForm = null; 
       this.cd.detectChanges();
     }
   }
 
-  // --- ASÍNCRONOS HTTP ---
   cargarDatosContexto(idInscripcion: string) {
     this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}`)
       .subscribe({
@@ -205,21 +213,18 @@ export class GestionParticipantesComponent implements OnInit {
       });
   }
 
-  // --- 💾 GUARDAR / ACTUALIZAR CON CONTROL TOTAL DE UNICIDAD ---
   guardarParticipante(form: NgForm) {
     if (!form.valid || !this.idInscripcionActual) return;
     this.mensajeErrorForm = null;
 
     const dniAEnviar = this.nuevoParticipante.dni.trim().toUpperCase();
 
-    if (!this.validarFormatoDni(dniAEnviar)) {
+    if (!this.validarFormFormatDni(dniAEnviar)) {
       this.mensajeErrorForm = '⚠️ La estructura del DNI/NIE es incorrecta o la letra no se corresponde.';
       this.cd.detectChanges();
       return;
     }
 
-    // 🔒 REGLA DE NEGOCIO 2: Validación doble en el guardado (por si el usuario cambia el input a mano tras buscar)
-    // Solo aplica si estamos creando una vinculación nueva (idParticipacion nulo)
     if (!this.nuevoParticipante.idParticipacion) {
       const duplicado = this.listaParticipantes.some(
         p => p.participante?.dni?.toUpperCase() === dniAEnviar
@@ -233,7 +238,7 @@ export class GestionParticipantesComponent implements OnInit {
     
     const payload = {
       idParticipacion: this.nuevoParticipante.idParticipacion,
-      idParticipante: this.nuevoParticipante.idParticipanteBase, // Enviamos el ID maestro recuperado en la importación
+      idParticipante: this.nuevoParticipante.idParticipanteBase, 
       nombre: this.nuevoParticipante.nombre,
       dni: dniAEnviar,
       fechaNacimiento: this.nuevoParticipante.fechaNacimiento,
@@ -244,7 +249,10 @@ export class GestionParticipantesComponent implements OnInit {
     this.http.post('http://localhost:8080/api/participantes/guardar', payload)
       .subscribe({
         next: () => {
-          alert('¡Participante guardado correctamente!');
+          // 🌟 CORREGIDO: Reemplazado alert nativo por ventana modal integrada de éxito
+          this.tituloModalExito = '¡Participante Guardado!';
+          this.contenidoModalExito = 'El integrante ha sido registrado de forma correcta en los expedientes de la agrupación.';
+          this.mostrarModalExito = true;
           this.cerrarFormulario();
           this.cargarParticipantes(this.idInscripcionActual!);
         },
@@ -276,26 +284,54 @@ export class GestionParticipantesComponent implements OnInit {
     this.cd.detectChanges();
   }
 
-  eliminarParticipante(idParticipacion: number) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este participante de la agrupación?')) return;
+  // 🌟 NUEVO: Abre el modal personalizado de confirmación de borrado
+  solicitarEliminarParticipante(idParticipacion: number) {
+    this.idParticipacionAEliminar = idParticipacion;
+    this.mostrarModalConfirmar = true;
+    this.cd.detectChanges();
+  }
 
-    this.http.delete(`http://localhost:8080/api/participantes/eliminar/${idParticipacion}`)
+  enmascararDniVisual(dni: string | null | undefined): string {
+  if (!dni) return '';
+  
+  const dniLimpio = dni.trim();
+  
+  // Si ya viene enmascarado por el servidor, lo dejamos como está
+  if (dniLimpio.includes('*')) return dniLimpio;
+  
+  // Si el DNI es demasiado corto por algún error de datos, no lo rompemos
+  if (dniLimpio.length < 5) return dniLimpio;
+  
+  // Muestra los 4 primeros números, oculta el resto y muestra el carácter final (Letra)
+  return dniLimpio.substring(0, 4) + '****' + dniLimpio.substring(dniLimpio.length - 1);
+}
+
+  // 🌟 NUEVO: Ejecuta la acción real tras pulsar "Eliminar" en el modal integrado
+  confirmarEliminar() {
+    if (!this.idParticipacionAEliminar) return;
+
+    this.http.delete(`http://localhost:8080/api/participantes/eliminar/${this.idParticipacionAEliminar}`)
       .subscribe({
         next: () => {
-          alert('Registro eliminado de la inscripción.');
+          this.mostrarModalConfirmar = false;
+          this.idParticipacionAEliminar = null;
+          
+          // Lanzamos modal de confirmación limpia
+          this.tituloModalExito = 'Registro Eliminado';
+          this.contenidoModalExito = 'El participante se ha desvinculado con éxito de la inscripción.';
+          this.mostrarModalExito = true;
+
           this.cargarParticipantes(this.idInscripcionActual!);
         },
         error: (err) => {
-          alert('No se pudo eliminar la participación de la base de datos.');
+          this.mostrarModalConfirmar = false;
+          this.idParticipacionAEliminar = null;
+          
+          this.tituloModalError = 'No se pudo eliminar';
+          this.contenidoModalError = err.error?.error || 'Se ha detectado un problema de integridad al intentar borrar este registro del servidor.';
+          this.mostrarModalError = true;
           this.cd.detectChanges();
         }
       });
-  }
-
-  enmascararDniVisual(dni: string): string {
-    if (!dni) return '';
-    if (dni.includes('*')) return dni;
-    if (dni.length < 5) return dni;
-    return dni.substring(0, 4) + '****' + dni.substring(dni.length - 1);
   }
 }
