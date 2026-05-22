@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -13,13 +13,14 @@ import { FormsModule } from '@angular/forms';
 })
 export class DocumentacionRepComponent implements OnInit {
   
+  private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private cd = inject(ChangeDetectorRef);
+
   listaDocs: any[] = [];
   idInscripcionActual: string | null = null;
-  
-  // 🔑 CONTEXTO DE INSCRIPCIÓN: Declarado explícitamente para limpiar los errores del HTML
   inscripcionActiva: any = null; 
-  
-  // ID del usuario activo para auditorías (obtenido del localStorage)
   usuarioIdActual: number = 1; 
 
   // --- VARIABLES DE ESTADO Y FORMULARIO ---
@@ -30,26 +31,22 @@ export class DocumentacionRepComponent implements OnInit {
   archivoSeleccionado: File | null = null;
   mensajeError: string | null = null; 
 
-  constructor(
-    private http: HttpClient,
-    private route: ActivatedRoute,
-    private router: Router,
-    private cd: ChangeDetectorRef
-  ) { }
+  // 🌟 VARIABLES NUEVAS PARA LAS VENTANAS MODALES INTEGRADAS
+  mostrarModalExito: boolean = false;
+  mostrarModalError: boolean = false;
+  tituloModalError: string = '';
+  contenidoModalError: string = '';
 
   ngOnInit(): void {
-    // 1. Capturamos el ID del usuario del almacenamiento local
     const idLogueado = localStorage.getItem('idUsuario');
     if (idLogueado) {
       this.usuarioIdActual = Number(idLogueado);
     }
 
-    // 2. LIMPIEZA PREVENTIVA: Reseteamos los estados para evitar fugas visuales entre pantallas
     this.listaDocs = [];
     this.inscripcionActiva = null;
     this.loading = true;
 
-    // 3. Capturamos el ID de la INSCRIPCIÓN desde la URL
     this.idInscripcionActual = this.route.snapshot.paramMap.get('id');
     if (this.idInscripcionActual) {
       this.cargarDocs(this.idInscripcionActual);
@@ -58,12 +55,10 @@ export class DocumentacionRepComponent implements OnInit {
     }
   }
 
-  // --- NAVEGACIÓN ---
   irAlPanel() {
     this.router.navigate(['/panel-representante']);
   }
 
-  // --- GESTIÓN DEL FORMULARIO ---
   toggleFormulario() {
     this.mostrarForm = !this.mostrarForm;
     this.mensajeError = null; 
@@ -80,7 +75,9 @@ export class DocumentacionRepComponent implements OnInit {
   }
 
   private resetearInput(event: any) {
-    event.target.value = '';
+    if (event && event.target) {
+      event.target.value = '';
+    }
     this.archivoSeleccionado = null;
   }
 
@@ -90,24 +87,29 @@ export class DocumentacionRepComponent implements OnInit {
     const archivo = event.target.files[0];
 
     if (archivo) {
-      // VALIDACIÓN: Solo PDF
+      // 🌟 CORRECCIÓN: Modal integrado si no es PDF
       if (archivo.type !== 'application/pdf') {
-        this.mensajeError = 'Error: Solo se permiten archivos en formato PDF.';
+        this.tituloModalError = 'Formato no válido';
+        this.contenidoModalError = 'El sistema de validación de ElPapelillo únicamente acepta archivos con extensión .pdf para asegurar su correcta lectura administrativa.';
+        this.mostrarModalError = true;
         this.resetearInput(event);
+        this.cd.detectChanges();
         return;
       }
 
-      // VALIDACIÓN: Máximo 5MB
+      // 🌟 CORRECCIÓN: Modal integrado si supera 5MB
       const maxTamano = 5 * 1024 * 1024;
       if (archivo.size > maxTamano) {
-        this.mensajeError = 'Error: El archivo supera el límite de 5MB.';
+        this.tituloModalError = 'Tamaño de archivo excedido';
+        this.contenidoModalError = 'El documento que intentas adjuntar supera el límite máximo permitido de 5 megabytes (5MB). Comprime el PDF e inténtalo de nuevo.';
+        this.mostrarModalError = true;
         this.resetearInput(event);
+        this.cd.detectChanges();
         return;
       }
 
       this.archivoSeleccionado = archivo;
       
-      // Lógica de nombre automático adaptado a la Inscripción
       if (!this.nuevoDocNombre) {
         switch (this.nuevoDocTipo) {
           case 'DNI':
@@ -128,7 +130,7 @@ export class DocumentacionRepComponent implements OnInit {
     this.mensajeError = null;
 
     if (!this.archivoSeleccionado || !this.idInscripcionActual || !this.nuevoDocNombre) {
-      this.mensajeError = 'Por favor, rellena todos los campos obligatorios.';
+      this.mensajeError = 'Por favor, rellena todos los campos obligatorios antes de subir.';
       return;
     }
 
@@ -142,19 +144,31 @@ export class DocumentacionRepComponent implements OnInit {
     this.http.post('http://localhost:8080/api/documentos/upload', formData)
       .subscribe({
         next: () => {
-          alert('¡Archivo guardado con éxito!');
+          // 🌟 CORRECCIÓN: Cambiado el alert nativo por ventana modal integrada de éxito
+          this.mostrarModalExito = true;
           this.mostrarForm = false;
           this.limpiarFormulario();
-          this.cargarDocs(this.idInscripcionActual!);
+          this.cd.detectChanges();
         },
         error: (err) => {
-          this.mensajeError = err.error?.error || 'Error técnico al subir el documento.';
-          console.error('Error al subir', err);
+          // 🌟 CORRECCIÓN: Cambiado el error suelto por ventana modal de fallo de red/servidor
+          this.tituloModalError = 'Fallo en la carga';
+          this.contenidoModalError = err.error?.error || 'No se ha podido establecer comunicación con el servidor de archivos o el registro se encuentra duplicado.';
+          this.mostrarModalError = true;
+          this.cd.detectChanges();
         }
       });
   }
 
-  // --- MÉTODOS DE DATOS ---
+  // 🌟 MÉTODO DE CIERRE CONTROLADO (Limpia y refresca la rejilla al dar al botón)
+  cerrarModalExitoYRefrescar() {
+    this.mostrarModalExito = false;
+    if (this.idInscripcionActual) {
+      this.cargarDocs(this.idInscripcionActual);
+    }
+    this.cd.detectChanges();
+  }
+
   cargarDocs(idInscripcion: string) {
     this.loading = true;
     this.listaDocs = []; 
@@ -164,33 +178,28 @@ export class DocumentacionRepComponent implements OnInit {
         next: (data) => {
           this.listaDocs = data ? data : [];
           
-          // 🔑 ESTRATEGIA DE CONTEXTO FIJO:
-          // Si la inscripción ya cuenta con documentos, extraemos el objeto inscripción del primer registro
           if (this.listaDocs.length > 0 && this.listaDocs[0].inscripcion) {
             this.inscripcionActiva = this.listaDocs[0].inscripcion;
           } else {
-            // Si la inscripción está vacía (como tu ID 22), solicitamos los datos básicos de la inscripción al backend
             this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}`)
               .subscribe({
                 next: (res) => {
                   this.inscripcionActiva = res;
                 },
                 error: (err) => {
-                  console.error('No se pudo mapear el contexto de la inscripción vacía:', err);
-                  // Backup de seguridad para que la plantilla HTML no rompa bajo ninguna circunstancia
+                  console.error('No se pudo mapear el contexto:', err);
                   this.inscripcionActiva = {
-                    agrupacion: { nombre: 'Cargando Agrupación...' },
-                    concurso: { nombre: 'Concurso Local' }
+                    agrupacion: { nombre: 'Gestión Documental' },
+                    concurso: { nombre: 'Expediente' }
                   };
                 }
               });
           }
-          
           this.loading = false;
           this.cd.detectChanges();
         },
         error: (err) => {
-          console.error('Error al cargar documentos de la inscripción:', err);
+          console.error('Error al cargar documentos:', err);
           this.listaDocs = [];
           this.loading = false;
           this.cd.detectChanges();
@@ -213,12 +222,14 @@ export class DocumentacionRepComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error en descarga:', err);
-          alert('No se pudo descargar el archivo.');
+          this.tituloModalError = 'Descarga no disponible';
+          this.contenidoModalError = 'El archivo físico solicitado no se encuentra en la ruta del servidor o careces de los permisos de lectura necesarios.';
+          this.mostrarModalError = true;
+          this.cd.detectChanges();
         }
       });
   }
 
-  // --- LÓGICA DE TRADUCCIÓN DE INTERFAZ (UI) ---
   getClaseEstado(estado: string): string {
     const clases: { [key: string]: string } = { 
       'APROBADO': 'state-approved', 
