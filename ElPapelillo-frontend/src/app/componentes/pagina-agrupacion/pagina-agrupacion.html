@@ -120,7 +120,7 @@
         </p>
       </div>
 
-     <p class="section-sub-title">Componentes Artísticos</p>
+      <p class="section-sub-title">Componentes Artísticos</p>
       <div class="table-container">
         <table class="participants-table">
           <thead>
@@ -136,14 +136,12 @@
               <td class="bold-text">{{ p?.participante?.nombre }}</td>
               <td>{{ p?.participante?.dni }}</td>
               <td>{{ p?.participante?.fechaNacimiento }}</td>
-              
               <td>
                 <span class="role-badge">
                   {{ p?.rol || 'Componente' }}
                 </span>
               </td>
             </tr>
-
             <tr *ngIf="!inscripcion?.participaciones || inscripcion?.participaciones?.length === 0">
               <td colspan="4" style="text-align: center; color: #adb5bd; padding: 20px;">
                 No hay componentes registrados en esta inscripción.
@@ -152,6 +150,7 @@
           </tbody>
         </table>
       </div>
+    </div>
 
     <div class="shadow-card">
       <div class="card-header-row">
@@ -214,12 +213,12 @@
               
               <button class="btn-download-file" 
                       (click)="descargarArchivo(inscripcion.fianza.rutaRecibo, 'Fianza_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')" 
-                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left; font-weight: 600; color: #2b8a3e;">
+                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left; font-weight: 600; color: #2b8a3e; cursor: pointer;">
                 <i class="far fa-file-pdf"></i> Descargar Comprobante ({{ inscripcion.fianza.rutaRecibo }})
               </button>
             </div>
             
-            <button class="btn-delete-fianza" (click)="eliminarFianza()">
+            <button class="btn-delete-fianza" (click)="solicitarConfirmacionBorradoFianza()">
               <i class="fas fa-trash-alt"></i> Borrar Fianza
             </button>
           </div>
@@ -237,7 +236,7 @@
               <button class="btn-download-file" 
                       *ngIf="doc.urlArchivo" 
                       (click)="descargarArchivo(doc.urlArchivo, doc.nombre + '_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')" 
-                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left;">
+                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left; cursor: pointer;">
                 <i class="far fa-file-pdf"></i> {{ doc.urlArchivo }}
               </button>
               <span class="btn-download-file" *ngIf="!doc.urlArchivo" style="opacity: 0.5; cursor: not-allowed; text-decoration: none;">
@@ -284,4 +283,52 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+<div class="success-modal-overlay" *ngIf="mostrarModalExito" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
+  <div class="success-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    <div style="width: 70px; height: 70px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+      <i class="fas fa-check-circle" style="color: #2e7d32; font-size: 2.2rem;"></i>
+    </div>
+    <h3 style="margin: 0 0 10px 0; color: #1b5e20; font-size: 1.4rem; font-weight: 700;">Actualización Correcta</h3>
+    <p style="margin: 0 0 25px 0; color: #555; font-size: 0.95rem; line-height: 1.5; padding: 0 5px;">
+      {{ mensajeModalExito }}
+    </p>
+    <button (click)="mostrarModalExito = false" style="background: #2e7d32; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
+      Aceptar y continuar
+    </button>
+  </div>
+</div>
+
+<div class="error-modal-overlay" *ngIf="mostrarModalError" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
+  <div class="error-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    <div style="width: 70px; height: 70px; background: #fff5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid #feb2b2;">
+      <i class="fas fa-exclamation-triangle" style="color: #e53e3e; font-size: 2rem;"></i>
+    </div>
+    <h3 style="margin: 0 0 10px 0; color: #c53030; font-size: 1.35rem; font-weight: 700;">{{ tituloModalError }}</h3>
+    <p style="margin: 0 0 25px 0; color: #4a5568; font-size: 0.95rem; line-height: 1.5; padding: 0 10px;">
+      {{ contenidoModalError }}
+    </p>
+    <button (click)="mostrarModalError = false" style="background: #e53e3e; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(229, 62, 62, 0.2);" onmouseover="this.style.background='#c53030'" onmouseout="this.style.background='#e53e3e'">
+      Entendido, revisar
+    </button>
+  </div>
+</div>
+
+<div class="confirm-modal-overlay" *ngIf="mostrarModalConfirmarBorrado" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
+  <div class="confirm-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 440px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.15);">
+    <h3 style="margin: 0 0 12px 0; color: #2d3748; font-size: 1.3rem; font-weight: 700;">¿Eliminar resguardo contable?</h3>
+    <p style="margin: 0 0 25px 0; color: #718096; font-size: 0.95rem; line-height: 1.5;">
+      Esta acción purgará los metadatos financieros introducidos y el archivo PDF de fianza asociado a la inscripción. No se puede deshacer.
+    </p>
+    <div style="display: flex; justify-content: flex-end; gap: 12px;">
+      <button (click)="mostrarModalConfirmarBorrado = false" style="background: #edf2f7; color: #4a5568; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#edf2f7'">
+        Cancelar
+      </button>
+      <button (click)="ejecutarEliminarFianza()" style="background: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 2px 5px rgba(229,62,62,0.2);" onmouseover="this.style.background='#c53030'" onmouseout="this.style.background='#e53e3e'">
+        Sí, eliminar fianza
+      </button>
+    </div>
+  </div>
 </div>
