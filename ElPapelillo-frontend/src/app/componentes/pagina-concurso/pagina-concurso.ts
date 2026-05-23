@@ -420,4 +420,6 @@ export class DetalleConcursoComponent implements OnInit {
       error: (err) => console.error('[Auditoría] Error al insertar log:', err)
     });
   }
+
 }
+

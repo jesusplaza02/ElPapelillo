@@ -1,83 +1,78 @@
-<div class="main-container" *ngIf="concurso">
+<div class="concurso-dashboard-wrapper" *ngIf="concurso">
   
-  <div class="contest-header">
-    <div class="header-left">
-      <h1>
-        <i class="fas fa-trophy gold"></i> 
-        {{ concurso?.nombre }} 
-        
-        <span class="badge" [ngClass]="esHistorico ? 'historical-badge' : 'active-badge'">
+  <header class="concurso-main-card header-concurso-section">
+    <div class="header-title-block">
+      <h1 class="concurso-title">
+        <span class="icon-trofeo">🏆</span> 
+        {{ concurso?.nombre }}
+      </h1>
+      <div class="badges-status-row">
+        <span class="badge-estado" [ngClass]="esHistorico ? 'badge-historico' : 'badge-activo'">
           {{ esHistorico ? 'Histórico' : 'Activo' }}
         </span>
-
-        <button (click)="conmutarEstadoConcurso()" 
-                style="margin-left: 15px; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; color: white;"
-                [style.background-color]="esHistorico ? '#2b6cb0' : '#718096'">
-          <i class="fas" [ngClass]="esHistorico ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
-          {{ esHistorico ? 'Pasar a Activo' : 'Archivar en Histórico' }}
+        <button (click)="conmutarEstadoConcurso()" class="btn-toggle-status-custom">
+          {{ esHistorico ? '⚡ Activar Concurso' : '📦 Archivar en Histórico' }}
         </button>
-      </h1>
-      <div class="dates-grid">
-        <div class="date-group">
-          <p class="date-title"><i class="far fa-calendar-alt"></i> Inscripciones</p>
-          <p><span>Inicio:</span> {{ concurso?.fechaInicioInscripcion }}</p>
-          <p><span>Fin:</span> {{ concurso?.fechaFinInscripcion }}</p>
-        </div>
-        <div class="date-group">
-          <p class="date-title"><i class="fas fa-clock"></i> Concurso</p>
-          <p><span>Inicio:</span> {{ concurso?.fechaInicio }}</p>
-          <p><span>Fin:</span> {{ concurso?.fechaFin }}</p>
-        </div>
       </div>
     </div>
-    <button class="btn-pdf" (click)="generarPDF()">
-      <i class="fas fa-file-pdf"></i> Generar PDF Listado General
-    </button>
-  </div>
 
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-content">
-        <p class="stat-title">Total de Grupos Inscritos</p>
-        <p class="stat-number">{{ stats?.totalGrupos }}</p>
-        <p class="stat-sub">Agrupaciones registradas</p>
+    <div class="dates-flex-container">
+      <div class="date-info-box">
+        <p class="date-box-title">📅 Periodo de Inscripción</p>
+        <p><strong>Inicio:</strong> {{ concurso?.fechaInicioInscripcion }}</p>
+        <p><strong>Fin:</strong> {{ concurso?.fechaFinInscripcion }}</p>
       </div>
-      <i class="fas fa-users icon-bg"></i>
+      <div class="date-info-box">
+        <p class="date-box-title">🎭 Fechas del Concurso</p>
+        <p><strong>Inicio:</strong> {{ concurso?.fechaInicio }}</p>
+        <p><strong>Fin:</strong> {{ concurso?.fechaFin }}</p>
+      </div>
+      <div class="actions-header-box">
+        <button class="btn-action-pdf-general" (click)="generarPDF()">
+          📄 Exportar Listado General (PDF)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats-dashboard-grid">
+    <div class="stat-custom-card card-total">
+      <div class="stat-text-side">
+        <h3>Grupos Inscritos</h3>
+        <p class="stat-number-display">{{ stats?.totalGrupos }}</p>
+      </div>
+      <span class="stat-icon-side">👥</span>
     </div>
     
-    <div class="stat-card orange">
-      <div class="stat-content">
-        <p class="stat-title">Pendientes de Validar</p>
-        <p class="stat-number">{{ stats?.pendientesValidar }}</p>
-        <p class="stat-sub">Requieren revisión</p>
+    <div class="stat-custom-card card-advertencia">
+      <div class="stat-text-side">
+        <h3>Pendientes Validar</h3>
+        <p class="stat-number-display">{{ stats?.pendientesValidar }}</p>
       </div>
-      <i class="far fa-eye icon-bg"></i>
+      <span class="stat-icon-side">⏳</span>
     </div>
 
-    <div class="stat-card pink">
-      <div class="stat-content">
-        <p class="stat-title">Fianzas Pendientes</p>
-        <p class="stat-number">{{ stats?.fianzasPendientes }}</p>
-        <p class="stat-sub">Pagos sin confirmar</p>
+    <div class="stat-custom-card card-peligro">
+      <div class="stat-text-side">
+        <h3>Fianzas Pendientes</h3>
+        <p class="stat-number-display">{{ stats?.fianzasPendientes }}</p>
       </div>
-      <i class="fas fa-dollar-sign icon-bg"></i>
+      <span class="stat-icon-side">💰</span>
     </div>
-  </div>
+  </section>
 
-  <div class="table-controls">
-    <div class="search-box">
-      <i class="fas fa-search"></i>
+  <section class="concurso-main-card controls-table-card">
+    <div class="search-input-wrapper">
+      <span class="search-icon-inside">🔍</span>
       <input 
         type="text" 
         [(ngModel)]="filtroTexto" 
         (input)="filtrarAgrupaciones()" 
-        placeholder="Buscar por nombre de agrupación o representante...">
+        placeholder="Buscar por agrupación o representante...">
     </div>
     
-    <div class="filters-row" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 15px; flex-wrap: wrap;">
-      <div class="select-filters" style="display: flex; align-items: center; gap: 10px;">
-        <span class="filter-label"><i class="fas fa-filter"></i> Filtros:</span>
-
+    <div class="filters-and-actions-flex">
+      <div class="select-filters-cluster">
         <select [(ngModel)]="filtroCategoria" (change)="filtrarAgrupaciones()">
           <option value="">Todas las categorías</option>
           <option value="ADULTOS">Adultos</option>
@@ -94,42 +89,36 @@
 
         <select [(ngModel)]="filtroFianza" (change)="filtrarAgrupaciones()">
           <option value="">Todas las fianzas</option>
-          <option value="PAGADA">Pagada</option>
-          <option value="PENDIENTE">Pendiente</option>
+          <option value="PAGADA">Fianza Pagada</option>
+          <option value="PENDIENTE">Fianza Pendiente</option>
         </select>
       </div>
 
-      <div style="display: flex; gap: 10px; align-items: center;">
-        
-        <button class="btn-send-email" 
-                [disabled]="esHistorico"
-                (click)="abrirModalCircular()"
-                style="color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;"
-                [style.background-color]="esHistorico ? '#718096' : '#006666'"
-                [style.cursor]="esHistorico ? 'not-allowed' : 'pointer'"
-                [style.opacity]="esHistorico ? '0.6' : '1'">
-          <i class="fas fa-envelope"></i> 
-          {{ esHistorico ? 'Circular Bloqueada (Histórico)' : 'Enviar Nota Informativa' }}
+      <div class="action-buttons-cluster">
+        <button class="btn-custom-comunicado" [disabled]="esHistorico" (click)="abrirModalCircular()">
+          ✉️ Enviar Nota Informativa
         </button>
 
-        <button class="btn-pdf-participants" 
-                [disabled]="!tieneSeleccionados()"
-                (click)="generarPdfParticipantesSeleccionados()"
-                style="background-color: #2b8a3e; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease;"
-                [style.opacity]="tieneSeleccionados() ? '1' : '0.5'"
-                [style.cursor]="tieneSeleccionados() ? 'pointer' : 'not-allowed'">
-          <i class="fas fa-file-pdf"></i> Generar listado pdf participantes
+        <button class="btn-custom-lote" [disabled]="!tieneSeleccionados()" (click)="generarPdfParticipantesSeleccionados()">
+          🗂️ PDF Seleccionados
         </button>
       </div>
     </div>
+  </section>
+
+  <div class="mobile-select-all-bar">
+    <label class="mobile-checkbox-label">
+      <input type="checkbox" (change)="seleccionarTodos($event)">
+      <span>Seleccionar todas las agrupaciones</span>
+    </label>
   </div>
 
-  <div class="table-container">
-    <table>
+  <section class="concurso-main-card table-responsive-wrapper">
+    <table class="custom-data-table">
       <thead>
         <tr>
-          <th><input type="checkbox" (change)="seleccionarTodos($event)"></th>
-          <th>Nombre</th>
+          <th width="40"><input type="checkbox" (change)="seleccionarTodos($event)"></th>
+          <th>Nombre de la Agrupación</th>
           <th>Modalidad</th>
           <th>Categoría</th>
           <th>Representante</th>
@@ -138,150 +127,120 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let ins of inscripcionesFiltradas" 
-            (click)="irADetalleAgrupacion(ins?.idInscripcion)"
-            style="cursor: pointer;">
-          
-          <td>
-            <input type="checkbox" 
-                   [(ngModel)]="ins.seleccionado" 
-                   (click)="$event.stopPropagation()">
+        <tr *ngFor="let ins of inscripcionesFiltradas" (click)="irADetalleAgrupacion(ins?.idInscripcion)">
+          <td class="checkbox-cell" (click)="$event.stopPropagation()">
+            <span class="mobile-label">Seleccionar:</span>
+            <input type="checkbox" [(ngModel)]="ins.seleccionado">
           </td>
-          
-          <td class="bold-text">{{ ins?.agrupacion?.nombre }}</td>
-          <td>
-            <span class="tag tag-murga">
-              {{ ins?.agrupacion?.modalidad }}
-            </span>
+          <td class="font-bold-table-cell">
+            <span class="mobile-label">Grupo:</span>
+            {{ ins?.agrupacion?.nombre }}
           </td>
           <td>
-            <span class="tag tag-adulto">
-              {{ ins?.agrupacion?.categoria }}
-            </span>
+            <span class="mobile-label">Modalidad:</span>
+            <span class="table-badge badge-modalidad">{{ ins?.agrupacion?.modalidad }}</span>
           </td>
           <td>
-            {{ ins?.agrupacion?.representante?.nombre || 'Sin asignar' }} 
+            <span class="mobile-label">Categoría:</span>
+            <span class="table-badge badge-categoria">{{ ins?.agrupacion?.categoria }}</span>
           </td>
           <td>
-            <span class="status" [ngClass]="{
-              'st-aprobado': ins?.estadoInscripcion === 'APROBADO' || ins?.estadoInscripcion === 'Aprobada',
-              'st-pendiente': ins?.estadoInscripcion === 'PENDIENTE' || ins?.estadoInscripcion === 'Pendiente',
-              'st-rechazado': ins?.estadoInscripcion === 'RECHAZADO' || ins?.estadoInscripcion === 'Rechazada'
+            <span class="mobile-label">Representante:</span>
+            {{ ins?.agrupacion?.representante?.nombre || 'Sin asignar' }}
+          </td>
+          <td>
+            <span class="mobile-label">Estado:</span>
+            <span class="status-pill" [ngClass]="{
+              'pill-aprobado': ins?.estadoInscripcion?.toUpperCase() === 'APROBADO',
+              'pill-pendiente': ins?.estadoInscripcion?.toUpperCase() === 'PENDIENTE',
+              'pill-rechazado': ins?.estadoInscripcion?.toUpperCase() === 'RECHAZADO'
             }">
-              {{ ins?.estadoInscripcion }}
+              {{ ins?.estadoInscripcion?.toUpperCase() }}
             </span>
           </td>
           <td>
-            <span class="status" [class.st-pagada]="ins?.fianza?.idFianza != null">
-              <i *ngIf="ins?.fianza?.idFianza != null" class="fas fa-check-circle"></i> 
-              {{ (ins?.fianza?.idFianza != null) ? 'PAGADA' : 'PENDIENTE' }}
+            <span class="mobile-label">Fianza:</span>
+            <span class="status-pill" [ngClass]="ins?.fianza?.idFianza || ins?.fianza?.id ? 'pill-aprobado' : 'pill-pendiente'">
+              {{ (ins?.fianza?.idFianza || ins?.fianza?.id) ? '✓ PAGADA' : '⏳ PENDIENTE' }}
             </span>
           </td>
         </tr>
-        
-        <tr *ngIf="inscripcionesFiltradas && inscripcionesFiltradas.length === 0">
-          <td colspan="7" style="text-align: center; color: var(--text-light); padding: 30px;">
-            No se han encontrado agrupaciones que coincidan con los filtros seleccionados.
+        <tr *ngIf="inscripcionesFiltradas?.length === 0">
+          <td colspan="7" class="empty-table-fallback">
+            No se encontraron agrupaciones con los filtros aplicados.
           </td>
         </tr>
       </tbody>
     </table>
-  </div>
+  </section>
 
 </div>
 
-<div class="form-overlay" *ngIf="mostrarModalCircular" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
-  <div class="modal-card" style="background: white; padding: 25px; border-radius: 8px; width: 100%; max-width: 550px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); font-family: sans-serif;">
+<div class="custom-modal-overlay" *ngIf="mostrarModalCircular" (click)="cerrarModalCircular()">
+  <div class="custom-modal-box" (click)="$event.stopPropagation()">
+    <div class="custom-modal-header">
+      <h2>📬 Enviar Nota Informativa masiva</h2>
+      <button class="close-modal-x" [disabled]="enviandoCircular" (click)="cerrarModalCircular()">&times;</button>
+    </div>
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
-      <h3 style="margin: 0; color: #1a202c; font-size: 1.25rem; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-paper-plane" style="color: #006666;"></i> 
-        Redactar Circular para Representantes
-      </h3>
-      <button (click)="cerrarModalCircular()" [disabled]="enviandoCircular" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #a0aec0;">✕</button>
-    </div>
-
-    <div *ngIf="errorCircular" style="background-color: #fff5f5; color: #c53030; padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 15px; border-left: 4px solid #e53e3e;">
-      {{ errorCircular }}
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 15px;">
-      <div>
-        <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #4a5568;">Asunto de la Notificación *</label>
-        <input type="text" [(ngModel)]="circularAsunto" [disabled]="enviandoCircular" placeholder="Ej: Modificación de horarios..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px;" />
+    <div class="custom-modal-body">
+      <div class="destinatarios-alert-box">
+        📢 Destinatarios actuales: <strong>{{ tieneSeleccionados() ? 'Solo agrupaciones marcadas con el checkbox' : 'Todas las agrupaciones de la lista' }}</strong>
       </div>
       
-      <div>
-        <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #4a5568;">Cuerpo del Mensaje *</label>
-        <textarea [(ngModel)]="circularCuerpo" [disabled]="enviandoCircular" rows="4" placeholder="Escriba aquí el contenido del correo masivo..." style="width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; font-family: inherit; resize: vertical;"></textarea>
+      <div class="error-modal-banner" *ngIf="errorCircular">
+        ⚠️ {{ errorCircular }}
       </div>
 
-      <div>
-        <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 0.9rem; color: #4a5568;">Documentación Adjunta (Múltiple)</label>
-        <div style="border: 2px dashed #cbd5e0; padding: 15px; text-align: center; border-radius: 6px; background: #f7fafc; position: relative; cursor: pointer;">
-          <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: #718096; margin-bottom: 5px;"></i>
-          <p style="margin: 0; font-size: 0.85rem; color: #4a5568;">Haz clic para adjuntar varios archivos de soporte</p>
-          <input 
-            type="file" 
-            multiple 
-            [disabled]="enviandoCircular"
-            (change)="prepararArchivoCircular($event)" 
-            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;" />
-        </div>
+      <div class="modal-form-row">
+        <label>Asunto del mensaje:</label>
+        <input type="text" [(ngModel)]="circularAsunto" [disabled]="enviandoCircular" placeholder="Escriba el motivo del correo...">
+      </div>
 
-        <div *ngIf="archivosCircularSeleccionados.length > 0" style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;">
-          <p style="margin: 0; font-size: 0.8rem; font-weight: bold; color: #718096;">Archivos listos para envío ({{archivosCircularSeleccionados.length}}):</p>
-          <div *ngFor="let file of archivosCircularSeleccionados; let idx = index" style="display: flex; justify-content: space-between; align-items: center; background: #edf2f7; padding: 6px 10px; border-radius: 4px; font-size: 0.8rem;">
-            <span style="color: #2d3748; display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 85%;">
-              <i class="far fa-file-alt" style="color: #4a5568;"></i>
-              {{ file.name }} <small style="color: #718096;">({{ (file.size / 1024).toFixed(1) }} KB)</small>
-            </span>
-            <button type="button" (click)="eliminarArchivoDeCola(idx)" [disabled]="enviandoCircular" style="background: none; border: none; color: #e53e3e; cursor: pointer; display: flex; align-items: center; padding: 2px;">
-              <i class="fas fa-trash-alt"></i>
-            </button>
+      <div class="modal-form-row">
+        <label>Cuerpo del correo:</label>
+        <textarea rows="5" [(ngModel)]="circularCuerpo" [disabled]="enviandoCircular" placeholder="Redacte el comunicado oficial aquí..."></textarea>
+      </div>
+
+      <div class="modal-form-row">
+        <label>Adjuntar Archivos:</label>
+        <div class="drop-zone-area">
+          <input type="file" multiple [disabled]="enviandoCircular" (change)="prepararArchivoCircular($event)">
+          <p>📎 Haz clic o arrastra ficheros aquí para adjuntarlos</p>
+        </div>
+        
+        <div class="files-preview-list" *ngIf="archivosCircularSeleccionados?.length">
+          <div class="file-preview-tag" *ngFor="let file of archivosCircularSeleccionados; let idx = index">
+            <span>{{ file.name }}</span>
+            <button class="btn-remove-file-tag" [disabled]="enviandoCircular" (click)="eliminarArchivoDeCola(idx)">&times;</button>
           </div>
         </div>
       </div>
     </div>
 
-    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 15px;">
-      <button (click)="cerrarModalCircular()" [disabled]="enviandoCircular" style="background: #e2e8f0; color: #4a5568; border: none; padding: 9px 16px; border-radius: 6px; cursor: pointer;">
-        Cancelar
-      </button>
-      
-      <button (click)="procesarEnvioCircular()" 
-              [disabled]="!circularAsunto.trim() || !circularCuerpo.trim() || enviandoCircular" 
-              style="background: #006666; color: white; border: none; padding: 9px 16px; border-radius: 6px; display: flex; align-items: center; gap: 8px; cursor: pointer; min-width: 120px; justify-content: center;">
-        <i *ngIf="enviandoCircular" class="fas fa-spinner fa-spin"></i>
-        {{ enviandoCircular ? 'Enviando...' : 'Lanzar Envío Masivo' }}
+    <div class="custom-modal-footer">
+      <button class="btn-secondary-modal" [disabled]="enviandoCircular" (click)="cerrarModalCircular()">Cancelar</button>
+      <button class="btn-primary-modal" [disabled]="enviandoCircular || !circularAsunto.trim() || !circularCuerpo.trim()" (click)="procesarEnvioCircular()">
+        {{ enviandoCircular ? 'Enviando...' : 'Enviar Correo' }}
       </button>
     </div>
-
   </div>
 </div>
 
-<div class="form-overlay" *ngIf="mostrarModalExitoGlobal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-  <div style="background: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: sans-serif;">
-    <div style="width: 60px; height: 60px; background: #e6fffa; color: #319795; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; border-radius: 50%;">
-      <i class="fas fa-check-circle"></i>
-    </div>
-    <h3 style="margin: 0 0 10px; color: #2d3748; font-size: 1.3rem;">{{ tituloModalExitoGlobal }}</h3>
-    <p style="margin: 0 0 22px; color: #718096; font-size: 0.95rem; line-height: 1.5;">{{ contenidoModalExitoGlobal }}</p>
-    <button (click)="mostrarModalExitoGlobal = false" style="background: #319795; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s;">
-      Entendido
-    </button>
+<div class="custom-modal-overlay" *ngIf="mostrarModalExitoGlobal" (click)="mostrarModalExitoGlobal = false">
+  <div class="global-alert-toast success-toast">
+    <div class="toast-icon">✓</div>
+    <h3>{{ tituloModalExitoGlobal }}</h3>
+    <p>{{ contenidoModalExitoGlobal }}</p>
+    <button class="btn-close-toast" (click)="mostrarModalExitoGlobal = false">Entendido</button>
   </div>
 </div>
 
-<div class="form-overlay" *ngIf="mostrarModalErrorGlobal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; z-index: 10000;">
-  <div style="background: white; padding: 30px; border-radius: 10px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: sans-serif;">
-    <div style="width: 60px; height: 60px; background: #fff5f5; color: #e53e3e; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px; border-radius: 50%;">
-      <i class="fas fa-exclamation-triangle"></i>
-    </div>
-    <h3 style="margin: 0 0 10px; color: #2d3748; font-size: 1.3rem;">{{ tituloModalErrorGlobal }}</h3>
-    <p style="margin: 0 0 22px; color: #718096; font-size: 0.95rem; line-height: 1.5;">{{ contenidoModalErrorGlobal }}</p>
-    <button (click)="mostrarModalErrorGlobal = false" style="background: #e53e3e; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; transition: background 0.2s;">
-      Cerrar de acuerdo
-    </button>
+<div class="custom-modal-overlay" *ngIf="mostrarModalErrorGlobal" (click)="mostrarModalErrorGlobal = false">
+  <div class="global-alert-toast error-toast">
+    <div class="toast-icon">✕</div>
+    <h3>{{ tituloModalErrorGlobal }}</h3>
+    <p>{{ contenidoModalErrorGlobal }}</p>
+    <button class="btn-close-toast" (click)="mostrarModalErrorGlobal = false">Cerrar</button>
   </div>
 </div>

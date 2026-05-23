@@ -6,8 +6,8 @@
     </button>
   </div>
 
-  <div *ngIf="esHistorico" style="background: #fff9db; border: 1px solid #ffe066; border-radius: 8px; padding: 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; color: #856404; font-family: sans-serif;">
-    <i class="fas fa-lock" style="font-size: 1.4rem; color: #f59f00;"></i>
+  <div *ngIf="esHistorico" class="alert-historical">
+    <i class="fas fa-lock icon-lock"></i>
     <div>
       <strong>Concurso Finalizado / Histórico (Modo Lectura):</strong> El concurso al que pertenece esta agrupación se encuentra bloqueado. Las operaciones de aprobación de expediente, validación de documentos y gestión de fianzas quedan inhabilitadas.
     </div>
@@ -111,7 +111,7 @@
     </div>
 
     <div class="shadow-card">
-      <div class="card-header-row">
+      <div class="card-header-row header-wrap">
         <h3>Representante y Componentes</h3>
         <button class="btn-pdf-download" (click)="descargarPDF()">
           <i class="fas fa-download"></i> Descargar Listado PDF
@@ -120,11 +120,11 @@
 
       <div class="rep-info-block">
         <p class="rep-name">{{ inscripcion?.agrupacion?.representante?.nombre || 'Sin asignar' }}</p>
-        <p class="rep-email">
-          Email: {{ inscripcion?.agrupacion?.representante?.email || 'sin email' }} | 
-          Teléfono: {{ inscripcion?.agrupacion?.representante?.telefono || 'sin teléfono' }} |
-          Emergencia: {{ inscripcion?.agrupacion?.representante?.contacto_emergencia || 'sin teléfono de emergencia' }}
-        </p>
+        <div class="rep-email">
+          <strong>Email:</strong> {{ inscripcion?.agrupacion?.representante?.email || 'sin email' }} <br class="mobile-break"> 
+          <strong>Teléfono:</strong> {{ inscripcion?.agrupacion?.representante?.telefono || 'sin teléfono' }} <br class="mobile-break">
+          <strong>Emergencia:</strong> {{ inscripcion?.agrupacion?.representante?.contacto_emergencia || 'sin teléfono de emergencia' }}
+        </div>
       </div>
 
       <p class="section-sub-title">Componentes Artísticos</p>
@@ -150,7 +150,7 @@
               </td>
             </tr>
             <tr *ngIf="!inscripcion?.participaciones || inscripcion?.participaciones?.length === 0">
-              <td colspan="4" style="text-align: center; color: #adb5bd; padding: 20px;">
+              <td colspan="4" class="empty-table-msg">
                 No hay componentes registrados en esta inscripción.
               </td>
             </tr>
@@ -160,67 +160,63 @@
     </div>
 
     <div class="shadow-card">
-      <div class="card-header-row">
+      <div class="card-header-row header-wrap">
         <div>
           <h3>Gestión de Documentación</h3>
           <p class="subtitle">Validación de archivos obligatorios cargados por el representante</p>
         </div>
         
-        <div class="header-actions-right" *ngIf="!fianzaSubida && !mostrandoFormularioFianza && !esHistorico" style="display: flex; align-items: center; gap: 15px;">
+        <div class="header-actions-right" *ngIf="!fianzaSubida && !mostrandoFormularioFianza && !esHistorico">
           <button class="btn-fianza-header" (click)="abrirFormularioFianza()">
             <i class="fas fa-file-invoice-dollar"></i> Adjuntar Fianza (.pdf)
           </button>
         </div>
       </div>
 
-      <div class="fianza-upload-form" *ngIf="mostrandoFormularioFianza && !esHistorico" style="background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 15px; padding: 20px; margin-bottom: 30px;">
-        <h4 style="margin-top: 0; color: #2b8a3e; font-weight: 700; margin-bottom: 15px;">
-          <i class="fas fa-money-check-alt"></i> Registrar Datos de la Fianza
-        </h4>
+      <div class="fianza-upload-form" *ngIf="mostrandoFormularioFianza && !esHistorico">
+        <h4><i class="fas fa-money-check-alt"></i> Registrar Datos de la Fianza</h4>
         
-        <div class="fianza-form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
-            <label style="font-size: 0.75rem; font-weight: 700; color: #495057; text-transform: uppercase;">Importe (€)</label>
-            <input type="number" [(ngModel)]="datosFianza.importe" class="doc-comment-input" style="width: 100%;">
+        <div class="fianza-form-grid">
+          <div class="form-group">
+            <label>Importe (€)</label>
+            <input type="number" [(ngModel)]="datosFianza.importe" class="doc-comment-input">
           </div>
           
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
-            <label style="font-size: 0.75rem; font-weight: 700; color: #495057; text-transform: uppercase;">Fecha de Pago</label>
-            <input type="datetime-local" [(ngModel)]="datosFianza.fechaPago" class="doc-comment-input" style="width: 100%;">
+          <div class="form-group">
+            <label>Fecha de Pago</label>
+            <input type="datetime-local" [(ngModel)]="datosFianza.fechaPago" class="doc-comment-input">
           </div>
           
-          <div class="form-group" style="display: flex; flex-direction: column; gap: 5px;">
-            <label style="font-size: 0.75rem; font-weight: 700; color: #495057; text-transform: uppercase;">Justificante PDF</label>
-            <input type="file" (change)="prepararArchivoFianza($event)" accept=".pdf" style="font-size: 0.85rem; padding-top: 5px;">
+          <div class="form-group">
+            <label>Justificante PDF</label>
+            <input type="file" (change)="prepararArchivoFianza($event)" accept=".pdf" class="file-input-custom">
           </div>
         </div>
         
-        <div class="fianza-form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+        <div class="fianza-form-actions">
           <button class="btn-doc-approve" 
             [disabled]="!archivoFianzaSeleccionado || !datosFianza.importe || !datosFianza.fechaPago" 
             (click)="guardarFianzaCompleta()">
             <i class="fas fa-save"></i> Guardar Fianza
           </button>
-          <button class="btn-doc-reject" (click)="cancelarFianza()" style="padding: 8px 16px; border-radius: 6px; cursor: pointer; background-color: #6c757d; color: white;">
+          <button class="btn-cancel" (click)="cancelarFianza()">
             Cancelar
           </button>
         </div>
       </div>
 
-      <div class="docs-review-container" *ngIf="fianzaSubida && inscripcion?.fianza" style="margin-bottom: 30px; border-bottom: 2px dashed #e9ecef; padding-bottom: 25px;">
-        <p class="section-sub-title" style="margin-top: 0; font-weight: 700; color: #2b8a3e;"><i class="fas fa-shield-alt"></i> Fianza de la Inscripción</p>
+      <div class="docs-review-container-fianza" *ngIf="fianzaSubida && inscripcion?.fianza">
+        <p class="section-sub-title title-green"><i class="fas fa-shield-alt"></i> Fianza de la Inscripción</p>
         
-        <div class="doc-review-item-card" style="border-left: 5px solid #2b8a3e; background-color: #f6ffed;">
-          <div class="doc-review-main-row" style="margin-bottom: 0; align-items: center;">
+        <div class="doc-review-item-card card-green">
+          <div class="doc-review-main-row header-wrap">
             <div class="doc-meta-info">
-              <h4 style="margin-bottom: 4px; font-weight: 700; color: #1e4620;">Resguardo Contable: {{ inscripcion.fianza.importe }} €</h4>
-              <p style="font-size: 0.85rem; color: #555; margin: 0 0 8px 0;" *ngIf="inscripcion.fianza.fechaPago">
+              <h4>Resguardo Contable: {{ inscripcion.fianza.importe }} €</h4>
+              <p class="date-p" *ngIf="inscripcion.fianza.fechaPago">
                 <strong>Fecha de Pago registrada:</strong> {{ inscripcion.fianza.fechaPago | date:'dd/MM/yyyy HH:mm' }}
               </p>
               
-              <button class="btn-download-file" 
-                      (click)="descargarArchivo(inscripcion.fianza.rutaRecibo, 'Fianza_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')" 
-                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left; font-weight: 600; color: #2b8a3e; cursor: pointer;">
+              <button class="btn-download-file link-green" (click)="descargarArchivo(inscripcion.fianza.rutaRecibo, 'Fianza_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')">
                 <i class="far fa-file-pdf"></i> Descargar Comprobante
               </button>
             </div>
@@ -232,21 +228,20 @@
         </div>
       </div>
 
-      <p class="section-sub-title" *ngIf="fianzaSubida" style="font-weight: 600; color: #495057; margin-bottom: 15px;">Resto de la Documentación</p>
+      <p class="section-sub-title" *ngIf="fianzaSubida">Resto de la Documentación</p>
       
       <div class="docs-review-container">
         <div class="doc-review-item-card" *ngFor="let doc of documentosPaginados">
           
-          <div class="doc-review-main-row">
+          <div class="doc-review-main-row header-wrap">
             <div class="doc-meta-info">
               <h4>{{ doc.nombre }}</h4>
               <button class="btn-download-file" 
                       *ngIf="doc.urlArchivo" 
-                      (click)="descargarArchivo(doc.urlArchivo, doc.nombre + '_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')" 
-                      style="text-decoration: underline; background: none; border: none; padding: 0; text-align: left; cursor: pointer;">
+                      (click)="descargarArchivo(doc.urlArchivo, doc.nombre + '_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')">
                 <i class="far fa-file-pdf"></i> Descargar Fichero
               </button>
-              <span class="btn-download-file" *ngIf="!doc.urlArchivo" style="opacity: 0.5; cursor: not-allowed; text-decoration: none;">
+              <span class="btn-download-file disabled" *ngIf="!doc.urlArchivo">
                 <i class="far fa-file-pdf"></i> No presentado
               </span>
             </div>
@@ -276,7 +271,7 @@
                    placeholder="Escribe un motivo o comentario de revisión (opcional)...">
           </div>
 
-          <div style="margin-top: 10px; font-size: 0.85rem; color: #666; font-style: italic;" *ngIf="esHistorico && doc.comentarioRevision">
+          <div class="historical-comment" *ngIf="esHistorico && doc.comentarioRevision">
             <strong>Comentario de revisión histórica registrado:</strong> "{{ doc.comentarioRevision }}"
           </div>
 
@@ -295,37 +290,39 @@
 
     </div>
   </div>
+
+  <div class="table-footer-spacer"></div>
 </div>
 
-<div class="success-modal-overlay" *ngIf="mostrarModalExito" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
-  <div class="success-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-    <div style="width: 70px; height: 70px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-      <i class="fas fa-check-circle" style="color: #2e7d32; font-size: 2.2rem;"></i>
+<div class="custom-modal-overlay" *ngIf="mostrarModalExito">
+  <div class="custom-modal-card success-border">
+    <div class="modal-icon-circle circle-green">
+      <i class="fas fa-check-circle text-green"></i>
     </div>
-    <h3 style="margin: 0 0 10px 0; color: #1b5e20; font-size: 1.4rem; font-weight: 700;">Actualización Correcta</h3>
-    <p style="margin: 0 0 25px 0; color: #555; font-size: 0.95rem; line-height: 1.5; padding: 0 5px;">{{ mensajeModalExito }}</p>
-    <button (click)="mostrarModalExito = false" style="background: #2e7d32; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%;">Aceptar y continuar</button>
+    <h3>Actualización Correcta</h3>
+    <p>{{ mensajeModalExito }}</p>
+    <button class="btn-modal-submit bg-green" (click)="mostrarModalExito = false">Aceptar y continuar</button>
   </div>
 </div>
 
-<div class="error-modal-overlay" *ngIf="mostrarModalError" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
-  <div class="error-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-    <div style="width: 70px; height: 70px; background: #fff5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid #feb2b2;">
-      <i class="fas fa-exclamation-triangle" style="color: #e53e3e; font-size: 2rem;"></i>
+<div class="custom-modal-overlay" *ngIf="mostrarModalError">
+  <div class="custom-modal-card error-border">
+    <div class="modal-icon-circle circle-red">
+      <i class="fas fa-exclamation-triangle text-red"></i>
     </div>
-    <h3 style="margin: 0 0 10px 0; color: #c53030; font-size: 1.35rem; font-weight: 700;">{{ tituloModalError }}</h3>
-    <p style="margin: 0 0 25px 0; color: #4a5568; font-size: 0.95rem; line-height: 1.5; padding: 0 10px;">{{ contenidoModalError }}</p>
-    <button (click)="mostrarModalError = false" style="background: #e53e3e; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%;">Entendido, revisar</button>
+    <h3>{{ tituloModalError }}</h3>
+    <p>{{ contenidoModalError }}</p>
+    <button class="btn-modal-submit bg-red" (click)="mostrarModalError = false">Entendido, revisar</button>
   </div>
 </div>
 
-<div class="confirm-modal-overlay" *ngIf="mostrarModalConfirmarBorrado" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
-  <div class="confirm-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 440px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.15);">
-    <h3 style="margin: 0 0 12px 0; color: #2d3748; font-size: 1.3rem; font-weight: 700;">¿Eliminar resguardo contable?</h3>
-    <p style="margin: 0 0 25px 0; color: #718096; font-size: 0.95rem; line-height: 1.5;">Esta acción purgará los metadatos financieros introducidos y el archivo PDF de fianza asociado a la inscripción. No se puede deshacer.</p>
-    <div style="display: flex; justify-content: flex-end; gap: 12px;">
-      <button (click)="mostrarModalConfirmarBorrado = false" style="background: #edf2f7; color: #4a5568; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer;">Cancelar</button>
-      <button (click)="ejecutarEliminarFianza()" style="background: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer;">Sí, eliminar fianza</button>
+<div class="custom-modal-overlay" *ngIf="mostrarModalConfirmarBorrado">
+  <div class="custom-modal-card">
+    <h3>¿Eliminar resguardo contable?</h3>
+    <p class="text-left-muted">Esta acción purgará los metadatos financieros introducidos y el archivo PDF de fianza asociado a la inscripción. No se puede deshacer.</p>
+    <div class="modal-flex-actions">
+      <button class="btn-cancel" (click)="mostrarModalConfirmarBorrado = false">Cancelar</button>
+      <button class="btn-modal-delete" (click)="ejecutarEliminarFianza()">Sí, eliminar fianza</button>
     </div>
   </div>
 </div>
