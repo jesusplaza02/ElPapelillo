@@ -27,6 +27,34 @@
     </button>
   </div>
 
+  @if (inscripcionActiva && inscripcionActiva.fianza && inscripcionActiva.fianza.rutaRecibo) {
+    <div class="doc-item fianza-special-card" style="border-left: 5px solid #2b6cb0; background: #f7fafc; margin: 10px 0 25px 0; box-shadow: 0 3px 10px rgba(43, 108, 176, 0.1); border-radius: 6px;">
+      <div class="doc-main-content clickable" (click)="descargarArchivo(inscripcionActiva.fianza.rutaRecibo, 'Recibo_Fianza_' + (inscripcionActiva.agrupacion?.nombre || 'Agrupacion'))" style="display: flex; justify-content: space-between; align-items: center; padding: 16px; cursor: pointer;">
+        <div class="doc-left" style="display: flex; align-items: center;">
+          <div class="icon-box" style="background: #ebf8ff; min-width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+            <i class="fas fa-receipt" style="color: #2b6cb0; font-size: 1.3rem;"></i>
+          </div>
+          <div class="doc-info" style="display: flex; flex-direction: column; margin-left: 14px;">
+            <span class="doc-name" style="font-weight: 700; color: #1a202c; font-size: 1.05rem;">Recibo de Fianza Oficial (Importe: {{ inscripcionActiva.fianza.importe }}€)</span>
+            <span class="doc-type-label" style="background: #2b6cb0; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; width: fit-content; margin-top: 4px; font-weight: 600;">Emitido por Administración</span>
+          </div>
+        </div>
+        <div [ngClass]="['status-badge', getClaseEstado(inscripcionActiva.fianza.pagada ? 'APROBADO' : 'PENDIENTE')]">
+            {{ getTextoEstado(inscripcionActiva.fianza.pagada ? 'APROBADO' : 'PENDIENTE') }}
+        </div>
+      </div>
+      <div class="revision-comment" style="font-size: 0.85rem; color: #4a5568; background: #edf2f7; padding: 10px 16px; border-top: 1px dashed #cbd5e0; margin: 0; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px;">
+        <i class="fas fa-info-circle" style="color: #2b6cb0;"></i> Este resguardo confirma la fianza obligatoria registrada el {{ inscripcionActiva.fianza.fechaPago | date:'dd/MM/yyyy HH:mm' }}. Haz clic en la tarjeta para descargar el justificante bancario oficial.
+      </div>
+    </div>
+    
+    <div style="display: flex; align-items: center; text-align: center; margin-bottom: 25px; color: #718096; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+      <span style="flex: 1; border-bottom: 2px dashed #e2e8f0;"></span>
+      <span style="padding: 0 15px;">Repositorio de Archivos del Representante</span>
+      <span style="flex: 1; border-bottom: 2px dashed #e2e8f0;"></span>
+    </div>
+  }
+
   @if (mostrarForm) {
     <div class="upload-form-card">
       <h3>Nueva Carga de Documento</h3>

@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
   templateUrl: './documentacion-rep.html',
-  styleUrl: './documentacion-rep.css' // 🌟 CORREGIDO: En singular para evitar el error de tipado string/array
+  styleUrl: './documentacion-rep.css'
 })
 export class DocumentacionRepComponent implements OnInit {
   
@@ -31,10 +31,10 @@ export class DocumentacionRepComponent implements OnInit {
   archivoSeleccionado: File | null = null;
   mensajeError: string | null = null; 
 
-  // --- VARIABLES PARA LAS VENTANAS MODALES INTEGRADAS ---
+  // --- VARIABLES PARA LAS VENTANAS MODALES ---
   mostrarModalExito: boolean = false;
-  tituloModalExito: string = '';       // 🌟 NUEVO: Dinámico para cambiar el texto del modal de éxito
-  contenidoModalExito: string = '';    // 🌟 NUEVO: Dinámico para cambiar el contenido del modal de éxito
+  tituloModalExito: string = '';       
+  contenidoModalExito: string = '';    
   
   mostrarModalError: boolean = false;
   tituloModalError: string = '';
@@ -68,6 +68,7 @@ export class DocumentacionRepComponent implements OnInit {
     if (!this.mostrarForm) {
       this.limpiarFormulario();
     }
+    this.cd.detectChanges();
   }
 
   limpiarFormulario() {
@@ -84,7 +85,6 @@ export class DocumentacionRepComponent implements OnInit {
     this.archivoSeleccionado = null;
   }
 
-  // --- MÉTODOS DE ARCHIVOS Y VALIDACIÓN ---
   prepararArchivo(event: any) {
     this.mensajeError = null; 
     const archivo = event.target.files[0];
@@ -124,6 +124,7 @@ export class DocumentacionRepComponent implements OnInit {
             break;
         }
       }
+      this.cd.detectChanges();
     }
   }
 
@@ -132,6 +133,7 @@ export class DocumentacionRepComponent implements OnInit {
 
     if (!this.archivoSeleccionado || !this.idInscripcionActual || !this.nuevoDocNombre) {
       this.mensajeError = 'Por favor, rellena todos los campos obligatorios antes de subir.';
+      this.cd.detectChanges();
       return;
     }
 
@@ -144,8 +146,7 @@ export class DocumentacionRepComponent implements OnInit {
 
     this.http.post('http://localhost:8080/api/documentos/upload', formData)
       .subscribe({
-        next: () => { // 🌟 CORREGIDO: Cambiado de onNext a next
-          // Configuramos el modal de éxito para la subida de archivos
+        next: () => {
           this.tituloModalExito = '¡Documento Subido!';
           this.contenidoModalExito = 'El archivo se ha subido correctamente al repositorio y queda almacenado a la espera de la validación del administrador.';
           this.mostrarModalExito = true;
@@ -153,7 +154,7 @@ export class DocumentacionRepComponent implements OnInit {
           this.limpiarFormulario();
           this.cd.detectChanges();
         },
-        error: (err) => { // 🌟 CORREGIDO: Cambiado de onError a error
+        error: (err) => {
           this.tituloModalError = 'Fallo en la carga';
           this.contenidoModalError = err.error?.error || 'No se ha podido establecer comunicación con el servidor de archivos o el registro se encuentra duplicado.';
           this.mostrarModalError = true;
@@ -161,14 +162,6 @@ export class DocumentacionRepComponent implements OnInit {
         }
       });
   }
-
-  // 🌟 NOTA: Si en tu código tienes otra función que guarda al "Participante", puedes llamarla así para activar el modal:
-  // registrarParticipanteExito() {
-  //   this.tituloModalExito = '¡Participante Guardado!';
-  //   this.contenidoModalExito = 'El participante ha sido guardado correctamente en los registros de la inscripción.';
-  //   this.mostrarModalExito = true;
-  //   this.cd.detectChanges();
-  // }
 
   cerrarModalExitoYRefrescar() {
     this.mostrarModalExito = false;
@@ -180,39 +173,42 @@ export class DocumentacionRepComponent implements OnInit {
 
   cargarDocs(idInscripcion: string) {
     this.loading = true;
-    this.listaDocs = []; 
+    this.cd.detectChanges();
 
     this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${idInscripcion}`)
       .subscribe({
-        next: (data) => { // 🌟 CORREGIDO: Cambiado de onNext a next
+        next: (data) => {
           this.listaDocs = data ? data : [];
           
           if (this.listaDocs.length > 0 && this.listaDocs[0].inscripcion) {
             this.inscripcionActiva = this.listaDocs[0].inscripcion;
+            this.loading = false;
+            this.cd.detectChanges();
           } else {
             this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}`)
               .subscribe({
-                next: (res) => { // 🌟 CORREGIDO: Cambiado de onNext a next
-                  this.inscripcionActiva = res;
+                next: (res) => {
+                  this.inscripcionActiva = res; 
+                  this.loading = false;
+                  this.cd.detectChanges();
                 },
-                error: () => { // 🌟 CORREGIDO: Cambiado de onError a error
+                error: () => {
                   this.tituloModalError = 'Fallo de Contexto';
-                  this.contenidoModalError = 'No se ha podido mapear la información de la inscripción de origen en la base de datos de la plataforma.';
+                  this.contenidoModalError = 'No se ha podido mapear la información de la inscripción de origen.';
                   this.mostrarModalError = true;
                   this.inscripcionActiva = {
                     agrupacion: { nombre: 'Gestión Documental' },
                     concurso: { nombre: 'Expediente' }
                   };
+                  this.loading = false;
                   this.cd.detectChanges();
                 }
               });
           }
-          this.loading = false;
-          this.cd.detectChanges();
         },
-        error: () => { // 🌟 CORREGIDO: Cambiado de onError a error
+        error: () => {
           this.tituloModalError = 'Error de Lectura';
-          this.contenidoModalError = 'Se produjo un problema al intentar listar los documentos del repositorio para esta agrupación.';
+          this.contenidoModalError = 'Se produjo un problema al intentar listar los documentos del repositorio.';
           this.mostrarModalError = true;
           this.listaDocs = [];
           this.loading = false;
@@ -222,9 +218,17 @@ export class DocumentacionRepComponent implements OnInit {
   }
 
   descargarArchivo(url: string, nombreArchivo: string) {
+    if (!url) {
+      this.tituloModalError = 'Ruta no válida';
+      this.contenidoModalError = 'La dirección del archivo adjunto se encuentra vacía o corrupta en el servidor.';
+      this.mostrarModalError = true;
+      this.cd.detectChanges();
+      return;
+    }
+
     this.http.get(`http://localhost:8080/${url}`, { responseType: 'blob' })
       .subscribe({
-        next: (blob) => { // 🌟 CORREGIDO: Cambiado de onNext a next
+        next: (blob) => {
           const urlBlob = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = urlBlob;
@@ -234,9 +238,9 @@ export class DocumentacionRepComponent implements OnInit {
           document.body.removeChild(a);
           window.URL.revokeObjectURL(urlBlob);
         },
-        error: () => { // 🌟 CORREGIDO: Cambiado de onError a error
+        error: () => {
           this.tituloModalError = 'Descarga no disponible';
-          this.contenidoModalError = 'El archivo físico solicitado no se encuentra en la ruta del servidor o careces de los permisos de lectura necesarios.';
+          this.contenidoModalError = 'El archivo físico solicitado no se encuentra en la ruta del servidor.';
           this.mostrarModalError = true;
           this.cd.detectChanges();
         }
