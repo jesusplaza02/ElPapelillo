@@ -6,6 +6,16 @@
     </button>
   </div>
 
+  @if (esHistorico) {
+    <div class="info-box-historico" style="background-color: #edf2f7; border-left: 5px solid #4a5568; color: #2d3748; padding: 15px; margin-bottom: 20px; border-radius: 6px; display: flex; align-items: center; gap: 12px; font-family: sans-serif; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+      <i class="fas fa-archive" style="color: #4a5568; font-size: 1.4rem;"></i>
+      <div>
+        <strong style="display: block; margin-bottom: 2px;">Modo Consulta Histórica Activo</strong>
+        <span style="font-size: 0.9rem; color: #718096;">Este concurso ya ha finalizado. La gestión de documentación queda limitada exclusivamente a la consulta de documentos.</span>
+      </div>
+    </div>
+  }
+
   <div class="doc-header">
     <div class="header-titles">
       <h1>Documentación de Inscripción</h1>
@@ -21,10 +31,12 @@
       }
     </div>
 
-    <button class="btn-upload" (click)="toggleFormulario()">
-      <i class="fas" [class.fa-plus]="!mostrarForm" [class.fa-times]="mostrarForm"></i> 
-      {{ mostrarForm ? ' Cancelar' : ' Subir Documento' }}
-    </button>
+    @if (!esHistorico) {
+      <button class="btn-upload" (click)="toggleFormulario()">
+        <i class="fas" [class.fa-plus]="!mostrarForm" [class.fa-times]="mostrarForm"></i> 
+        {{ mostrarForm ? ' Cancelar' : ' Subir Documento' }}
+      </button>
+    }
   </div>
 
   @if (inscripcionActiva && inscripcionActiva.fianza && inscripcionActiva.fianza.rutaRecibo) {
@@ -55,7 +67,7 @@
     </div>
   }
 
-  @if (mostrarForm) {
+  @if (mostrarForm && !esHistorico) {
     <div class="upload-form-card">
       <h3>Nueva Carga de Documento</h3>
       <div class="form-grid">

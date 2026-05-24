@@ -40,6 +40,18 @@ export class DocumentacionRepComponent implements OnInit {
   tituloModalError: string = '';
   contenidoModalError: string = '';
 
+  /**
+   * Getter que comprueba si el concurso asociado a la inscripción es histórico.
+   */
+  get esHistorico(): boolean {
+    if (!this.inscripcionActiva || !this.inscripcionActiva.concurso) {
+      return false;
+    }
+    const concurso = this.inscripcionActiva.concurso;
+    const estadoEnum = (concurso.estadoConcurso || concurso.estado || '').toUpperCase().trim();
+    return estadoEnum === 'HISTORICO';
+  }
+
   ngOnInit(): void {
     const idLogueado = localStorage.getItem('idUsuario');
     if (idLogueado) {
@@ -63,6 +75,9 @@ export class DocumentacionRepComponent implements OnInit {
   }
 
   toggleFormulario() {
+    // Si es histórico, impedimos abrir el formulario por seguridad
+    if (this.esHistorico) return;
+
     this.mostrarForm = !this.mostrarForm;
     this.mensajeError = null; 
     if (!this.mostrarForm) {
@@ -129,6 +144,8 @@ export class DocumentacionRepComponent implements OnInit {
   }
 
   confirmarSubida() {
+    if (this.esHistorico) return;
+
     this.mensajeError = null;
 
     if (!this.archivoSeleccionado || !this.idInscripcionActual || !this.nuevoDocNombre) {
