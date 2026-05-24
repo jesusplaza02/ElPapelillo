@@ -6,7 +6,6 @@ import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { AuthService } from './auth.service'; 
 import { GlobalConfig } from '../../../constants';
 
-
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -27,6 +26,15 @@ export class LoginComponent implements OnInit {
   errorMessage: string = '';
   showPassword: boolean = false;
 
+  // Control de ventanas modales dinámicas
+  mostrarModalExitoGlobal: boolean = false;
+  tituloModalExitoGlobal: string = '';
+  contenidoModalExitoGlobal: string = '';
+
+  mostrarModalErrorGlobal: boolean = false;
+  tituloModalErrorGlobal: string = '';
+  contenidoModalErrorGlobal: string = '';
+
   // Configuración visual (Confeti)
   confettis: any[] = [];
   colors = ['#FFCDD2', '#F8BBD0', '#E1BEE7', '#D1C4E9', '#C5CAE9', '#B3E5FC', '#C8E6C9', '#FFF9C4'];
@@ -40,7 +48,6 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
     this.generateConfetti();
-    // Limpiamos cualquier rastro de sesión anterior al cargar el login
     localStorage.clear();
   }
 
@@ -48,13 +55,22 @@ export class LoginComponent implements OnInit {
     this.showPassword = !this.showPassword;
   }
 
-  /**
-   * Método principal de Inicio de Sesión
-   */
+  lanzarModalInformativo(titulo: string, contenido: string, tipo: 'success' | 'error'): void {
+    if (tipo === 'success') {
+      this.tituloModalExitoGlobal = titulo;
+      this.contenidoModalExitoGlobal = contenido;
+      this.mostrarModalExitoGlobal = true;
+    } else {
+      this.tituloModalErrorGlobal = titulo;
+      this.contenidoModalErrorGlobal = contenido;
+      this.mostrarModalErrorGlobal = true;
+    }
+    this.cdr.detectChanges();
+  }
+
   onLogin() {
     this.errorMessage = '';
     
-    // Validación básica antes de enviar
     if (!this.loginData.email || !this.loginData.password) {
       this.errorMessage = 'Por favor, rellena todos los campos.';
       this.cdr.detectChanges();
@@ -65,27 +81,20 @@ export class LoginComponent implements OnInit {
       next: (res: any) => {
         console.log('Respuesta del servidor:', res);
 
-        // 1. GUARDADO DE DATOS EN LOCALSTORAGE (Para el Header y perfil)
-        // Guardamos el ID del usuario
         if (res.idUsuario) {
           localStorage.setItem('idUsuario', res.idUsuario.toString());
         }
 
-        // Guardamos el ID de la organización para los filtros de visibilidad
         if (res.id_organizacion !== undefined && res.id_organizacion !== null) {
           localStorage.setItem('id_organizacion', res.id_organizacion.toString());
         } else if (res.idOrganizacion) { 
-          // Por si tu Java usa camelCase en el JSON
           localStorage.setItem('id_organizacion', res.idOrganizacion.toString());
         }
-        // -----------------------
                 
-        // Guardamos el Email (Para que el Header lo muestre)
         if (res.email) {
           localStorage.setItem('email', res.email);
         }
 
-        // Guardamos el Nombre (Opcional, por si quieres mostrar "Hola, Juan")
         if (res.nombre) {
           localStorage.setItem('nombreUsuario', res.nombre);
         }
@@ -94,11 +103,9 @@ export class LoginComponent implements OnInit {
           localStorage.setItem('rolUsuario', res.rol.toString().toUpperCase().trim());
         }
 
-        // 2. PROCESADO DEL ROL
         const rolUsuario = (res.rol || '').toUpperCase().trim(); 
         console.log('Rol detectado:', rolUsuario);
 
-        // 3. REDIRECCIÓN SEGÚN ROL
         if (rolUsuario === 'ADMINISTRADOR'|| rolUsuario === 'SUPERADMIN' || rolUsuario === 'SYSADMIN') {
           this.router.navigate(['/panel-control-administrador']);
         } else if (rolUsuario === 'REPRESENTANTE') {
@@ -111,60 +118,54 @@ export class LoginComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error capturado en el login:', err);
-        
-        // Manejo de errores dinámico según la respuesta del LoginController
         if (err.status === 401) {
-          // Capturamos el mensaje que enviamos con Map.of desde Java
           this.errorMessage = err.error?.message || 'Email o contraseña incorrectos.';
         } else if (err.status === 0) {
           this.errorMessage = 'No se puede conectar con el servidor. Revisa si Spring Boot está activo.';
         } else {
           this.errorMessage = 'Ha ocurrido un error inesperado.';
         }
-        
-        // FORZAMOS el refresco para que el mensaje aparezca sin clics adicionales
         this.cdr.detectChanges();
       }
     });
   }
 
-
   olvidarPassword() {
-    // 1. Forzamos a leer el valor directamente del input por si Angular no se ha enterado del autocompletado
     const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
     const email = emailInput?.value || this.loginData.email;
 
-    // 2. Ahora sí, la validación que querías
     if (!email || email.trim() === '') {
-      this.errorMessage = 'Debes indicar un correo electrónico para recuperar la contraseña. Después te será enviado un correo con tu nueva contraseña.';
-      this.cdr.detectChanges();
+      this.lanzarModalInformativo(
+        'Correo Requerido', 
+        'Debes indicar un correo electrónico en el campo superior para recuperar la contraseña. Después te será enviado un correo con tus credenciales nuevas.', 
+        'error'
+      );
       return;
     }
 
-    // 3. Continuamos con la llamada al backend usando ese email
     const url = 'http://localhost:8080/api/usuarios/recuperar-password';
+    
     this.http.post(url, { email: email }).subscribe({
       next: () => {
-        alert('¡Nueva contraseña enviada! Revisa tu bandeja de entrada.');
+        // Cambiado: Ahora muestra el modal estilizado en vez del alert nativo
+        this.lanzarModalInformativo(
+          'Contraseña Restablecida', 
+          '¡Nueva contraseña generada y enviada! Por favor, revisa la bandeja de entrada de tu correo electrónico.', 
+          'success'
+        );
         this.errorMessage = '';
-        this.cdr.detectChanges();
       },
       error: (err: any) => {
-        this.errorMessage = 'No se ha podido enviar el correo. Verifica que el email sea correcto.';
-        this.cdr.detectChanges();
+        // Control de errores con ventana modal
+        this.lanzarModalInformativo(
+          'Error de Envío', 
+          'No se ha podido procesar la solicitud. Verifica que el email ingresado pertenezca a un usuario registrado.', 
+          'error'
+        );
       }
     });
   }
 
-  // 3. AÑADIMOS EL MÉTODO PARA QUE NO TE DE ERROR AL LLAMARLO
-  lanzarToast(mensaje: string, tipo: 'success' | 'error') {
-    alert(mensaje); 
-
-  }
-
-  /**
-   * Genera la animación visual del fondo
-   */
   generateConfetti() {
     for (let i = 0; i < 35; i++) {
       this.confettis.push({

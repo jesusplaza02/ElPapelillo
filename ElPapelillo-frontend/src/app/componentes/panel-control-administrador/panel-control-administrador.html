@@ -4,7 +4,7 @@
     <details>
       <summary>
         <div class="summary-title">
-          <div class="summary-icon trophy-icon">
+          <div class="summary-icon">
             <span class="material-symbols-outlined">corporate_fare</span>
           </div>
           <div>
@@ -19,7 +19,7 @@
         <div class="table-controls">
           <input 
             type="text" 
-            placeholder="Buscar organización por nombre o CIF..." 
+            placeholder="Buscar organización por nombre o correo corporativo..." 
             [(ngModel)]="terminoBusquedaOrg" 
             (input)="buscarOrgs()">
           
@@ -44,9 +44,9 @@
                 @for (org of organizacionesFiltradas; track org.idOrganizacion) {
                   <tr>
                     <td><strong>{{ org.nombre }}</strong></td>
-                    <td>{{org.email }}</td>
-                    <td>{{org.telefono}}</td>
-                    <td>{{org.ubicacion }}</td>
+                    <td>{{ org.email }}</td>
+                    <td>{{ org.telefono }}</td>
+                    <td>{{ org.ubicacion }}</td>
                     <td class="actions-cell">
                       <button class="btn-action edit" (click)="editarOrg(org)" title="Editar">
                         <span class="material-symbols-outlined">edit</span>
@@ -128,7 +128,7 @@
   <details>
     <summary>
       <div class="summary-title">
-        <div class="summary-icon trophy-icon"><span class="material-symbols-outlined">trophy</span></div>
+        <div class="summary-icon"><span class="material-symbols-outlined">trophy</span></div>
         <div>Gestión de Concursos <span class="summary-subtitle">Configuración de eventos y bases</span></div>
       </div>
       <span class="material-symbols-outlined">expand_more</span>
@@ -162,9 +162,14 @@
 
           <div class="form-group">
             <label>ESTADO</label>
-            <select [(ngModel)]="concursoSeleccionado.estadoConcurso" class="filter-select">
+            <select 
+              [(ngModel)]="concursoSeleccionado.estadoConcurso" 
+              class="filter-select" 
+              [disabled]="modoFormularioConcurso === 'crear'">
               <option value="ACTIVO">ACTIVO</option>
-              <option value="HISTORICO">HISTÓRICO</option>
+              @if (modoFormularioConcurso !== 'crear') {
+                <option value="HISTORICO">HISTÓRICO</option>
+              }
             </select>
           </div>
 
@@ -255,7 +260,7 @@
                     <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action edit" (click)="editarConcurso(concurso)">
                       <span class="material-symbols-outlined">edit</span>
                     </button>
-                    <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action delete" (click)="abrirModalBorradoConcurso(concurso)">
+                    <button *ngIf="concurso.estadoConcurso !== 'HISTORICO'" class="btn-action delete" (click)="eliminarConcurso(concurso)">
                         <span class="material-symbols-outlined">delete</span>
                     </button>
                   </td>
@@ -322,12 +327,15 @@
                 @if (rolSesionActual === 'SYSADMIN') {
                   <option value="SYSADMIN">Sysadmin</option>
                   <option value="REPRESENTANTE">Representante</option>
-                }
-                @if (rolSesionActual === 'SYSADMIN' || rolSesionActual === 'SUPERADMIN') {
                   <option value="SUPERADMIN">Superadmin</option>
                   <option value="ADMINISTRADOR">Administrador</option>
                 }
-                @if (rolSesionActual === 'ADMINISTRADOR' || rolSesionActual === 'SUPERADMIN') {
+                @if (rolSesionActual === 'SUPERADMIN') {
+                  <option value="SUPERADMIN">Superadmin</option>
+                  <option value="ADMINISTRADOR">Administrador</option>
+                  <option value="REPRESENTANTE">Representante</option>
+                }
+                @if (rolSesionActual === 'ADMINISTRADOR') {
                   <option value="REPRESENTANTE">Representante</option>
                 }
               </select>
@@ -370,7 +378,7 @@
             </div>
           </form>
         </div>
-      }
+      @}
 
       <div class="table-responsive">
         <table>
@@ -418,57 +426,69 @@
   <details>
     <summary>
       <div class="summary-title">
-        <div class="summary-icon audit-icon"><span class="material-symbols-outlined">analytics</span></div>
-        <div>Auditoría del Sistema <span class="summary-subtitle">Trazabilidad por usuario responsable</span></div>
+        <div class="summary-icon" style="background-color: #e0e7ff; color: #4338ca;">
+          <span class="material-symbols-outlined">analytics</span>
+        </div>
+        <div>Auditoría del Sistema <span class="summary-subtitle">Registros directos e inalterados de la base de datos</span></div>
       </div>
       <span class="material-symbols-outlined">expand_more</span>
     </summary>
+    
     <div class="details-content">
       <div class="audit-filters">
         <div class="filter-group">
-          <label>Categoría</label>
-          <select [(ngModel)]="filtroCategoria" (change)="filtrarLogs()">
-            <option value="Todos">Todos los tipos</option>
-            <option value="Usuarios">Usuarios</option>
-            <option value="Concursos">Concursos</option>
-            <option value="Documentación">Documentación</option>
-            <option value="Sistema">Sistema</option>
-          </select>
+          <label>Filtrar por Acción</label>
+          <input 
+            type="text" 
+            placeholder="Ej: CAMBIO_ESTADO, DESCARGA..." 
+            [(ngModel)]="filtroAccion" 
+            (input)="filtrarLogs()" 
+            class="filter-input"
+            style="width: 100%; max-width: 280px;">
         </div>
         <div class="filter-group">
-          <label>Fecha</label>
+          <label>Fecha del Evento</label>
           <input type="date" [(ngModel)]="filtroFecha" (change)="filtrarLogs()">
         </div>
         <button (click)="limpiarFiltros()" class="btn-filter-clear">
-          <span class="material-symbols-outlined">filter_alt_off</span> Limpiar
+          <span class="material-symbols-outlined">filter_alt_off</span> Restablecer
         </button>
       </div>
 
       <div class="activity-list">
         @for (log of logsPaginados; track $index){
-          <div class="activity-item">
-            <div class="activity-action-icon" [ngClass]="log.tipo">
-              <span class="material-symbols-outlined">{{ log.icon }}</span>
-            </div>
-            
-            <div class="activity-info">
-              <p class="activity-msg"><strong>{{ log.msg }}</strong></p>
-              <div class="activity-meta">
+          <div class="activity-item" style="border-left: 4px solid #4f46e5; background: #fafafa; padding: 15px; margin-bottom: 12px; border-radius: 4px;">
+            <div class="activity-info" style="width: 100%;">
+              <p class="activity-msg" style="font-size: 1.05rem; color: #1e1b4b; margin: 0 0 5px 0;">
+                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px; margin-right: 5px; color: #4f46e5;">settings</span>
+                <strong>{{ log.accionReal }}</strong>
+              </p>
+              
+              <p class="activity-desc" style="color: #4b5563; font-size: 0.92rem; margin: 0 0 10px 0; line-height: 1.4;">
+                {{ log.descripcionReal }}
+              </p>
+              
+              <div class="activity-meta" style="display: flex; gap: 15px; flex-wrap: wrap; font-size: 0.85rem; color: #6b7280;">
                 <span class="date-text">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">calendar_month</span> 
-                  {{ log.fecha }} • {{ log.time }}
+                  <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">calendar_month</span> 
+                  {{ log.fechaFormateada }} a las {{ log.horaFormateada }}
                 </span>
-                <span class="tag-badge">{{ log.cat }}</span>
-                <span class="tag-badge">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">person</span> 
-                  {{ log.responsableNombre }}
+                <span class="user-text" style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 12px; font-weight: 500;">
+                  <span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">person</span> 
+                  Responsable: {{ getNombreResponsable(log) }}
                 </span>
               </div>
             </div>
           </div>
+        } @empty {
+          <div class="empty-state">
+            <span class="material-symbols-outlined" style="font-size: 48px;">layers_clear</span>
+            <p>No se encontraron registros de auditoría bajo los criterios seleccionados.</p>
+          </div>
         }
       </div>
     </div>
+
     <div class="pagination-controls" *ngIf="totalPaginasLogs > 1">
       <button (click)="cambiarPaginaLogs(paginaActualLogs - 1)" [disabled]="paginaActualLogs === 1" class="btn-pag">
         &laquo; Anterior

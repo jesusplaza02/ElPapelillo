@@ -30,13 +30,13 @@ export class PanelControlAdministradorComponent implements OnInit {
   paginaActual: number = 1;
   totalPaginas: number = 1;
 
-  // AUDITORÍA
+  // AUDITORÍA (Campos reales de la base de datos)
   logs: any[] = [];
   logsFiltrados: any[] = [];
   logsPaginados: any[] = []; 
   paginaActualLogs: number = 1;
   totalPaginasLogs: number = 1;
-  filtroCategoria: string = 'Todos';
+  filtroAccion: string = 'Todos';
   filtroFecha: string = '';
 
   itemsPorPagina: number = 5;
@@ -101,7 +101,7 @@ export class PanelControlAdministradorComponent implements OnInit {
   mensajeToast: string = '';
   tipoToast: 'success' | 'error' = 'success';
 
-  // MODALES INTERNOS GENERALES (REEMPLAZAN ALERTS)
+  // MODALES INTERNES GENERALES
   mostrarModalExitoGlobal: boolean = false;
   tituloModalExitoGlobal: string = '';
   contenidoModalExitoGlobal: string = '';
@@ -166,7 +166,7 @@ export class PanelControlAdministradorComponent implements OnInit {
     } else {
       this.organizacionesFiltradas = this.organizaciones.filter(org => 
         org.nombre?.toLowerCase().includes(termino) || 
-        org.cif?.toLowerCase().includes(termino)
+        org.email?.toLowerCase().includes(termino)
       );
     }
   }
@@ -180,10 +180,12 @@ export class PanelControlAdministradorComponent implements OnInit {
   editarOrg(org: any): void {
     this.modoFormOrg = 'editar';
     this.nuevaOrg = { 
-      ...org,
-      email: org.email, 
-      ubicacion: org.ubicacion,
-      telefono: org.telefono 
+      idOrganizacion: org.idOrganizacion,
+      nombre: org.nombre || '',
+      email: org.email || '', 
+      telefono: org.telefono || '',
+      ubicacion: org.ubicacion || '',
+      activo: org.activo !== undefined ? org.activo : true
     }; 
     this.mostrandoFormOrg = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -197,7 +199,7 @@ export class PanelControlAdministradorComponent implements OnInit {
     this.mostrandoFormOrg = false;
     this.mostrarModalBorradoOrg = false;
     this.orgABorrar = null;
-    this.nuevaOrg = { idOrganizacion: null, nombre: '', emailContacto: '', telefono: '', direccion: '', activo: true };
+    this.nuevaOrg = { idOrganizacion: null, nombre: '', email: '', telefono: '', ubicacion: '', activo: true };
     this.cargarOrganizaciones(); 
   }
 
@@ -209,24 +211,19 @@ export class PanelControlAdministradorComponent implements OnInit {
 
     peticion.subscribe({
       next: () => {
-        this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
         this.cerrarTodoOrg();
+        this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
       },
       error: (err) => {
+        // Blindaje para interceptar la respuesta de texto plano sin modificar tus Service originales
         if (err.status === 200 || err.status === 201) {
-          this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
           this.cerrarTodoOrg();
+          this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
         } else {
           this.lanzarModalInformativo('Operación Fallida', 'No se ha podido procesar el registro de la organización.', 'error');
         }
       }
     });
-  }
-
-  cerrarYRefrescar(): void {
-    this.mostrandoFormOrg = false;
-    this.cargarOrganizaciones();
-    this.nuevaOrg = { idOrganizacion: null, nombre: '', emailContacto: '', telefono: '', direccion: '', activo: true };
   }
 
   eliminarOrg(org: any): void {
@@ -249,11 +246,21 @@ export class PanelControlAdministradorComponent implements OnInit {
           this.cargarOrganizaciones();     
           this.lanzarModalInformativo('Eliminada', 'La organización ha sido desactivada en el sistema.', 'success');
         },
-        error: () => this.lanzarModalInformativo('Conflicto de eliminación', 'No se puede dar de baja debido a dependencias activas.', 'error')
+        error: (err) => {
+          if (err.status === 200 || err.status === 201) {
+            this.mostrarModalBorradoOrg = false;
+            this.cargarDatosSincronizados(); 
+            this.cargarOrganizaciones();     
+            this.lanzarModalInformativo('Eliminada', 'La organización ha sido desactivada en el sistema.', 'success');
+          } else {
+            this.lanzarModalInformativo('Conflicto de eliminación', 'No se puede dar de baja debido a dependencias activas.', 'error');
+          }
+        }
       });
     }
   }
   
+  // --- CARGA Y SINCRONIZACIÓN (Auditoría basada 100% en BBDD) ---
   cargarDatosSincronizados(): void {
     const miRol = (this.rolSesionActual || '').toUpperCase();
     const miIdOrg = localStorage.getItem('id_organizacion');
@@ -265,6 +272,7 @@ export class PanelControlAdministradorComponent implements OnInit {
       concursosRes: this.concursoService.getMisConcursos(idLogueado).pipe(catchError(() => of([])))
     }).subscribe({
       next: ({ usuariosRes, auditoriaRes, concursosRes }) => {
+        // Usuarios
         const activos = usuariosRes.filter((u: any) => u.activo !== 0 && u.activo !== false);
         this.usuarios = miRol === 'SYSADMIN' 
           ? activos 
@@ -274,25 +282,25 @@ export class PanelControlAdministradorComponent implements OnInit {
             });
         this.usuariosFiltrados = [...this.usuarios];
 
+        // Mapeo Directo desde las columnas de la Base de Datos
         this.logs = auditoriaRes.map((log: any) => {
           const fechaObj = new Date(log.fecha);
           return {
             ...log,
-            icon: this.mapearIconoLog(log.accion), 
-            tipo: this.mapearTipoLog(log.accion),  
-            msg: log.accion,                      
-            cat: this.mapearCategoria(log.accion), 
-            fecha: fechaObj.toLocaleDateString(),  
-            time: fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
+            accionReal: log.accion || 'ACCION', 
+            descripcionReal: log.descripcion || 'Sin descripción disponible',
+            fechaFormateada: fechaObj.toLocaleDateString(),  
+            horaFormateada: fechaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), 
             fechaIso: log.fecha ? log.fecha.split('T')[0] : ''
           };
         });
 
         if (miRol !== 'SYSADMIN') {
-          this.logs = this.logs.filter(log => this.usuarios.some(u => (u as any).idUsuario == log.idUsuario));
+          this.logs = this.logs.filter(log => this.usuarios.some(u => (u as any).idUsuario == log.idUsuario || (u as any).idUsuario == log.administrador_id));
         }
         this.logsFiltrados = [...this.logs];
 
+        // Concursos
         this.concursos = concursosRes;
         this.concursosFiltrados = [...this.concursos];
 
@@ -350,36 +358,24 @@ export class PanelControlAdministradorComponent implements OnInit {
 
   filtrarLogs(): void {
     this.logsFiltrados = this.logs.filter(log => {
-      const cumpleCat = this.filtroCategoria === 'Todos' || log.cat === this.filtroCategoria;
+      const cumpleAccion = this.filtroAccion === 'Todos' || log.accionReal.toLowerCase().includes(this.filtroAccion.toLowerCase());
       const cumpleFecha = !this.filtroFecha || log.fechaIso === this.filtroFecha;
-      return cumpleCat && cumpleFecha;
+      return cumpleAccion && cumpleFecha;
     });
     this.paginaActualLogs = 1;
     this.actualizarPaginacion();
   }
 
   limpiarFiltros(): void {
-    this.filtroCategoria = 'Todos'; 
+    this.filtroAccion = 'Todos'; 
     this.filtroFecha = ''; 
     this.filtrarLogs();
   }
 
-  private mapearTipoLog(a: string): string { 
-    const accion = a?.toUpperCase() || '';
-    return accion.includes('BORRADO') ? 'error' : accion.includes('CREAR') ? 'success' : 'info'; 
-  }
-  private mapearIconoLog(a: string): string { return a?.toUpperCase().includes('USUARIO') ? 'person' : 'settings'; }
-  private mapearCategoria(a: string): string { 
-    const accion = a?.toUpperCase() || '';
-    if (accion.includes('USUARIO')) return 'Usuarios';
-    if (accion.includes('DOCUMENTO')) return 'Documentación';
-    if (accion.includes('CONCURSO')) return 'Concursos';
-    return 'Sistema'; 
-  }
-
-  getNombreResponsable(id: any): string {
-    const u = this.usuarios.find(user => (user as any).idUsuario == id);
-    return u ? u.nombre : 'Sistema';
+  getNombreResponsable(log: any): string {
+    const idResponsable = log.idUsuario || log.administrador_id;
+    const u = this.usuarios.find(user => (user as any).idUsuario == idResponsable);
+    return u ? u.nombre : `Admin (ID: ${idResponsable || 'Sistema'})`;
   }
 
   get rolesDisponibles(): string[] {
@@ -426,7 +422,13 @@ export class PanelControlAdministradorComponent implements OnInit {
 
       this.usuarioService.crearUsuario(usuarioParaEnviar).subscribe({
         next: () => this.finalizarGuardado('Usuario registrado correctamente.'),
-        error: (err) => this.manejarError(err)
+        error: (err) => {
+          if (err.status === 200 || err.status === 201) {
+            this.finalizarGuardado('Usuario registrado correctamente.');
+          } else {
+            this.manejarError(err);
+          }
+        }
       });
 
     } else if (this.modoFormulario === 'editar') {
@@ -439,7 +441,13 @@ export class PanelControlAdministradorComponent implements OnInit {
 
       this.usuarioService.actualizarUsuarioConEjecutor(idAEditar, usuarioParaEnviar, idEjecutor).subscribe({
         next: () => this.finalizarGuardado('El usuario se ha actualizado correctamente.'),
-        error: (err) => this.manejarError(err)
+        error: (err) => {
+          if (err.status === 200 || err.status === 201) {
+            this.finalizarGuardado('El usuario se ha actualizado correctamente.');
+          } else {
+            this.manejarError(err);
+          }
+        }
       });
     }
   }
@@ -455,72 +463,52 @@ export class PanelControlAdministradorComponent implements OnInit {
   editarConcurso(concurso: any): void {
     this.modoFormularioConcurso = 'editar';
     
-    // Sincronizamos las propiedades asegurando el formato YYYY-MM-DD para los <input type="date">
     this.concursoSeleccionado = { 
       ...concurso,
-      fechaInicio: this.formatearFechaInput(concurso.fechaInicio || concurso.fecha_inicio),
-      fechaFin: this.formatearFechaInput(concurso.fechaFin || concurso.fecha_fin),
-      fechaInicioInscripcion: this.formatearFechaInput(concurso.fechaInicioInscripcion || concurso.fecha_inicio_inscripcion),
-      fechaFinInscripcion: this.formatearFechaInput(concurso.fechaFinInscripcion || concurso.fecha_fin_inscripcion)
+      fechaInicio: this.formatearFechaInput(concurso.fechaInicio),
+      fechaFin: this.formatearFechaInput(concurso.fechaFin),
+      fechaInicioInscripcion: this.formatearFechaInput(concurso.fechaInicioInscripcion),
+      fechaFinInscripcion: this.formatearFechaInput(concurso.fechaFinInscripcion)
     };
     
-    // CRÍTICO: Activamos la vista del formulario
     this.mostrandoFormularioConcurso = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   guardarConcurso(): void {
-  const c = { ...this.concursoSeleccionado }; // Clonamos para evitar mutaciones directas en la vista
+    const c = { ...this.concursoSeleccionado }; 
 
-  if (this.rolSesionActual !== 'SYSADMIN') {
-    const idOrgPropia = localStorage.getItem('id_organizacion') || localStorage.getItem('idOrganizacion');
-    if (idOrgPropia) c.id_organizacion = parseInt(idOrgPropia);
-  }
+    if (this.rolSesionActual !== 'SYSADMIN') {
+      const idOrgPropia = localStorage.getItem('id_organizacion') || localStorage.getItem('idOrganizacion');
+      if (idOrgPropia) c.id_organizacion = parseInt(idOrgPropia);
+    }
 
-  if (!c.id_organizacion) {
-    this.lanzarModalInformativo('Falta Organización', 'Es obligatorio asociar una organización válida.', 'error');
-    return;
-  }
-
-  // Validaciones de fechas seguras sin romper el formato string de la vista
-  if (c.fechaInicio && c.fechaFinInscripcion) {
-    const fIniCon = new Date(c.fechaInicio);
-    const fFinIns = new Date(c.fechaFinInscripcion);
-    if (fFinIns > fIniCon) {
-      this.lanzarModalInformativo('Fechas incorrectas', 'El plazo de inscripción debe finalizar antes del inicio del concurso.', 'error');
+    if (!c.id_organizacion) {
+      this.lanzarModalInformativo('Falta Organización', 'Es obligatorio asociar una organización válida.', 'error');
       return;
     }
-  }
 
-  const idConcurso = c.idConcurso || c.id;
-  const servicioCall = this.modoFormularioConcurso === 'crear' 
-    ? this.concursoService.crearConcurso(c)
-    : this.concursoService.actualizarConcurso(idConcurso, c);
+    const idConcurso = c.idConcurso || c.id;
+    const servicioCall = this.modoFormularioConcurso === 'crear' 
+      ? this.concursoService.crearConcurso(c)
+      : this.concursoService.actualizarConcurso(idConcurso, c);
 
-  servicioCall.subscribe({
-    next: (concursoActualizado: any) => {
-      // 🚀 TRUCO CLAVE: Actualizamos el concurso directamente en la lista local 
-      // para que la tabla reaccione INSTANTÁNEAMENTE en el primer clic.
-      if (this.modoFormularioConcurso === 'editar') {
-        const index = this.concursos.findIndex(item => (item.idConcurso || item.id) === idConcurso);
-        if (index !== -1) {
-          // Fusionamos los datos antiguos con los nuevos editados
-          this.concursos[index] = { ...this.concursos[index], ...c };
+    servicioCall.subscribe({
+      next: () => {
+        this.finalizarGuardado('El concurso se ha configurado de manera idónea.');
+      },
+      error: (err) => {
+        if (err.status === 200 || err.status === 201) {
+          this.finalizarGuardado('El concurso se ha configurado de manera idónea.');
+        } else {
+          console.error(err);
+          this.lanzarModalInformativo('Error del Servidor', 'Verifique los campos obligatorios del concurso.', 'error');
         }
       }
-
-      // Procedemos a cerrar el formulario y refrescar todo el panel
-      this.finalizarGuardado('El concurso se ha configurado de manera idónea.');
-    },
-    error: (err) => {
-      console.error(err);
-      this.lanzarModalInformativo('Error del Servidor', 'Verifique los campos obligatorios del concurso.', 'error');
-    }
-  });
-}
+    });
+  }
 
   private finalizarGuardado(mensaje: string): void {
-    this.lanzarModalInformativo('Operación Completada', mensaje, 'success');
     this.mostrandoFormulario = false;
     this.mostrandoFormularioConcurso = false;
     this.mostrandoFormOrg = false;
@@ -528,6 +516,7 @@ export class PanelControlAdministradorComponent implements OnInit {
     if (this.rolSesionActual?.toUpperCase() === 'SYSADMIN') {
       this.cargarOrganizaciones();
     }
+    this.lanzarModalInformativo('Operación Completada', mensaje, 'success');
   }
 
   private manejarError(err: any): void {
@@ -544,7 +533,7 @@ export class PanelControlAdministradorComponent implements OnInit {
     this.mensajeErrorBorrado = null; 
     this.mostrarModalBorrado = true; 
   }
-    
+      
   confirmarBorrado(): void {
     if (!this.usuarioABorrar || !this.usuarioABorrar.idUsuario) return;
     
@@ -559,9 +548,16 @@ export class PanelControlAdministradorComponent implements OnInit {
         this.lanzarModalInformativo('Usuario Desactivado', 'Se ha inhabilitado el usuario con éxito.', 'success');
       },
       error: (err) => {
-        this.mostrarModalBorrado = false;
-        const mensajeError = typeof err.error === 'string' ? err.error : 'No está permitido eliminar tu propio usuario de sesión activo.';
-        this.lanzarModalInformativo('Restricción', mensajeError, 'error');
+        if (err.status === 200 || err.status === 201) {
+          this.mostrarModalBorrado = false; 
+          this.usuarioABorrar = null;
+          this.cargarDatosSincronizados();
+          this.lanzarModalInformativo('Usuario Desactivado', 'Se ha inhabilitado el usuario con éxito.', 'success');
+        } else {
+          this.mostrarModalBorrado = false;
+          const mensajeError = typeof err.error === 'string' ? err.error : 'No está permitido eliminar tu propio usuario de sesión activo.';
+          this.lanzarModalInformativo('Restricción', mensajeError, 'error');
+        }
       }
     });
   }
@@ -636,8 +632,14 @@ export class PanelControlAdministradorComponent implements OnInit {
           this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
         },
         error: (err) => {
-          this.esErrorModalBorradoConcurso = true;
-          this.mensajeModalBorradoConcurso = err.error?.message || 'Existen participantes o registros vinculados a las bases de este concurso.';
+          if (err.status === 200 || err.status === 201) {
+            this.cerrarModalBorradoConcurso();
+            this.cargarDatosSincronizados(); 
+            this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
+          } else {
+            this.esErrorModalBorradoConcurso = true;
+            this.mensajeModalBorradoConcurso = err.error?.message || 'Existen participantes o registros vinculados a las bases de este concurso.';
+          }
         }
       });
     }

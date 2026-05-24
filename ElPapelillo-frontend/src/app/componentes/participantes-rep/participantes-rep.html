@@ -6,6 +6,16 @@
     </button>
   </div>
 
+  @if (esHistorico) {
+    <div class="info-box-historico" style="background-color: #edf2f7; border-left: 5px solid #4a5568; color: #2d3748; padding: 15px; margin-bottom: 20px; border-radius: 6px; display: flex; align-items: center; gap: 12px; font-family: sans-serif; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+      <i class="fas fa-archive" style="color: #4a5568; font-size: 1.4rem;"></i>
+      <div>
+        <strong style="display: block; margin-bottom: 2px;">Modo Consulta Histórica Activo</strong>
+        <span style="font-size: 0.9rem; color: #718096;">Este concurso ya ha finalizado. El registro oficial de participantes y personal auxiliar se encuentra congelado y en modo solo lectura.</span>
+      </div>
+    </div>
+  }
+
   <header class="participants-header">
     <div class="header-titles">
       <h1>Listado de Participantes</h1>
@@ -15,23 +25,27 @@
         Expediente de componentes y personal auxiliar
       </p>
     </div>
-    <div>
-      <button class="btn-add" (click)="abrirFormulario()">+ Añadir</button>
-    </div>
+    @if (!esHistorico) {
+      <div>
+        <button class="btn-add" (click)="abrirFormulario()">+ Añadir</button>
+      </div>
+    }
   </header>
 
-  <div class="alert-warning-card" style="display: flex; flex-direction: column; gap: 10px;">
-    <div style="display: flex; align-items: flex-start; gap: 10px;">
-      <div class="alert-icon">⚠️</div>
-      <div class="alert-text">
-        El listado de participantes se imprimirá a las <strong>00:01 del día de la actuación</strong>. Cualquier participante inscrito después de esa hora no podrá acceder al teatro.
+  @if (!esHistorico) {
+    <div class="alert-warning-card" style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text">
+          El listado de participantes se imprimirá a las <strong>00:01 del día de la actuación</strong>. Cualquier participante inscrito después de esa hora no podrá acceder al teatro.
+        </div>
+      </div>
+      
+      <div style="border-top: 1px solid rgba(217, 119, 6, 0.3); padding-top: 8px; margin-left: 28px; font-size: 0.88rem; line-height: 1.4; color: #b45309;">
+        <strong>Aviso de cupos máximos:</strong> Los límites específicos de componentes permitidos para cada tipo de modalidad o agrupación deberán consultarse en las bases reglamentarias de dicho concurso. La aplicación <em>"El Papelillo"</em> queda eximida de cualquier responsabilidad legal, penal o administrativa ante incidencias, descalificaciones o problemas derivados del incumplimiento de dichos cupos por parte de la agrupación.
       </div>
     </div>
-    
-    <div style="border-top: 1px solid rgba(217, 119, 6, 0.3); padding-top: 8px; margin-left: 28px; font-size: 0.88rem; line-height: 1.4; color: #b45309;">
-      <strong>Aviso de cupos máximos:</strong> Los límites específicos de componentes permitidos para cada tipo de modalidad o agrupación deberán consultarse en las bases reglamentarias de dicho concurso. La aplicación <em>"El Papelillo"</em> queda eximida de cualquier responsabilidad legal, penal o administrativa ante incidencias, descalificaciones o problemas derivados del incumplimiento de dichos cupos por parte de la agrupación.
-    </div>
-  </div>
+  }
 
   <div class="table-responsive-container">
     <h2 class="section-title">Componentes e Inscritos</h2>
@@ -47,7 +61,7 @@
           <th>DNI</th>
           <th>Fecha de nacimiento</th>
           <th>Rol</th>
-          <th class="text-center">Acciones</th>
+          <th class="text-center" *ngIf="!esHistorico">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -58,7 +72,7 @@
           <td>
             <span class="role-badge">{{ part.rol }}</span>
           </td>
-          <td class="action-buttons-cell">
+          <td class="action-buttons-cell" *ngIf="!esHistorico">
             <button class="btn-icon-edit" title="Editar participante" (click)="editarParticipante(part)">
               ✏️
             </button>
@@ -72,11 +86,11 @@
 
     <div class="empty-table-row" *ngIf="!loading && listaParticipantes.length === 0">
       <p>Aún no hay ningún participante inscrito en este expediente.</p>
-      <p class="text-muted" style="font-size: 0.85rem; margin-top: 5px;">Haga clic en " + Añadir" para registrar al primer integrante.</p>
+      <p class="text-muted" style="font-size: 0.85rem; margin-top: 5px;" *ngIf="!esHistorico">Haga clic en " + Añadir" para registrar al primer integrante.</p>
     </div>
   </div>
 
-  <div class="form-overlay" *ngIf="mostrarFormulario">
+  <div class="form-overlay" *ngIf="mostrarFormulario && !esHistorico">
     <div class="participant-form-card">
       
       <div class="form-card-header">

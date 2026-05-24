@@ -9,7 +9,7 @@ import { FormsModule, NgForm } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, HttpClientModule, FormsModule],
   templateUrl: './participantes-rep.html',
-  styleUrl: './participantes-rep.css' // 🌟 CORREGIDO: Propiedad en singular para evitar fallos de compilación
+  styleUrl: './participantes-rep.css'
 })
 export class GestionParticipantesComponent implements OnInit {
 
@@ -24,7 +24,7 @@ export class GestionParticipantesComponent implements OnInit {
   mostrarFormulario: boolean = false;
   mensajeErrorForm: string | null = null;
 
-  // 🌟 VARIABLES PARA LAS VENTANAS MODALES INTEGRADAS
+  // VARIABLES PARA LAS VENTANAS MODALES INTEGRADAS
   mostrarModalExito: boolean = false;
   tituloModalExito: string = '';
   contenidoModalExito: string = '';
@@ -46,7 +46,7 @@ export class GestionParticipantesComponent implements OnInit {
     nombre: '',
     dni: '',
     fechaNacimiento: '',
-    rol: 'Voz'
+    role: 'Voz'
   };
 
   public readonly ROLES_DISPONIBLES = [
@@ -60,6 +60,40 @@ export class GestionParticipantesComponent implements OnInit {
     private router: Router,
     private cd: ChangeDetectorRef
   ) { }
+
+  /**
+   * Getter seguro para verificar si la inscripción pertenece a un concurso histórico.
+   * Filtra por el Enum EstadoConcurso de Spring Boot y maneja salvaguarda temporal.
+   */
+  get esHistorico(): boolean {
+    if (!this.inscripcionActiva || !this.inscripcionActiva.concurso) {
+      return false;
+    }
+
+    const concurso = this.inscripcionActiva.concurso;
+    const estadoEnum = (concurso.estadoConcurso || concurso.estado || '').toUpperCase().trim();
+
+    console.log('[DEBUG-ENUM] Valor del estado del concurso detectado:', estadoEnum);
+
+    if (estadoEnum === 'HISTORICO') {
+      return true;
+    }
+
+    if (estadoEnum === 'ACTIVO') {
+      return false;
+    }
+
+    // Salvaguarda por fecha (por si el registro en BBDD no tuviera el Enum asignado)
+    if (concurso.fechaFin) {
+      const fechaFinConcurso = new Date(concurso.fechaFin);
+      const fechaHoy = new Date();
+      if (fechaFinConcurso < fechaHoy) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   ngOnInit(): void {
     this.idInscripcionActual = this.route.snapshot.paramMap.get('id');
@@ -92,6 +126,7 @@ export class GestionParticipantesComponent implements OnInit {
   }
 
   abrirFormulario() {
+    if (this.esHistorico) return; // Bloqueo estricto
     this.mostrarFormulario = true;
     this.limpiarFormulario();
     this.cd.detectChanges();
@@ -121,6 +156,8 @@ export class GestionParticipantesComponent implements OnInit {
   }
 
   buscarParticipantePorDni() {
+    if (this.esHistorico) return;
+
     this.mensajeErrorForm = null;
     this.participanteEncontradoHistorico = null;
 
@@ -149,7 +186,6 @@ export class GestionParticipantesComponent implements OnInit {
           if (res) {
             this.participanteEncontradoHistorico = res;
           } else {
-            // 🌟 CORREGIDO: Eliminado alert nativo informando que no hay histórico
             this.tituloModalExito = 'Sin registros previos';
             this.contenidoModalExito = 'No se registran participaciones previas con este DNI en el sistema. Complete la ficha manualmente.';
             this.mostrarModalExito = true;
@@ -214,7 +250,7 @@ export class GestionParticipantesComponent implements OnInit {
   }
 
   guardarParticipante(form: NgForm) {
-    if (!form.valid || !this.idInscripcionActual) return;
+    if (this.esHistorico || !form.valid || !this.idInscripcionActual) return;
     this.mensajeErrorForm = null;
 
     const dniAEnviar = this.nuevoParticipante.dni.trim().toUpperCase();
@@ -249,7 +285,6 @@ export class GestionParticipantesComponent implements OnInit {
     this.http.post('http://localhost:8080/api/participantes/guardar', payload)
       .subscribe({
         next: () => {
-          // 🌟 CORREGIDO: Reemplazado alert nativo por ventana modal integrada de éxito
           this.tituloModalExito = '¡Participante Guardado!';
           this.contenidoModalExito = 'El integrante ha sido registrado de forma correcta en los expedientes de la agrupación.';
           this.mostrarModalExito = true;
@@ -268,6 +303,8 @@ export class GestionParticipantesComponent implements OnInit {
   }
 
   editarParticipante(part: any) {
+    if (this.esHistorico) return; // Cortafuegos preventivo
+
     this.mostrarFormulario = true;
     this.mensajeErrorForm = null;
     
@@ -284,31 +321,23 @@ export class GestionParticipantesComponent implements OnInit {
     this.cd.detectChanges();
   }
 
-  // 🌟 NUEVO: Abre el modal personalizado de confirmación de borrado
   solicitarEliminarParticipante(idParticipacion: number) {
+    if (this.esHistorico) return; 
     this.idParticipacionAEliminar = idParticipacion;
     this.mostrarModalConfirmar = true;
     this.cd.detectChanges();
   }
 
   enmascararDniVisual(dni: string | null | undefined): string {
-  if (!dni) return '';
-  
-  const dniLimpio = dni.trim();
-  
-  // Si ya viene enmascarado por el servidor, lo dejamos como está
-  if (dniLimpio.includes('*')) return dniLimpio;
-  
-  // Si el DNI es demasiado corto por algún error de datos, no lo rompemos
-  if (dniLimpio.length < 5) return dniLimpio;
-  
-  // Muestra los 4 primeros números, oculta el resto y muestra el carácter final (Letra)
-  return dniLimpio.substring(0, 4) + '****' + dniLimpio.substring(dniLimpio.length - 1);
-}
+    if (!dni) return '';
+    const dniLimpio = dni.trim();
+    if (dniLimpio.includes('*')) return dniLimpio;
+    if (dniLimpio.length < 5) return dniLimpio;
+    return dniLimpio.substring(0, 4) + '****' + dniLimpio.substring(dniLimpio.length - 1);
+  }
 
-  // 🌟 NUEVO: Ejecuta la acción real tras pulsar "Eliminar" en el modal integrado
   confirmarEliminar() {
-    if (!this.idParticipacionAEliminar) return;
+    if (this.esHistorico || !this.idParticipacionAEliminar) return;
 
     this.http.delete(`http://localhost:8080/api/participantes/eliminar/${this.idParticipacionAEliminar}`)
       .subscribe({
@@ -316,7 +345,6 @@ export class GestionParticipantesComponent implements OnInit {
           this.mostrarModalConfirmar = false;
           this.idParticipacionAEliminar = null;
           
-          // Lanzamos modal de confirmación limpia
           this.tituloModalExito = 'Registro Eliminado';
           this.contenidoModalExito = 'El participante se ha desvinculado con éxito de la inscripción.';
           this.mostrarModalExito = true;
