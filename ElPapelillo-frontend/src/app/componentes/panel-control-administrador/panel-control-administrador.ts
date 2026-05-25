@@ -2,6 +2,7 @@ import { Component, HostListener, inject, OnInit, ChangeDetectorRef } from '@ang
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http'; 
 import { catchError, forkJoin, of } from 'rxjs';
 
 import { Usuario } from './panel-control-administrador-usuario.model'; 
@@ -19,11 +20,12 @@ import { PanelControlAdministradorConcursoService } from './panel-control-admini
 })
 export class PanelControlAdministradorComponent implements OnInit {
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef); // <-- Inyección clave para forzar el renderizado inmediato
+  private cdr = inject(ChangeDetectorRef); 
+  private http = inject(HttpClient); 
+
   isMenuOpen = false;
   borradoExitoso: boolean = false;
   
-  // USUARIOS
   usuarios: Usuario[] = [];
   usuariosFiltrados: Usuario[] = [];
   usuariosPaginados: Usuario[] = []; 
@@ -31,7 +33,6 @@ export class PanelControlAdministradorComponent implements OnInit {
   paginaActual: number = 1;
   totalPaginas: number = 1;
 
-  // AUDITORÍA (Campos reales de la base de datos)
   logs: any[] = [];
   logsFiltrados: any[] = [];
   logsPaginados: any[] = []; 
@@ -43,7 +44,6 @@ export class PanelControlAdministradorComponent implements OnInit {
   itemsPorPagina: number = 5;
   rolSesionActual: string | null = '';
   
-  // FORMULARIO USUARIOS
   mostrandoFormulario = false;
   modoFormulario: 'crear' | 'editar' | 'ver' = 'crear';
   nuevoUsuario: any = {
@@ -51,17 +51,14 @@ export class PanelControlAdministradorComponent implements OnInit {
     telefono: '', rol: 'REPRESENTANTE', contacto_emergencia: '', cargo: '', activo: true 
   };
 
-  // FORMULARIO CONCURSOS
   mostrandoFormularioConcurso = false;
   modoFormularioConcurso: 'crear' | 'editar' | 'ver' = 'ver';
   concursoSeleccionado: any = {};
 
-  // MODAL BORRADO USUARIOS
   mostrarModalBorrado = false;
   usuarioABorrar: any = null;
   mensajeErrorBorrado: string | null = null;
 
-  // ORGANIZACIONES
   organizaciones: any[] = [];
   organizacionesFiltradas: any[] = [];
   terminoBusquedaOrg: string = '';
@@ -78,14 +75,14 @@ export class PanelControlAdministradorComponent implements OnInit {
     activo: true 
   };
 
-  // MODAL BORRADO CONCURSOS
+  // Variables de control para borrado de concursos (corregido)
   mostrarModalBorradoConcurso = false;
   esErrorModalBorradoConcurso = false;
   mensajeModalBorradoConcurso = '';
   tituloModalBorradoConcurso = '';
   idConcursoABorrar: number | null = null;
+  nombreConcursoABorrar: string = ''; // 👈 Guardará temporalmente el nombre para el Log de auditoría
 
-  // CONCURSOS STATE
   concursos: any[] = [];
   concursosFiltrados: any[] = [];
   concursosPaginados: any[] = [];
@@ -97,12 +94,10 @@ export class PanelControlAdministradorComponent implements OnInit {
   itemsPorPaginaConcursos: number = 5;
   totalPaginasConcursos: number = 1;
   
-  // TOAST CONTROL
   mostrarToast: boolean = false;
   mensajeToast: string = '';
   tipoToast: 'success' | 'error' = 'success';
 
-  // MODALES INTERNES GENERALES
   mostrarModalExitoGlobal: boolean = false;
   tituloModalExitoGlobal: string = '';
   contenidoModalExitoGlobal: string = '';
@@ -126,6 +121,28 @@ export class PanelControlAdministradorComponent implements OnInit {
     }
   }
 
+  /**
+   * 🔒 MÉTODO CENTRALIZADO DE AUDITORÍA
+   */
+  private registrarAuditoria(accion: string, descripcion: string): void {
+    const adminIdGuardado = localStorage.getItem('idUsuario') || 
+                            localStorage.getItem('idAdministrador') || 
+                            localStorage.getItem('id');
+    
+    const administradorId = adminIdGuardado ? Number(adminIdGuardado) : 1;
+
+    const payloadAuditoria = {
+      administradorId: administradorId, 
+      accion: accion,                    
+      descripcion: descripcion            
+    };
+
+    this.http.post('http://localhost:8080/api/auditoria', payloadAuditoria).subscribe({
+      next: () => console.log(`[Auditoría] Registro guardado con éxito: ${accion}`),
+      error: (err) => console.error('[Auditoría] Error:', err)
+    });
+  }
+
   lanzarToast(mensaje: string, tipo: 'success' | 'error' = 'success'): void {
     this.mensajeToast = mensaje;
     this.tipoToast = tipo;
@@ -147,10 +164,9 @@ export class PanelControlAdministradorComponent implements OnInit {
       this.contenidoModalErrorGlobal = contenido;
       this.mostrarModalErrorGlobal = true;
     }
-    this.cdr.detectChanges(); // Redibuja el HTML instantáneamente
+    this.cdr.detectChanges(); 
   }
 
-  // --- MÉTODOS DE ORGANIZACIONES ---
   cargarOrganizaciones(): void {
     this.organizacionService.getOrganizaciones().subscribe({
       next: (res) => {
@@ -221,6 +237,12 @@ export class PanelControlAdministradorComponent implements OnInit {
 
     peticion.subscribe({
       next: () => {
+        const accionAuditoria = this.modoFormOrg === 'crear' ? 'CREAR_ORGANIZACION' : 'EDITAR_ORGANIZACION';
+        const descAuditoria = this.modoFormOrg === 'crear' 
+          ? `Se ha creado una nueva organización: "${this.nuevaOrg.nombre}"`
+          : `Se modificaron los datos de la organización con ID: ${id} ("${this.nuevaOrg.nombre}")`;
+        this.registrarAuditoria(accionAuditoria, descAuditoria);
+
         this.mostrandoFormOrg = false;
         this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
         this.cdr.detectChanges();
@@ -229,6 +251,12 @@ export class PanelControlAdministradorComponent implements OnInit {
       },
       error: (err) => {
         if (err.status === 200 || err.status === 201) {
+          const accionAuditoria = this.modoFormOrg === 'crear' ? 'CREAR_ORGANIZACION' : 'EDITAR_ORGANIZACION';
+          const descAuditoria = this.modoFormOrg === 'crear' 
+            ? `Se ha creado una nueva organización: "${this.nuevaOrg.nombre}"`
+            : `Se modificaron los datos de la organización con ID: ${id} ("${this.nuevaOrg.nombre}")`;
+          this.registrarAuditoria(accionAuditoria, descAuditoria);
+
           this.mostrandoFormOrg = false;
           this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
           this.cdr.detectChanges();
@@ -258,6 +286,8 @@ export class PanelControlAdministradorComponent implements OnInit {
       const datosDesactivar = { ...this.orgABorrar, activo: false };
       this.organizacionService.actualizarOrganizacion(+this.orgABorrar.idOrganizacion, datosDesactivar).subscribe({
         next: () => {
+          this.registrarAuditoria('DESACTIVAR_ORGANIZACION', `Se ha dado de baja/desactivado la organización: "${this.orgABorrar.nombre}" (ID: ${this.orgABorrar.idOrganizacion})`);
+
           this.mostrarModalBorradoOrg = false;
           this.lanzarModalInformativo('Eliminada', 'La organización ha sido desactivada en el sistema.', 'success');
           this.orgABorrar = null;
@@ -268,6 +298,8 @@ export class PanelControlAdministradorComponent implements OnInit {
         error: (err) => {
           this.mostrarModalBorradoOrg = false;
           if (err.status === 200 || err.status === 201) {
+            this.registrarAuditoria('DESACTIVAR_ORGANIZACION', `Se ha dado de baja/desactivado la organización: "${this.orgABorrar.nombre}" (ID: ${this.orgABorrar.idOrganizacion})`);
+
             this.lanzarModalInformativo('Eliminada', 'La organización ha sido desactivada en el sistema.', 'success');
             this.orgABorrar = null;
             this.cdr.detectChanges();
@@ -282,19 +314,17 @@ export class PanelControlAdministradorComponent implements OnInit {
     }
   }
   
-  // --- CARGA Y SINCRONIZACIÓN ---
   cargarDatosSincronizados(): void {
     const miRol = (this.rolSesionActual || '').toUpperCase();
     const miIdOrg = localStorage.getItem('id_organizacion');
-    const idLogueado = Number(localStorage.getItem('idUsuario'));
+    const idLogueado = Number(localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1');
 
     forkJoin({
       usuariosRes: this.usuarioService.getUsuarios(),
-      auditoriaRes: this.auditoriaService.getLogs(),
+      auditoriaRes: this.auditoriaService.getLogsFiltradosPorUsuario(idLogueado),
       concursosRes: this.concursoService.getMisConcursos(idLogueado).pipe(catchError(() => of([])))
     }).subscribe({
       next: ({ usuariosRes, auditoriaRes, concursosRes }) => {
-        // Usuarios
         const activos = usuariosRes.filter((u: any) => u.activo !== 0 && u.activo !== false);
         this.usuarios = miRol === 'SYSADMIN' 
           ? activos 
@@ -304,7 +334,6 @@ export class PanelControlAdministradorComponent implements OnInit {
             });
         this.usuariosFiltrados = [...this.usuarios];
 
-        // Mapeo Auditoría
         this.logs = auditoriaRes.map((log: any) => {
           const fechaObj = new Date(log.fecha);
           return {
@@ -317,12 +346,7 @@ export class PanelControlAdministradorComponent implements OnInit {
           };
         });
 
-        if (miRol !== 'SYSADMIN') {
-          this.logs = this.logs.filter(log => this.usuarios.some(u => (u as any).idUsuario == log.idUsuario || (u as any).idUsuario == log.administrador_id));
-        }
         this.logsFiltrados = [...this.logs];
-
-        // Concursos
         this.concursos = concursosRes;
         this.concursosFiltrados = [...this.concursos];
 
@@ -400,6 +424,9 @@ export class PanelControlAdministradorComponent implements OnInit {
   }
 
   getNombreResponsable(log: any): string {
+    if (log.administrador && log.administrador.nombre) {
+      return log.administrador.nombre;
+    }
     const idResponsable = log.idUsuario || log.administrador_id;
     const u = this.usuarios.find(user => (user as any).idUsuario == idResponsable);
     return u ? u.nombre : `Admin (ID: ${idResponsable || 'Sistema'})`;
@@ -456,9 +483,13 @@ export class PanelControlAdministradorComponent implements OnInit {
       }
 
       this.usuarioService.crearUsuario(usuarioParaEnviar).subscribe({
-        next: () => this.finalizarGuardado('Usuario registrado correctamente.'),
+        next: () => {
+          this.registrarAuditoria('CREAR_USUARIO', `Se registró un nuevo usuario en el sistema: "${usuarioParaEnviar.nombre}" (${rolLimpio})`);
+          this.finalizarGuardado('Usuario registrado correctamente.');
+        },
         error: (err) => {
           if (err.status === 200 || err.status === 201) {
+            this.registrarAuditoria('CREAR_USUARIO', `Se registró un nuevo usuario en el sistema: "${usuarioParaEnviar.nombre}" (${rolLimpio})`);
             this.finalizarGuardado('Usuario registrado correctamente.');
           } else {
             this.manejarError(err);
@@ -475,9 +506,13 @@ export class PanelControlAdministradorComponent implements OnInit {
       }
 
       this.usuarioService.actualizarUsuarioConEjecutor(idAEditar, usuarioParaEnviar, idEjecutor).subscribe({
-        next: () => this.finalizarGuardado('El usuario se ha actualizado correctamente.'),
+        next: () => {
+          this.registrarAuditoria('EDITAR_USUARIO', `Se modificó la ficha de perfil correspondiente al usuario "${usuarioParaEnviar.nombre}"`);
+          this.finalizarGuardado('El usuario se ha actualizado correctamente.');
+        },
         error: (err) => {
           if (err.status === 200 || err.status === 201) {
+            this.registrarAuditoria('EDITAR_USUARIO', `Se modificó la ficha de perfil correspondiente al usuario "${usuarioParaEnviar.nombre}")`);
             this.finalizarGuardado('El usuario se ha actualizado correctamente.');
           } else {
             this.manejarError(err);
@@ -487,7 +522,6 @@ export class PanelControlAdministradorComponent implements OnInit {
     }
   }
 
-  // --- MÉTODOS DE CONCURSOS ---
   private formatearFechaInput(fechaStr: string): string {
     if (!fechaStr) return '';
     const d = new Date(fechaStr);
@@ -529,10 +563,22 @@ export class PanelControlAdministradorComponent implements OnInit {
 
     servicioCall.subscribe({
       next: () => {
+        const accionAuditoria = this.modoFormularioConcurso === 'crear' ? 'CREAR_CONCURSO' : 'EDITAR_CONCURSO';
+        const descAuditoria = this.modoFormularioConcurso === 'crear'
+          ? `Se ha constituido un nuevo concurso bajo el título: "${c.nombre}"`
+          : `Se reconfiguraron los parámetros del concurso "${c.nombre}"`;
+        this.registrarAuditoria(accionAuditoria, descAuditoria);
+
         this.finalizarGuardado('El concurso se ha configurado de manera idónea.');
       },
       error: (err) => {
         if (err.status === 200 || err.status === 201) {
+          const accionAuditoria = this.modoFormularioConcurso === 'crear' ? 'CREAR_CONCURSO' : 'EDITAR_CONCURSO';
+          const descAuditoria = this.modoFormularioConcurso === 'crear'
+            ? `Se ha constituido un nuevo concurso bajo el título: "${c.nombre}"`
+            : `Se reconfiguraron los parámetros del concurso "${c.nombre}"`;
+          this.registrarAuditoria(accionAuditoria, descAuditoria);
+
           this.finalizarGuardado('El concurso se ha configurado de manera idónea.');
         } else {
           console.error(err);
@@ -547,11 +593,9 @@ export class PanelControlAdministradorComponent implements OnInit {
     this.mostrandoFormularioConcurso = false;
     this.mostrandoFormOrg = false;
     
-    // Primero desplegamos la confirmación visual de éxito
     this.lanzarModalInformativo('Operación Completada', mensaje, 'success');
-    this.cdr.detectChanges(); // Redibujamos la pantalla ipso facto
+    this.cdr.detectChanges(); 
 
-    // Solicitamos la sincronización de las tablas en segundo plano
     this.cargarDatosSincronizados();
     if (this.rolSesionActual?.toUpperCase() === 'SYSADMIN') {
       this.cargarOrganizaciones();
@@ -582,6 +626,8 @@ export class PanelControlAdministradorComponent implements OnInit {
 
     this.usuarioService.eliminarUsuario(idABorrar, miId).subscribe({
       next: () => {
+        this.registrarAuditoria('DESACTIVAR_USUARIO', `Se revocaron permisos e inhabilitó al usuario: "${this.usuarioABorrar.nombre}" `);
+
         this.mostrarModalBorrado = false; 
         this.lanzarModalInformativo('Usuario Desactivado', 'Se ha inhabilitado el usuario con éxito.', 'success');
         this.usuarioABorrar = null;
@@ -591,6 +637,8 @@ export class PanelControlAdministradorComponent implements OnInit {
       error: (err) => {
         this.mostrarModalBorrado = false; 
         if (err.status === 200 || err.status === 201) {
+          this.registrarAuditoria('DESACTIVAR_USUARIO', `Se revocaron permisos e inhabilitó al usuario: "${this.usuarioABorrar.nombre}" (ID: ${idABorrar})`);
+
           this.lanzarModalInformativo('Usuario Desactivado', 'Se ha inhabilitado el usuario con éxito.', 'success');
           this.usuarioABorrar = null;
           this.cdr.detectChanges();
@@ -663,9 +711,11 @@ export class PanelControlAdministradorComponent implements OnInit {
 
   abrirModalBorradoConcurso(concurso: any): void {
     this.idConcursoABorrar = concurso.idConcurso || concurso.id;
+    this.nombreConcursoABorrar = concurso.nombre || 'Concurso sin nombre'; // 👈 Se guarda el nombre del objeto
+    
     this.esErrorModalBorradoConcurso = false;
     this.tituloModalBorradoConcurso = 'Confirmar Eliminación de Concurso';
-    this.mensajeModalBorradoConcurso = `¿Estás seguro de que deseas eliminar permanentemente el concurso "${concurso.nombre}"?`;
+    this.mensajeModalBorradoConcurso = `¿Estás seguro de que deseas eliminar permanentemente el concurso "${this.nombreConcursoABorrar}"?`; // 👈 Renderiza con nombre
     this.mostrarModalBorradoConcurso = true;
     this.cdr.detectChanges();
   }
@@ -674,19 +724,27 @@ export class PanelControlAdministradorComponent implements OnInit {
     if (this.idConcursoABorrar) {
       this.concursoService.eliminarConcurso(this.idConcursoABorrar).subscribe({
         next: () => {
+          // 🎯 AUDITORÍA CON NOMBRE EN VEZ DE ID
+          this.registrarAuditoria('ELIMINAR_CONCURSO', `Se ha eliminado permanentemente el concurso: "${this.nombreConcursoABorrar}" (ID: ${this.idConcursoABorrar})`);
+
           this.mostrarModalBorradoConcurso = false; 
           this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
           this.idConcursoABorrar = null;
+          this.nombreConcursoABorrar = ''; // Limpieza de variable
           this.cdr.detectChanges();
-          this.cargarDatosSincronizados(); 
+          this.cargarDatosSincronizados();
         },
         error: (err) => {
           if (err.status === 200 || err.status === 201) {
+            // 🎯 AUDITORÍA CON NOMBRE EN VEZ DE ID (MÁSCARA 201)
+            this.registrarAuditoria('ELIMINAR_CONCURSO', `Se ha eliminado permanentemente el concurso: "${this.nombreConcursoABorrar}"`);
+
             this.mostrarModalBorradoConcurso = false;
             this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
             this.idConcursoABorrar = null;
+            this.nombreConcursoABorrar = ''; // Limpieza de variable
             this.cdr.detectChanges();
-            this.cargarDatosSincronizados(); 
+            this.cargarDatosSincronizados();
           } else {
             this.esErrorModalBorradoConcurso = true;
             this.mensajeModalBorradoConcurso = err.error?.message || 'Existen participantes o registros vinculados a las bases de este concurso.';
@@ -700,6 +758,7 @@ export class PanelControlAdministradorComponent implements OnInit {
   cerrarModalBorradoConcurso(): void {
     this.mostrarModalBorradoConcurso = false;
     this.idConcursoABorrar = null;
+    this.nombreConcursoABorrar = ''; // Limpieza de seguridad
     this.cdr.detectChanges();
-  }  
+  }   
 }

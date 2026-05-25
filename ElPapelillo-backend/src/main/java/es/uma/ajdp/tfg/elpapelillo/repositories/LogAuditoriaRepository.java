@@ -10,12 +10,12 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface LogAuditoriaRepository extends JpaRepository<LogAuditoria, Integer> {
-    
-    
-    @Query(value = "SELECT l.* FROM logauditoria l " +
-               "JOIN administrador a ON l.administrador_id = a.idUsuario " +
-               "WHERE a.id_organizacion = (SELECT id_organizacion FROM administrador WHERE idUsuario = :idUsuario) " +
-               "ORDER BY l.fecha DESC", nativeQuery = true)
+public interface LogAuditoriaRepository extends JpaRepository<LogAuditoria, Long> {
+
+    @Query("SELECT l FROM LogAuditoria l WHERE l.administrador.idUsuario IN (" +
+           "  SELECT u.idUsuario FROM Usuario u WHERE u.organizacion.idOrganizacion = (" +
+           "    SELECT req.organizacion.idOrganizacion FROM Usuario req WHERE req.idUsuario = :idUsuario" +
+           "  )" +
+           ") ORDER BY l.fecha DESC")
     List<LogAuditoria> findByOrganizacionDeUsuario(@Param("idUsuario") Integer idUsuario);
 }

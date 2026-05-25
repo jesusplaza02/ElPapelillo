@@ -17,4 +17,8 @@ export class PanelControlAdministradorAuditoriaService {
     }
     return this.http.get<any[]>(this.apiUrl);
   }
+
+  getLogsFiltradosPorUsuario(idUsuarioActual: number): Observable<any[]> {
+    return this.http.get<any[]>(`http://localhost:8080/api/auditoria?idUsuarioActual=${idUsuarioActual}`);
+  }
 }
