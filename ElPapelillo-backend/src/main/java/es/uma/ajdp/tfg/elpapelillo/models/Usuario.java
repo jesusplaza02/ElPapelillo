@@ -64,7 +64,6 @@ public class Usuario {
     @Column(nullable = false)
     private String rol;
 
-    // --- CICLOS DE VIDA DE JPA PARA EL CIFRADO Y LA AUDITORÍA ---
 
     @PostLoad
     public void decryptDni() {
@@ -75,10 +74,8 @@ public class Usuario {
 
     @PrePersist
     public void onPrePersist() {
-        // 1. Lógica que ya tenías antes para la auditoría de fecha
         this.fechaRegistro = LocalDate.now(); 
         
-        // 2. Lógica del cifrado del DNI
         if (this.getDNI() != null) {
             String dniLimpio = this.getDNI().trim().toUpperCase();
             this.setDNI(CryptoUtil.encrypt(dniLimpio));
