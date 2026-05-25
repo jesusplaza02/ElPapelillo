@@ -5,9 +5,8 @@ public class LoginResponse {
     private String rol;
     private String email;
     private Integer idUsuario;
-    private Integer id_organizacion; // <--- NUEVO CAMPO
+    private Integer id_organizacion; 
 
-    // Constructor actualizado
     public LoginResponse(String token, String rol, String email, Integer idUsuario, Integer id_organizacion) {
         this.token = token;
         this.rol = rol;
@@ -21,5 +20,5 @@ public class LoginResponse {
     public String getRol() { return rol; }
     public String getEmail() { return email; }
     public Integer getIdUsuario() { return idUsuario; }
-    public Integer getId_organizacion() { return id_organizacion; } // <--- ¡FUNDAMENTAL!
+    public Integer getId_organizacion() { return id_organizacion; } 
 }

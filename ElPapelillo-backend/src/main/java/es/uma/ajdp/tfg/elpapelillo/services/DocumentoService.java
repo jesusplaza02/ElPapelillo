@@ -22,26 +22,20 @@ public class DocumentoService {
 
     @Transactional
     public Documento guardarDocumento(MultipartFile archivo, @NonNull Integer idInscripcion, String nombreDoc) {
-        // 1. Simulación de guardado
         String rutaSimulada = "archivos/" + archivo.getOriginalFilename();
 
-        // 2. Crear el objeto Documento
         Documento doc = new Documento();
         doc.setNombre(nombreDoc);
         doc.setUrlArchivo(rutaSimulada);
         doc.setEstado(EstadoAdministrativo.PENDIENTE);
 
-        // 3. Vincular con la Inscripción (Usando Integer)
-        // Arreglado: Eliminado el uso de Long para evitar errores de compilación
         inscripcionRepository.findById(idInscripcion)
             .ifPresent(doc::setInscripcion);
 
-        // 4. Guardar
         return documentoRepository.save(doc);
     }
 
     public List<Documento> listarPorInscripcion(Integer idInscripcion) {
-        // Coincide con el tipo Integer definido en el repositorio
         return documentoRepository.findByInscripcionIdInscripcion(idInscripcion);
     }
 }

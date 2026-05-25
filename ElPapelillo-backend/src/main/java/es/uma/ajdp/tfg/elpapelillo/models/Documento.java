@@ -16,7 +16,7 @@ public class Documento {
     private Integer idDocumento;
 
     private String nombre;
-    private String tipo; // Ejemplo: "DNI", "AUTORIZACION_MENOR"
+    private String tipo; 
     private String urlArchivo;
     private String comentarioRevision;
 

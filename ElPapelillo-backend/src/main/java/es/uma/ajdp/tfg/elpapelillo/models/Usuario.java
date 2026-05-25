@@ -20,10 +20,7 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-/* CONFIGURACIÓN DE JACKSON PARA EVITAR RECURSIVIDAD Y ERRORES DE HERENCIA:
-   1. Definimos que el JSON incluya un campo "type" para diferenciar Admin de Representante.
-   2. Ignoramos propiedades de Hibernate que suelen romper el parseo en el Frontend.
-*/
+//CONFIGURACIÓN DE JACKSON PARA EVITAR RECURSIVIDAD Y ERRORES DE HERENCIA:
 @JsonTypeInfo
     (use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, 
     property = "type", defaultImpl = Usuario.class)

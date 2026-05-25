@@ -35,9 +35,6 @@ public class Concurso {
     private LocalDate fechaInicioInscripcion;
     private LocalDate fechaFinInscripcion;
     
-
-
-    // Usamos @Enumerated para que en la BD se guarde el texto del Enum
     @Enumerated(EnumType.STRING)
     private TipoConcurso tipoConcurso;
 
@@ -48,7 +45,6 @@ public class Concurso {
     @Column(name = "id_organizacion")
     private Integer id_organizacion;
 
-    // Muchos concursos pertenecen a una única Organización
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_organizacion", nullable = false, insertable = false, updatable = false)
     @JsonBackReference

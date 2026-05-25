@@ -33,9 +33,6 @@ public class ParticipanteController {
     @Autowired
     private InscripcionRepository inscripcionRepository;
 
-    /**
-     * Obtiene todos los registros de la tabla intermedia asociados a una inscripción concreta.
-     */
     @GetMapping("/inscripcion/{idInscripcion}")
     public ResponseEntity<List<Participacion>> obtenerPorInscripcion(@PathVariable Integer idInscripcion) {
         try {
@@ -50,27 +47,21 @@ public class ParticipanteController {
         }
     }
 
-    /**
-     * Busca un participante en el histórico global del sistema por su DNI.
-     */
     @GetMapping("/buscar-historico")
     public ResponseEntity<?> buscarPorDni(@RequestParam String dni) {
         try {
-            // Buscamos como lista en lugar de Optional para evitar el error "Query did not return a unique result"
-            List<Participante> participantes = participanteRepository.findAllByDni(dni.trim());
-            
-            // Nota: Si no tienes "findAllByDni" en tu ParticipanteRepository, puedes definirlo como:
-            // List<Participante> findAllByDni(String dni);
-            // O bien, si usas findByDni y devuelve una lista, adáptalo.
+            String dniCifrado = es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil.encrypt(dni.trim());
+
+            List<Participante> participantes = participanteRepository.findAllByDni(dniCifrado);
             
             if (participantes != null && !participantes.isEmpty()) {
-                return ResponseEntity.ok(participantes.get(0)); // Nos quedamos con el registro más antiguo/válido
+                return ResponseEntity.ok(participantes.get(0)); // JPA ejecutará @PostLoad y el JSON llevará el DNI limpio
             }
             return ResponseEntity.ok(null);
         } catch (Exception e) {
-            // Fallback de emergencia por si tu repositorio sigue usando findByDni directo:
             try {
-                Optional<Participante> pOpt = participanteRepository.findByDni(dni.trim());
+                String dniCifrado = es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil.encrypt(dni.trim());
+                Optional<Participante> pOpt = participanteRepository.findByDni(dniCifrado);
                 if (pOpt.isPresent()) return ResponseEntity.ok(pOpt.get());
             } catch (Exception ex) {
                 System.out.println("Duplicado detectado en el catch de emergencia.");
@@ -81,13 +72,10 @@ public class ParticipanteController {
                     .body(Map.of("error", "Error al buscar en el histórico: " + e.getMessage()));
         }
     }
-    /**
-     * 💾 GUARDAR / ACTUALIZAR PARTICIPANTE Y PARTICIPACIÓN (CON PARSEO DE ENUM)
-     */
+   
     @PostMapping("/guardar")
     public ResponseEntity<?> guardarParticipante(@RequestBody Map<String, Object> payload) {
         try {
-            // 1. Extraer datos del JSON de Angular
             Integer idParticipacion = (Integer) payload.get("idParticipacion");
             Integer idParticipanteBase = (Integer) payload.get("idParticipante"); 
             String nombre = (String) payload.get("nombre");
@@ -101,7 +89,6 @@ public class ParticipanteController {
             Inscripcion inscripcion = inscripcionRepository.findById(idInscripcion)
                     .orElseThrow(() -> new RuntimeException("Inscripción no encontrada."));
 
-            // 2. 🛡️ GESTIÓN DEL OBJETO PARTICIPANTE BASE (Evitar Duplicados de DNI)
             Participante participante = null;
 
             if (idParticipanteBase != null) {
@@ -125,8 +112,6 @@ public class ParticipanteController {
             
             participante = participanteRepository.save(participante);
 
-            // 3. 🔑 TRADUCCIÓN DEL STRING AL ENUM `RolParticipante`
-            // Limpia espacios ("Ayudantes de escena" -> "AYUDANTES_DE_ESCENA") y quita acentos
             String rolEnumStr = rolStr.toUpperCase()
                     .replace(" ", "_")
                     .replaceAll("[ÁÁàá]", "A")
@@ -137,7 +122,6 @@ public class ParticipanteController {
             
             RolParticipante rolEnum = RolParticipante.valueOf(rolEnumStr);
 
-            // 4. 🔀 GESTIÓN DE LA TABLA INTERMEDIA (Participacion)
             Participacion participacion;
             
             if (idParticipacion != null) {
@@ -159,7 +143,7 @@ public class ParticipanteController {
 
             participacion.setInscripcion(inscripcion);
             participacion.setParticipante(participante);
-            participacion.setRol(rolEnum); // 🔑 ¡Arreglado! Ahora le pasamos la variable de tipo RolParticipante
+            participacion.setRol(rolEnum); 
 
             participacionRepository.save(participacion);
             
@@ -176,9 +160,7 @@ public class ParticipanteController {
         }
     }
 
-    /**
-     * 🗑️ ELIMINAR PARTICIPACIÓN DE LA INSCRIPCIÓN
-     */
+    
     @DeleteMapping("/eliminar/{idParticipacion}")
     public ResponseEntity<?> eliminarParticipante(@PathVariable Integer idParticipacion) {
         try {

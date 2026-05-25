@@ -32,7 +32,6 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginData) {
         try {
-            // 1. Buscamos al usuario por email
             Optional<Usuario> userOpt = usuarioRepository.findByEmail(loginData.getEmail());
 
             if (userOpt.isPresent()) {
@@ -43,30 +42,23 @@ public class LoginController {
                         .body(Map.of("message", "Su cuenta está desactivada. Contacte con el administrador."));
                 }
 
-                // 2. Verificamos contraseña con BCrypt
                 if (passwordEncoder.matches(loginData.getPassword(), user.getPassword())) {
                     
                     Integer orgId = null;
 
-                    // 3. Obtener el ID de la organización desde la tabla Administrador
-                    // Filtramos por roles que pertenecen a organizaciones
                     if ("ADMINISTRADOR".equals(user.getRol()) || "SUPERADMIN".equals(user.getRol())) {
-                        
-                        // Buscamos en el repo de administradores usando el idUsuario
+
                         Optional<Administrador> adminOpt = administradorRepository.findByIdUsuario(user.getIdUsuario());
                         
                         if (adminOpt.isPresent()) {
                             Administrador admin = adminOpt.get();
-                            
-                            // Accedemos al objeto Organizacion y sacamos su ID
-                            // (Asegúrate de que en la clase Organizacion el ID se llame 'id')
+
                             if (admin.getOrganizacion() != null) {
                                 orgId = admin.getOrganizacion().getIdOrganizacion(); 
                             }
                         }
                     }
 
-                    // 4. Enviamos la respuesta con los 5 campos requeridos
                     LoginResponse res = new LoginResponse(
                         "token-generado-abc", 
                         user.getRol(),        
@@ -79,12 +71,10 @@ public class LoginController {
                 }
             }
 
-            // Error de autenticación
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                                  .body(Map.of("message", "Email o contraseña incorrectos"));
 
         } catch (Exception e) {
-            // Error de servidor
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                  .body(Map.of("message", "Error en el servidor: " + e.getMessage()));
         }

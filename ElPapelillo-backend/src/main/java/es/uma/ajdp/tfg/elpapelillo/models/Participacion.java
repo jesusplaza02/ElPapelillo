@@ -32,7 +32,6 @@ public class Participacion {
     @Enumerated(EnumType.STRING)
     private RolParticipante rol;
 
-    // Constructor necesario para el método añadirParticipante de la clase Inscripcion
     public Participacion(Inscripcion inscripcion, Participante participante, RolParticipante rol) {
         this.inscripcion = inscripcion;
         this.participante = participante;

@@ -50,10 +50,10 @@ public abstract class Agrupacion {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_representante")
-    @JsonIgnoreProperties({"agrupaciones", "password", "roles"}) // Corta la vuelta al representante
+    @JsonIgnoreProperties({"agrupaciones", "password", "roles"})
     private Representante representante;
 
     @OneToMany(mappedBy = "agrupacion")
-    @JsonIgnore // NUNCA serializar inscripciones desde aquí
+    @JsonIgnore
     private List<Inscripcion> inscripciones;
 }

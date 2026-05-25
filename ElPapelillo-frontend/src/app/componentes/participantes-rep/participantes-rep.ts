@@ -46,13 +46,8 @@ export class GestionParticipantesComponent implements OnInit {
     nombre: '',
     dni: '',
     fechaNacimiento: '',
-    role: 'Voz'
+    rol: 'VOZ'
   };
-
-  public readonly ROLES_DISPONIBLES = [
-    { grupo: 'Componentes', roles: ['Voz', 'Guitarra', 'Caja', 'Bombo'] },
-    { grupo: 'Personal Auxiliar', roles: ['Ayudantes de escena', 'Montadores', 'Maquilladoras', 'Otros'] }
-  ];
 
   constructor(
     private http: HttpClient,
@@ -61,37 +56,21 @@ export class GestionParticipantesComponent implements OnInit {
     private cd: ChangeDetectorRef
   ) { }
 
-  /**
-   * Getter seguro para verificar si la inscripción pertenece a un concurso histórico.
-   * Filtra por el Enum EstadoConcurso de Spring Boot y maneja salvaguarda temporal.
-   */
   get esHistorico(): boolean {
     if (!this.inscripcionActiva || !this.inscripcionActiva.concurso) {
       return false;
     }
-
     const concurso = this.inscripcionActiva.concurso;
     const estadoEnum = (concurso.estadoConcurso || concurso.estado || '').toUpperCase().trim();
 
-    console.log('[DEBUG-ENUM] Valor del estado del concurso detectado:', estadoEnum);
+    if (estadoEnum === 'HISTORICO') return true;
+    if (estadoEnum === 'ACTIVO') return false;
 
-    if (estadoEnum === 'HISTORICO') {
-      return true;
-    }
-
-    if (estadoEnum === 'ACTIVO') {
-      return false;
-    }
-
-    // Salvaguarda por fecha (por si el registro en BBDD no tuviera el Enum asignado)
     if (concurso.fechaFin) {
       const fechaFinConcurso = new Date(concurso.fechaFin);
       const fechaHoy = new Date();
-      if (fechaFinConcurso < fechaHoy) {
-        return true;
-      }
+      if (fechaFinConcurso < fechaHoy) return true;
     }
-
     return false;
   }
 
@@ -113,9 +92,7 @@ export class GestionParticipantesComponent implements OnInit {
     const d = dni.trim().toUpperCase();
     const regexDni = /^[0-9]{8}[TRWAGMYFPDXBNJZSQVHLCKE]$/;
     
-    if (!regexDni.test(d)) {
-      return false;
-    }
+    if (!regexDni.test(d)) return false;
 
     const letras = 'TRWAGMYFPDXBNJZSQVHLCKE';
     const numero = parseInt(d.substring(0, 8), 10);
@@ -125,8 +102,34 @@ export class GestionParticipantesComponent implements OnInit {
     return letraAsignada === letraCorrecta;
   }
 
+  verificarDniAutomatico() {
+    if (this.dniBusqueda && this.validarFormFormatDni(this.dniBusqueda)) {
+      this.buscarParticipantePorDni();
+    }
+  }
+
+  detectarDniEscritoAManos() {
+    if (!this.nuevoParticipante.idParticipacion && this.nuevoParticipante.dni) {
+      const dniLimpio = this.nuevoParticipante.dni.trim().toUpperCase();
+      if (this.validarFormFormatDni(dniLimpio)) {
+        
+        const yaExisteLocal = this.listaParticipantes.some(
+          p => p.participante?.dni?.toUpperCase() === dniLimpio
+        );
+
+        if (yaExisteLocal) {
+          this.mensajeErrorForm = '⚠️ Este participante ya figura inscrito en este listado.';
+          return;
+        }
+
+        this.dniBusqueda = dniLimpio;
+        this.buscarParticipantePorDni();
+      }
+    }
+  }
+
   abrirFormulario() {
-    if (this.esHistorico) return; // Bloqueo estricto
+    if (this.esHistorico) return;
     this.mostrarFormulario = true;
     this.limpiarFormulario();
     this.cd.detectChanges();
@@ -148,26 +151,22 @@ export class GestionParticipantesComponent implements OnInit {
       nombre: '',
       dni: '',
       fechaNacimiento: '',
-      rol: 'Voz'
+      rol: 'VOZ'
     };
     if (this.partForm) {
-      this.partForm.resetForm({ rol: 'Voz' });
+      this.partForm.resetForm({ rol: 'VOZ' });
     }
   }
 
   buscarParticipantePorDni() {
     if (this.esHistorico) return;
-
     this.mensajeErrorForm = null;
     this.participanteEncontradoHistorico = null;
 
-    if (!this.dniBusqueda.trim()) {
-      this.mensajeErrorForm = '⚠️ Por favor, introduce un DNI para realizar la comprobación.';
-      return;
-    }
+    if (!this.dniBusqueda.trim()) return;
 
     if (!this.validarFormFormatDni(this.dniBusqueda)) {
-      this.mensajeErrorForm = '⚠️ El formato del DNI introducido no es válido o la letra de control es incorrecta.';
+      this.mensajeErrorForm = '⚠️ El formato del DNI introducido no es válido.';
       return;
     }
 
@@ -176,7 +175,7 @@ export class GestionParticipantesComponent implements OnInit {
     );
     
     if (yaExisteEnEstaInscripcion) {
-      this.mensajeErrorForm = '⚠️ Operación denegada: Este participante ya figura inscrito en este mismo listado.';
+      this.mensajeErrorForm = '⚠️ Este participante ya figura inscrito en este listado actual.';
       return;
     }
 
@@ -185,11 +184,7 @@ export class GestionParticipantesComponent implements OnInit {
         next: (res) => {
           if (res) {
             this.participanteEncontradoHistorico = res;
-          } else {
-            this.tituloModalExito = 'Sin registros previos';
-            this.contenidoModalExito = 'No se registran participaciones previas con este DNI en el sistema. Complete la ficha manualmente.';
-            this.mostrarModalExito = true;
-            this.nuevoParticipante.dni = this.dniBusqueda.trim().toUpperCase();
+            this.mensajeErrorForm = '💡 El participante ya existe en el sistema. Por seguridad, debe pulsar el botón "Importar Datos" que ha aparecido arriba antes de guardar.';
           }
           this.cd.detectChanges();
         },
@@ -205,13 +200,18 @@ export class GestionParticipantesComponent implements OnInit {
     if (this.participanteEncontradoHistorico) {
       const idBase = this.participanteEncontradoHistorico.id || this.participanteEncontradoHistorico.idParticipante;
 
+      let fechaLimpia = '';
+      if (this.participanteEncontradoHistorico.fechaNacimiento) {
+        fechaLimpia = this.participanteEncontradoHistorico.fechaNacimiento.split('T')[0];
+      }
+
       this.nuevoParticipante = {
-        idParticipacion: null,
+        idParticipacion: null, 
         idParticipanteBase: idBase, 
         nombre: this.participanteEncontradoHistorico.nombre,
         dni: this.participanteEncontradoHistorico.dni || this.dniBusqueda.toUpperCase(), 
-        fechaNacimiento: this.participanteEncontradoHistorico.fechaNacimiento ? this.participanteEncontradoHistorico.fechaNacimiento.split('T')[0] : '',
-        rol: this.nuevoParticipante.rol || 'Voz' 
+        fechaNacimiento: fechaLimpia,
+        rol: 'VOZ'
       };
       
       this.participanteEncontradoHistorico = null;
@@ -238,7 +238,6 @@ export class GestionParticipantesComponent implements OnInit {
         next: (data) => {
           this.listaParticipantes = data ? data : [];
           this.loading = false;
-          this.cd.markForCheck();
           this.cd.detectChanges();
         },
         error: (err) => {
@@ -250,63 +249,97 @@ export class GestionParticipantesComponent implements OnInit {
   }
 
   guardarParticipante(form: NgForm) {
-    if (this.esHistorico || !form.valid || !this.idInscripcionActual) return;
-    this.mensajeErrorForm = null;
+    if (this.esHistorico || !this.idInscripcionActual) return;
 
+    if (this.participanteEncontradoHistorico) {
+      this.mensajeErrorForm = '⚠️ Debe pulsar el botón "Importar Datos" antes de registrar este DNI existente.';
+      return;
+    }
+
+    this.mensajeErrorForm = null;
     const dniAEnviar = this.nuevoParticipante.dni.trim().toUpperCase();
 
     if (!this.validarFormFormatDni(dniAEnviar)) {
       this.mensajeErrorForm = '⚠️ La estructura del DNI/NIE es incorrecta o la letra no se corresponde.';
-      this.cd.detectChanges();
       return;
     }
 
     if (!this.nuevoParticipante.idParticipacion) {
-      const duplicado = this.listaParticipantes.some(
+      const duplicadoLocal = this.listaParticipantes.some(
         p => p.participante?.dni?.toUpperCase() === dniAEnviar
       );
-      if (duplicado) {
-        this.mensajeErrorForm = '⚠️ Operación cancelada: Este participante ya se encuentra registrado en el listado de esta agrupación.';
-        this.cd.detectChanges();
+      if (duplicadoLocal) {
+        this.mensajeErrorForm = '⚠️ Este participante ya se encuentra registrado en esta agrupación.';
         return;
       }
     }
-    
-    const payload = {
+
+    let rolFinalEnum = this.nuevoParticipante.rol ? String(this.nuevoParticipante.rol).toUpperCase().trim() : 'VOZ';
+
+    // PAYLOAD MIXTO DEFINITIVO: Enviamos TODOS los campos tanto planos como estructurados.
+    // Esto previene que falle tanto si busca inscripcionMap como si busca participanteMap u objeto plano.
+    const payloadDefinitivo = {
+      // 1. Campos Planos en la Raíz
       idParticipacion: this.nuevoParticipante.idParticipacion,
-      idParticipante: this.nuevoParticipante.idParticipanteBase, 
-      nombre: this.nuevoParticipante.nombre,
+      idInscripcion: Number(this.idInscripcionActual),
+      idParticipante: this.nuevoParticipante.idParticipanteBase,
+      nombre: this.nuevoParticipante.nombre.trim(),
       dni: dniAEnviar,
       fechaNacimiento: this.nuevoParticipante.fechaNacimiento,
-      rol: this.nuevoParticipante.rol,
-      inscripcion: { idInscripcion: Number(this.idInscripcionActual) }
+      rol: rolFinalEnum,
+
+      // 2. Mapa de Inscripción (Exigido por tu backend según el último error)
+      inscripcion: {
+        idInscripcion: Number(this.idInscripcionActual)
+      },
+
+      // 3. Mapa de Participante (Por si también lo desestructura como mapa)
+      participante: {
+        id: this.nuevoParticipante.idParticipanteBase,
+        idParticipante: this.nuevoParticipante.idParticipanteBase,
+        nombre: this.nuevoParticipante.nombre.trim(),
+        dni: dniAEnviar,
+        fechaNacimiento: this.nuevoParticipante.fechaNacimiento
+      }
     };
 
-    this.http.post('http://localhost:8080/api/participantes/guardar', payload)
+    this.http.post('http://localhost:8080/api/participantes/guardar', payloadDefinitivo)
       .subscribe({
         next: () => {
-          this.tituloModalExito = '¡Participante Guardado!';
-          this.contenidoModalExito = 'El integrante ha sido registrado de forma correcta en los expedientes de la agrupación.';
+          this.tituloModalExito = this.nuevoParticipante.idParticipacion ? '¡Registro Actualizado!' : '¡Participante Guardado!';
+          this.contenidoModalExito = this.nuevoParticipante.idParticipacion 
+            ? 'Los cambios se han guardado en la ficha existente.' 
+            : 'El integrante ha sido registrado y vinculado de forma correcta.';
+          
           this.mostrarModalExito = true;
           this.cerrarFormulario();
           this.cargarParticipantes(this.idInscripcionActual!);
         },
         error: (err) => {
-          if (err.status === 400 || err.error?.error?.includes('ConstraintViolation')) {
-            this.mensajeErrorForm = '⚠️ Conflicto de base de datos: El DNI ya pertenece a un usuario. Asegúrate de pulsar "Importar Datos" arriba tras verificar.';
-          } else {
-            this.mensajeErrorForm = err.error?.error || 'Error de procesamiento en el servidor.';
-          }
+          console.error('Error detallado de respuesta backend:', err);
+          this.mensajeErrorForm = err.error?.error || err.error?.message || 'Error de procesamiento en el servidor.';
           this.cd.detectChanges();
         }
       });
   }
 
   editarParticipante(part: any) {
-    if (this.esHistorico) return; // Cortafuegos preventivo
-
+    if (this.esHistorico) return;
     this.mostrarFormulario = true;
     this.mensajeErrorForm = null;
+
+    let rolBackend = part.rol || part.role || 'VOZ';
+    rolBackend = rolBackend.trim().toUpperCase().replace(/ /g, '_'); 
+
+    if (rolBackend.includes('AYUDANTE')) {
+      rolBackend = 'AYUDANTE_DE_ESCENA';
+    } else if (rolBackend.includes('MONTADOR')) {
+      rolBackend = 'MONTADOR';
+    } else if (rolBackend.includes('MAQUILLA')) {
+      rolBackend = 'MAQUILLADORA';
+    } else if (rolBackend.includes('OTRO')) {
+      rolBackend = 'OTRO';
+    }
     
     this.nuevoParticipante = {
       idParticipacion: part.idParticipacion,
@@ -314,11 +347,15 @@ export class GestionParticipantesComponent implements OnInit {
       nombre: part.participante?.nombre || '',
       dni: part.participante?.dni || '',
       fechaNacimiento: part.participante?.fechaNacimiento ? part.participante.fechaNacimiento.split('T')[0] : '',
-      rol: part.rol
+      rol: rolBackend
     };
-    
-    this.cd.markForCheck();
-    this.cd.detectChanges();
+
+    setTimeout(() => {
+      if (this.partForm && this.partForm.controls['rol']) {
+        this.partForm.controls['rol'].setValue(rolBackend);
+      }
+      this.cd.detectChanges();
+    }, 50);
   }
 
   solicitarEliminarParticipante(idParticipacion: number) {
@@ -326,14 +363,6 @@ export class GestionParticipantesComponent implements OnInit {
     this.idParticipacionAEliminar = idParticipacion;
     this.mostrarModalConfirmar = true;
     this.cd.detectChanges();
-  }
-
-  enmascararDniVisual(dni: string | null | undefined): string {
-    if (!dni) return '';
-    const dniLimpio = dni.trim();
-    if (dniLimpio.includes('*')) return dniLimpio;
-    if (dniLimpio.length < 5) return dniLimpio;
-    return dniLimpio.substring(0, 4) + '****' + dniLimpio.substring(dniLimpio.length - 1);
   }
 
   confirmarEliminar() {
@@ -344,19 +373,16 @@ export class GestionParticipantesComponent implements OnInit {
         next: () => {
           this.mostrarModalConfirmar = false;
           this.idParticipacionAEliminar = null;
-          
           this.tituloModalExito = 'Registro Eliminado';
           this.contenidoModalExito = 'El participante se ha desvinculado con éxito de la inscripción.';
           this.mostrarModalExito = true;
-
           this.cargarParticipantes(this.idInscripcionActual!);
         },
         error: (err) => {
           this.mostrarModalConfirmar = false;
           this.idParticipacionAEliminar = null;
-          
           this.tituloModalError = 'No se pudo eliminar';
-          this.contenidoModalError = err.error?.error || 'Se ha detectado un problema de integridad al intentar borrar este registro del servidor.';
+          this.contenidoModalError = err.error?.error || 'Error al borrar el registro del servidor.';
           this.mostrarModalError = true;
           this.cd.detectChanges();
         }

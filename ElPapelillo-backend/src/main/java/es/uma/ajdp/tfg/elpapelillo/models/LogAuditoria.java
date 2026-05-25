@@ -28,8 +28,8 @@ public class LogAuditoria {
         return (administrador != null) ? administrador.getIdUsuario() : null;
     }
 
-    private String accion;       // Ejemplo: "CREAR_AGRUPACION", "SUBIR_DNI"
-    private String descripcion;  // Detalles de lo que pasó
+    private String accion;       
+    private String descripcion;  
     private LocalDateTime fecha;
 
     public LogAuditoria(Administrador admin, String accion, String descripcion) {

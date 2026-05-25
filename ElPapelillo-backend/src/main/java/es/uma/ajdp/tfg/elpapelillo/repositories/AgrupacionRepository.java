@@ -9,7 +9,6 @@ import java.util.Optional;
 @Repository
 public interface AgrupacionRepository extends JpaRepository<Agrupacion, Integer> {
 
-    // Cambiado a Long para ser consistente con la entidad
     Optional<Agrupacion> findById( Integer id);
 
     List<Agrupacion> findByRepresentante_IdUsuario(Integer idUsuario);

@@ -11,17 +11,13 @@ import java.util.Optional;
 @Repository
 public interface RepresentanteRepository extends JpaRepository<Representante, Integer> {
     
-    // Buscar por DNI para la ficha del representante (C27) 
     Optional<Representante> findByDNI(String dni);
 
     Optional<Representante> findByEmail(String email);
 
     boolean existsByEmail(String email);
 
-    
-    // Listado de representantes activos para evitar "huérfanos" (C29) 
     List<Representante> findByActivoTrue();
-    
-    // Buscador por nombre o DNI (C27) 
+
     List<Representante> findByNombreContainingIgnoreCaseOrDNIContainingIgnoreCase(String nombre, String dni);
 }

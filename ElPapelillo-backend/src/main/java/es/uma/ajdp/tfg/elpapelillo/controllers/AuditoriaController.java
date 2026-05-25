@@ -14,7 +14,6 @@ import es.uma.ajdp.tfg.elpapelillo.repositories.LogAuditoriaRepository;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auditoria")
@@ -33,13 +32,8 @@ public class AuditoriaController {
         return logAuditoriaRepository.findAll(Sort.by(Sort.Direction.DESC, "fecha"));
     }
 
-    /**
-     * Devuelve los logs filtrados por la organización del usuario (Usado por ADMIN/SUPERADMIN)
-     * URL: /api/auditoria/usuario?idUsuario=5
-     */
     @GetMapping("/usuario")
     public List<LogAuditoria> obtenerLogsPorOrganizacion(@RequestParam("idUsuario") Integer idUsuario) {
-        // Llamamos al método personalizado del repositorio
         return logAuditoriaRepository.findByOrganizacionDeUsuario(idUsuario);
     }
 
@@ -52,19 +46,15 @@ public class AuditoriaController {
             LogAuditoria nuevoLog = new LogAuditoria();
             nuevoLog.setAccion((String) payload.get("accion"));
             nuevoLog.setDescripcion((String) payload.get("descripcion"));
-            nuevoLog.setFecha(java.time.LocalDateTime.now()); // Hora del servidor
+            nuevoLog.setFecha(java.time.LocalDateTime.now());
 
-            // Capturamos el ID directamente sin pasar por Repositorios ni hacer SELECT
             if (payload.get("administradorId") != null) {
                 Integer adminId = Integer.valueOf(payload.get("administradorId").toString());
                 
-                // Creamos una instancia "cascarón" de la entidad
                 Administrador adminReferencia = new Administrador();
-                
-                // Le inyectamos el idUsuario que viene del localStorage
+
                 adminReferencia.setIdUsuario(adminId); 
                 
-                // Se lo asignamos al log. JPA usará este número para rellenar la columna 'administrador_id'
                 nuevoLog.setAdministrador(adminReferencia);
                 
                 System.out.println("[AUDITORÍA] Asignando directamente el ID de usuario al Log: " + adminId);
@@ -72,7 +62,6 @@ public class AuditoriaController {
                 System.out.println("[AUDITORÍA] ADVERTENCIA: No se recibió 'administradorId', se guardará como NULL.");
             }
 
-            // Se ejecuta un único comando INSERT en tu MySQL
             LogAuditoria guardado = logAuditoriaRepository.save(nuevoLog);
             System.out.println("[AUDITORÍA] ¡Guardado! Nuevo registro ID: " + guardado.getId());
             System.out.println("======================================================");

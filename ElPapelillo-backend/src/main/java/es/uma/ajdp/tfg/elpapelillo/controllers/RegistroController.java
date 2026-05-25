@@ -31,7 +31,6 @@ public class RegistroController {
     @Transactional
     public ResponseEntity<?> registrarUsuario(@RequestBody Map<String, Object> payload) {
         try {
-            // 1. OBTENER DATOS
             String email = (String) payload.get("email");
             String nombre = (String) payload.get("nombre");
             String apellidos = (String) payload.get("apellidos");
@@ -40,7 +39,6 @@ public class RegistroController {
             String telefono = (String) payload.get("telefono");
             String telEmergencia = (String) payload.get("telEmergencia");
 
-            // 2. VALIDACIÓN DE CAMPOS OBLIGATORIOS
             if (email == null || email.isBlank() || nombre == null || nombre.isBlank() || 
                 apellidos == null || apellidos.isBlank() || dni == null || dni.isBlank() ||
                 direccion == null || direccion.isBlank() || telefono == null || telefono.isBlank() ||
@@ -49,19 +47,16 @@ public class RegistroController {
                     .body(Map.of("message", "Todos los campos del formulario son obligatorios."));
             }
 
-            // 3. VALIDACIÓN DEL ALGORITMO DEL DNI
             if (!validarDNI(dni)) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("message", "El DNI introducido no es válido (formato o letra incorrecta)."));
             }
 
-            // 4. VALIDACIÓN DE EMAIL DUPLICADO
             if (representanteRepository.existsByEmail(email)) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("message", "El correo electrónico ya está registrado en el sistema."));
             }
 
-            // 5. PROCESO DE REGISTRO
             String passwordPlana = UUID.randomUUID().toString().substring(0, 8);
             String passwordEncriptada = passwordEncoder.encode(passwordPlana);
             
@@ -78,7 +73,6 @@ public class RegistroController {
 
             representanteRepository.save(rep);
 
-            // 6. ENVÍO DE EMAIL
             enviarEmail(rep.getEmail(), passwordPlana);
 
             return ResponseEntity.ok(Map.of("status", "ok", "message", "Registro completado. Revisa tu email."));
@@ -90,7 +84,6 @@ public class RegistroController {
         }
     }
 
-    // Algoritmo de validación de DNI
     private boolean validarDNI(String dni) {
         if (dni == null || !dni.matches("^[0-9]{8}[A-Z]$")) return false;
         try {

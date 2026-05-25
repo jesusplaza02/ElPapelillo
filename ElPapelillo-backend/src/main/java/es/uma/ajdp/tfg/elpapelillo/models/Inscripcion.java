@@ -18,8 +18,8 @@ import es.uma.ajdp.tfg.elpapelillo.models.enums.RolParticipante;
 
 @Entity
 @Table(name = "inscripciones")
-@Getter // Mejor que @Data
-@Setter // Mejor que @Data
+@Getter 
+@Setter 
 @NoArgsConstructor
 public class Inscripcion {
 
@@ -36,17 +36,16 @@ public class Inscripcion {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_concurso")
-    @JsonIgnoreProperties("inscripciones") // Evita que el concurso vuelva a cargar esta lista
+    @JsonIgnoreProperties("inscripciones") 
     private Concurso concurso;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_agrupacion")
-    @JsonIgnoreProperties("inscripciones") // Evita que la agrupación vuelva a cargar esta lista
+    @JsonIgnoreProperties("inscripciones") 
     private Agrupacion agrupacion;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_fianza")
-    //@JsonIgnore con esto funcionaba
     @JsonManagedReference
     private Fianza fianza;
 
@@ -54,14 +53,11 @@ public class Inscripcion {
     @JsonIgnore
     private List<Documento> documentos = new ArrayList<>();
 
-    // Apunta a la clase de asociación Participacion
     @OneToMany(mappedBy = "inscripcion", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Participacion> participaciones = new ArrayList<>();
 
-    // --- MÉTODOS DE LÓGICA DE NEGOCIO ---
 
     public void añadirParticipante(Participante participante, RolParticipante rol) {
-        // Creamos la instancia de la clase de asociación que une ambos
         Participacion nuevaParticipacion = new Participacion(this, participante, rol);
         this.participaciones.add(nuevaParticipacion);
     }
@@ -82,8 +78,7 @@ public class Inscripcion {
         return listaParticipantes;
     }
 
-    // Si necesitas el setter (aunque para el PDF no hace falta), puedes dejarlo así:
-    public void setParticipantes(List<Participante> participantes) {
-        // Lógica opcional o dejar vacío si manejas las participaciones con añadirParticipante()
-    }
+
+    //public void setParticipantes(List<Participante> participantes) {
+    //}
 }

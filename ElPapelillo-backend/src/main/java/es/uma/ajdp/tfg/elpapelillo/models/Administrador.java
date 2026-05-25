@@ -26,8 +26,6 @@ public class Administrador extends Usuario {
     @Column(name = "id_organizacion")
     private Integer id_organizacion;
 
-    // Relación con la Organización a la que pertenece
-    // Muchos administradores pertenecen a una Organización
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_organizacion", insertable = false, updatable = false)
     @JsonIgnore
@@ -39,8 +37,6 @@ public class Administrador extends Usuario {
     }
 
     
-    // 1. Relación con Logs: 1 Admin -> Muchos Logs
-    // mappedBy debe coincidir con el nombre del atributo en la clase LogSistema
     @OneToMany(mappedBy = "administrador", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<LogAuditoria> logs = new ArrayList<>();
@@ -59,7 +55,7 @@ public class Administrador extends Usuario {
         this.cargo = cargo;
     }
 
-    @JsonProperty("nombreOrganizacion") // Esto crea el campo en el JSON para Angular
+    @JsonProperty("nombreOrganizacion") 
     public String getNombreOrganizacionParaJson() {
         return (this.getOrganizacion() != null) ? this.getOrganizacion().getNombre() : "Sin Organización";
     }

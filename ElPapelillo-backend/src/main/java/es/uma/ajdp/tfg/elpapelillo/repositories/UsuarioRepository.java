@@ -18,7 +18,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     boolean existsByEmail(String email);
     boolean existsByDNI(String dni);
 
-    // Para listar solo los usuarios que no han sido borrados 
     List<Usuario> findByActivoTrue();
 
     List<Usuario> findByNombreContainingIgnoreCaseAndActivoTrue(String nombre);

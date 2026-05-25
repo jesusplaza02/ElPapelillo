@@ -23,7 +23,6 @@ public class UsuarioController {
             @RequestBody Usuario nuevoUsuario,
             @RequestParam Integer idEjecutor) {
         try {
-            // CAMBIO: Llamamos a registrarUsuario que es el método que existe en el Service
             Usuario creado = usuarioService.registrarUsuario(nuevoUsuario, idEjecutor); 
             return ResponseEntity.ok(creado);
         } catch (Exception e) {
@@ -31,14 +30,12 @@ public class UsuarioController {
         }
     }
 
-    // LISTAR TODOS LOS USUARIOS
     @GetMapping
     public ResponseEntity<List<Usuario>> listarTodos() {
         List<Usuario> usuarios = usuarioService.obtenerTodos();
         return ResponseEntity.ok(usuarios);
     }
 
-    // BUSCAR UN USUARIO ESPECÍFICO POR ID
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> obtenerPorId(@PathVariable Integer id) {
         return usuarioService.buscarPorId(id)
@@ -50,54 +47,46 @@ public class UsuarioController {
     @CrossOrigin(origins = "http://localhost:4200")
         public ResponseEntity<List<Usuario>> buscarActivosPorNombre(@PathVariable String nombre) {
         List<Usuario> usuarios = usuarioService.buscarActivosPorNombre(nombre);
-    
-        // Si no hay resultados, devolvemos una lista vacía con estatus 200
-        // Esto evita errores de parseo en el Frontend
+
         return ResponseEntity.ok(usuarios);
     }
 
-    // ACCIÓN DE ADMIN: BORRADO LÓGICO (DESACTIVAR)
-    // El idAdmin se usa para saber quién ejecutó la acción y guardarlo en el log
-    @DeleteMapping("/{id}")  // <-- Quita el "/desactivar" para que la URL sea limpia
-public ResponseEntity<String> desactivarUsuario(
-        @PathVariable Integer id, 
-        @RequestParam(name = "idEjecutor") Integer idAdmin) { // Asegúrate que el nombre coincida con el front
-    try {
-        usuarioService.eliminarUsuarioLogico(id, idAdmin);
-        return ResponseEntity.ok("Usuario desactivado con éxito.");
-    } catch (Exception e) {
-        // Esto evita la pantalla roja y manda el mensaje al Toast
-        return ResponseEntity.badRequest().body(e.getMessage());
+    @DeleteMapping("/{id}") 
+    public ResponseEntity<String> desactivarUsuario(
+            @PathVariable Integer id, 
+            @RequestParam(name = "idEjecutor") Integer idAdmin) { 
+        try {
+            usuarioService.eliminarUsuarioLogico(id, idAdmin);
+            return ResponseEntity.ok("Usuario desactivado con éxito.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
-}
     @PutMapping("/{id}")
-public ResponseEntity<?> actualizarUsuario(
-        @PathVariable Integer id, 
-        @RequestBody Usuario datosNuevos,
-        @RequestParam Integer idEjecutor) {
-    try {
-        // CORRECCIÓN: El primer parámetro debe ser 'id' (el que viene de la URL)
-        // El tercer parámetro es 'idEjecutor' (el que está logueado)
-        Usuario actualizado = usuarioService.actualizar(id, datosNuevos, idEjecutor);
-        
-        return ResponseEntity.ok(actualizado);
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().body("No se pudo actualizar: " + e.getMessage());
+    public ResponseEntity<?> actualizarUsuario(
+            @PathVariable Integer id, 
+            @RequestBody Usuario datosNuevos,
+            @RequestParam Integer idEjecutor) {
+        try {
+            Usuario actualizado = usuarioService.actualizar(id, datosNuevos, idEjecutor);
+            
+            return ResponseEntity.ok(actualizado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("No se pudo actualizar: " + e.getMessage());
+        }
     }
-}
 
-// Este método sí está bien que use idEjecutor en ambos, porque es "MI perfil"
-@PutMapping("/perfil")
-public ResponseEntity<?> actualizarMiPerfil(
-        @RequestBody Usuario datosNuevos,
-        @RequestParam Integer idEjecutor) {
-    try {
-        Usuario actualizado = usuarioService.actualizar(idEjecutor, datosNuevos, idEjecutor);
-        return ResponseEntity.ok(actualizado);
-    } catch (Exception e) {
-        return ResponseEntity.badRequest().body("Error al actualizar perfil: " + e.getMessage());
+    @PutMapping("/perfil")
+    public ResponseEntity<?> actualizarMiPerfil(
+            @RequestBody Usuario datosNuevos,
+            @RequestParam Integer idEjecutor) {
+        try {
+            Usuario actualizado = usuarioService.actualizar(idEjecutor, datosNuevos, idEjecutor);
+            return ResponseEntity.ok(actualizado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al actualizar perfil: " + e.getMessage());
+        }
     }
-}
 
     @PostMapping("/recuperar-password")
     public ResponseEntity<?> recuperar(@RequestBody Map<String, String> payload) {

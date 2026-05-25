@@ -18,28 +18,16 @@ public class AgrupacionController {
     @Autowired
     private AgrupacionService agrupacionService;
 
-    /**
-     * Devuelve las INSCRIPCIONES (para el grid de tarjetas).
-     * Ruta: GET /api/agrupaciones/representante/{id}
-     * Cambiamos el retorno a Inscripcion para que Angular tenga el ESTADO.
-     */
     @GetMapping("/representante/{id}")
     public List<Inscripcion> getInscripciones(@PathVariable Integer id) {
         return agrupacionService.findInscripcionesPorRepresentante(id);
     }
 
-    /**
-     * Devuelve las agrupaciones BASE (para el selector de "Existente").
-     * Ruta: GET /api/agrupaciones/base/{id}
-     */
     @GetMapping("/base/{id}")
     public List<Agrupacion> getAgrupacionesBase(@PathVariable Integer id) {
         return agrupacionService.findBaseByRepresentanteId(id);
     }
 
-    /**
-     * Procesa el guardado de una inscripción (Nueva o Existente).
-     */
     @PostMapping
     public ResponseEntity<Agrupacion> guardar(@RequestBody AgrupacionDTO dto) {
         try {

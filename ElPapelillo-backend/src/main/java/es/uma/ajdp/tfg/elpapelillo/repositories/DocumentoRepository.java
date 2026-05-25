@@ -10,7 +10,6 @@ import java.util.List;
 public interface DocumentoRepository extends JpaRepository<Documento, Integer> {
     
     List<Documento> findByEstado(EstadoAdministrativo estado);
-    
-    // Al usar Integer, este método ya es compatible con lo que pide el Service
+
     List<Documento> findByInscripcionIdInscripcion(Integer idInscripcion);
 }

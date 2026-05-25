@@ -29,49 +29,37 @@ public class ConcursoService {
     }
 
     public List<Concurso> listarConcursosSegunRol(Integer idUsuarioActual) {
-    Usuario usuario = usuarioRepository.findById(idUsuarioActual)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        Usuario usuario = usuarioRepository.findById(idUsuarioActual)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-    String rol = usuario.getRol().toUpperCase();
+        String rol = usuario.getRol().toUpperCase();
 
-    // 1. Si es SYSADMIN, pasamos null para que el Repository lo traiga TODO
-    if ("SYSADMIN".equals(usuario.getRol().toUpperCase())) {
-        return concursoRepository.findByOrganizacionOpcional(null);
+        if ("SYSADMIN".equals(usuario.getRol().toUpperCase())) {
+            return concursoRepository.findByOrganizacionOpcional(null);
+        }
+
+        if (usuario instanceof Administrador) {
+            Integer idOrg = ((Administrador) usuario).getId_organizacion();
+            return concursoRepository.findByOrganizacionOpcional(idOrg);
+        }
+
+        return new ArrayList<>(); 
     }
-
-    // 2. Si es ADMIN o SUPERADMIN, buscamos su ID de organización
-    if (usuario instanceof Administrador) {
-        Integer idOrg = ((Administrador) usuario).getId_organizacion();
-        return concursoRepository.findByOrganizacionOpcional(idOrg);
-    }
-
-    // 3. Otros roles (como Representante) podrían ver solo los suyos o nada
-    return new ArrayList<>(); 
-}
 
     public List<Concurso> findActivos() {
-        // Opción A: Si tienes columna estado en la BD
-        //return concursoRepository.findByEstadoConcurso(EstadoConcurso.ACTIVO);
-        
-        // Opción B: Si aún no tienes estados y quieres probar que el select cargue algo:
         return concursoRepository.findAll(); 
     }
 
     public Concurso guardar(Concurso concurso) {
-        // 1. Si tiene ID, es una EDICIÓN (PUT)
         if (concurso.getIdConcurso() != null) {
             return concursoRepository.findById(concurso.getIdConcurso())
                 .map(existente -> {
-                    // Actualizamos solo lo que viene del formulario
                     existente.setNombre(concurso.getNombre());
                     existente.setEstadoConcurso(concurso.getEstadoConcurso());
                     existente.setFechaInicio(concurso.getFechaInicio());
                     existente.setFechaFin(concurso.getFechaFin());
                     existente.setFechaInicioInscripcion(concurso.getFechaInicioInscripcion());
                     existente.setFechaFinInscripcion(concurso.getFechaFinInscripcion());
-
-                    // IMPORTANTE: Si el objeto del front no trae la organización, 
-                    // mantenemos la que ya tenía en la base de datos para evitar el Error 500
                     if (concurso.getId_organizacion() != null) {
                         existente.setId_organizacion(concurso.getId_organizacion());
                     }
@@ -81,7 +69,6 @@ public class ConcursoService {
                 }).orElseThrow(() -> new RuntimeException("Concurso no encontrado"));
         } 
         
-        // 2. Si no tiene ID, es CREACIÓN (POST)
         validarLogicaFechas(concurso);
         return concursoRepository.save(concurso);
     }
@@ -100,17 +87,14 @@ public class ConcursoService {
         Concurso concurso = concursoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("El concurso no existe."));
 
-        // Regla 1: Solo permitir borrar si está ACTIVO
         if (concurso.getEstadoConcurso() != EstadoConcurso.ACTIVO) {
             throw new RuntimeException("No se puede eliminar un concurso que no esté ACTIVO.");
         }
 
-        // Regla 2: Solo permitir borrar si NO tiene agrupaciones/inscripciones
         if (concurso.getInscripciones() != null && !concurso.getInscripciones().isEmpty()) {
             throw new RuntimeException("No se puede eliminar: El concurso ya tiene agrupaciones asociadas.");
         }
 
-        // Borrado físico de la base de datos
         concursoRepository.deleteById(id);
     }
 }

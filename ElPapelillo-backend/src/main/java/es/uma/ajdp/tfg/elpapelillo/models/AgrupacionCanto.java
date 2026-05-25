@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "agrupacioncanto") // Asegúrate de que en la BD sea todo minúsculas o coincida exactamente
-@PrimaryKeyJoinColumn(name = "idAgrupacion") // Indica que se une a la tabla padre por este ID
+@Table(name = "agrupacioncanto")
+@PrimaryKeyJoinColumn(name = "idAgrupacion") 
 
 @Getter
 @Setter
@@ -33,7 +33,6 @@ public class AgrupacionCanto extends Agrupacion {
     @Column(name = "modalidad")
     private ModalidadCanto modalidad;
 
-    // Constructor completo revisado
     public AgrupacionCanto(String nombre, String nombreUltimaParticipacion, Integer anio, 
                             CategoriaAgrupacion categoria, 
                              String autorLetra, String autorMusica, 
@@ -41,7 +40,7 @@ public class AgrupacionCanto extends Agrupacion {
         super(); // Llama al constructor de Agrupacion
         this.setNombre(nombre);
         this.setNombreUltimaParticipacion(nombreUltimaParticipacion);
-        this.setAnio(anio); // Uso de 'anio' para coincidir con el cambio en la BD
+        this.setAnio(anio); 
         this.setCategoria(categoria);
         this.autorLetra = autorLetra;
         this.autorMusica = autorMusica;

@@ -2,12 +2,8 @@ package es.uma.ajdp.tfg.elpapelillo.services;
 
 import java.util.List;
 
-import org.passay.CharacterRule;
-import org.passay.EnglishCharacterData;
-import org.passay.PasswordGenerator;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.MailException;
@@ -39,14 +35,14 @@ public class EmailService {
     private AdministradorRepository administradorRepository;
 
     @SuppressWarnings("deprecation")
-    @Async // Para que no bloquee el registro
+    @Async 
     @Retryable(
         value = { MailException.class }, 
         maxAttempts = 5, 
         backoff = @Backoff(
             delay = 2000, 
-            multiplier = 3.0,      // Multiplica el tiempo anterior por 3
-            maxDelay = 60000       // Límite máximo de espera: 1 minuto
+            multiplier = 3.0,      
+            maxDelay = 60000       
         )
     )
    public void enviarEmailInstrucciones(String correo, String passwordSinCifrar) { 
@@ -67,20 +63,15 @@ public class EmailService {
         log.info("Email enviado con éxito a: " + correo);
     }
 
-    /**
-     * Este método se ejecuta automáticamente si fallan los 5 intentos
-     */
     @Recover
     public void recuperarFalloEmail(MailException e, String correo, String passwordSinCifrar) {
         log.error("LOG CRÍTICO: Imposible enviar email a " + correo + " tras 5 intentos. Error: " + e.getMessage());
     
-        // Guardamos en tabla de logs
         LogAuditoria auditoria = new LogAuditoria();
         Administrador sistema = administradorRepository.findByCargo("SISTEMA");
         auditoria.setAdministrador(sistema);
         auditoria.setAccion("ERROR_ENVIO_EMAIL");
         auditoria.setDescripcion("No se pudo enviar credenciales al correo: " + correo);
-        // No hace falta setFecha(), el @PrePersist lo hace solo
         
         logAuditoriaRepository.save(auditoria);
     }
@@ -102,7 +93,6 @@ public class EmailService {
             helper.setSubject(asunto);
             helper.setText(cuerpo, false); 
 
-            // 🌟 Recorremos todos los elementos adjuntos y los añadimos secuencialmente al helper
             if (listaArchivosBytes != null && !listaArchivosBytes.isEmpty()) {
                 for (int i = 0; i < listaArchivosBytes.size(); i++) {
                     byte[] bytes = listaArchivosBytes.get(i);

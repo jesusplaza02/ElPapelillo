@@ -26,10 +26,8 @@ public class FianzaController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("importe") Double importe,
             @RequestParam("fechaPago") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaPago) { 
-            // ¡Al poner LocalDateTime directamente con la anotación, Spring Boot hace la magia solo!
 
         try {
-            // Llamamos al servicio pasando los nuevos datos directos
             Fianza fianzaProcesada = fianzaService.subirseFianza(idInscripcion, file, importe, fechaPago);
             return ResponseEntity.ok(fianzaProcesada);
         } catch (Exception e) {
@@ -40,7 +38,6 @@ public class FianzaController {
     @DeleteMapping("/inscripcion/{idInscripcion}")
     public ResponseEntity<?> eliminarFianzaPorInscripcion(@PathVariable Integer idInscripcion) {
         try {
-            // Tu lógica para desvincular la fianza de la inscripción y borrarla
             fianzaService.eliminarFianzaPorInscripcion(idInscripcion); 
             return ResponseEntity.ok().body("{\"mensaje\": \"Fianza eliminada correctamente\"}");
         } catch (Exception e) {

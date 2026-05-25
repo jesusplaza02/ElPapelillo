@@ -20,7 +20,7 @@ public class Fianza {
 
     private Double importe;
     private LocalDateTime fechaPago;
-    private String rutaRecibo; // Para guardar la ruta
+    private String rutaRecibo; 
     private Boolean pagada;
 
     @OneToOne(mappedBy = "fianza")

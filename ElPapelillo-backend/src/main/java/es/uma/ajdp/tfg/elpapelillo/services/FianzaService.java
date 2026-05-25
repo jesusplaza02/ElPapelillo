@@ -24,11 +24,9 @@ public class FianzaService {
 
    @Transactional
     public Fianza subirseFianza(Integer idInscripcion, MultipartFile archivo, Double importe, LocalDateTime fechaPago) throws IOException {
-        // 1. Verificar si la inscripción existe
         Inscripcion inscripcion = inscripcionRepository.findById(idInscripcion)
                 .orElseThrow(() -> new IllegalArgumentException("La inscripción con ID " + idInscripcion + " no existe."));
 
-        // 2. Guardar el archivo PDF físicamente en el disco
         String nombreOriginal = archivo.getOriginalFilename();
         String nombreLimpio = System.currentTimeMillis() + "_" + 
                 (nombreOriginal != null ? nombreOriginal.replaceAll("\\s+", "_") : "fianza.pdf");
@@ -41,22 +39,19 @@ public class FianzaService {
         Path rutaCompleta = directorio.resolve(nombreLimpio);
         Files.copy(archivo.getInputStream(), rutaCompleta, StandardCopyOption.REPLACE_EXISTING);
 
-        // 3. Obtener o crear el registro de Fianza
         Fianza fianza = inscripcion.getFianza();
         if (fianza == null) {
             fianza = new Fianza();
         }
 
-        // MODIFICADO: Ahora seteamos los valores reales que vienen desde el formulario web
         fianza.setImporte(importe); 
-        fianza.setFechaPago(fechaPago != null ? fechaPago : LocalDateTime.now()); // Si no viene fecha, pone la actual por seguridad
+        fianza.setFechaPago(fechaPago != null ? fechaPago : LocalDateTime.now());
         fianza.setRutaRecibo("archivos/fianzas/" + nombreLimpio);
-        fianza.setPagada(true); // Se marca como pagada al subir el comprobante
+        fianza.setPagada(true); 
 
-        // 4. Guardar fianza en la base de datos
+ 
         Fianza fianzaGuardada = fianzaRepository.save(fianza);
 
-        // 5. Vincular la fianza a la inscripción y actualizar id_fianza en MySQL
         inscripcion.setFianza(fianzaGuardada);
         inscripcionRepository.save(inscripcion);
 
@@ -65,19 +60,15 @@ public class FianzaService {
 
     @Transactional
     public void eliminarFianzaPorInscripcion(Integer idInscripcion) {
-        // 1. Buscar la inscripción afectada
         Inscripcion inscripcion = inscripcionRepository.findById(idInscripcion)
                 .orElseThrow(() -> new IllegalArgumentException("La inscripción con ID " + idInscripcion + " no existe."));
 
-        // 2. Obtener la fianza asociada
         Fianza fianza = inscripcion.getFianza();
         if (fianza != null) {
             
-            // 3. Romper la relación en la tabla inscripcion (pone id_fianza = NULL en MySQL)
             inscripcion.setFianza(null);
             inscripcionRepository.save(inscripcion);
             
-            // 4. Intentar borrar el archivo PDF físico guardado en el disco
             if (fianza.getRutaRecibo() != null) {
                 try {
                     Path rutaArchivo = Paths.get(fianza.getRutaRecibo());
@@ -85,11 +76,8 @@ public class FianzaService {
                     System.out.println("Archivo físico de fianza eliminado con éxito: " + fianza.getRutaRecibo());
                 } catch (IOException e) {
                     System.err.println("No se pudo eliminar el archivo físico del disco: " + e.getMessage());
-                    // No lanzamos excepción aquí para que el flujo de base de datos continúe si el archivo ya no existía
                 }
             }
-
-            // 5. Eliminar el registro definitivo de la tabla fianza
             fianzaRepository.delete(fianza);
         }
     }

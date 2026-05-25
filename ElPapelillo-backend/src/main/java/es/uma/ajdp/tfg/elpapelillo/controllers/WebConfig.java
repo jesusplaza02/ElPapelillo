@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/archivos/**") // Permite CORS en la ruta de archivos
-                .allowedOrigins("http://localhost:4200") // Tu URL de Angular
+                .allowedOrigins("http://localhost:4200") 
                 .allowedMethods("GET")
                 .exposedHeaders("Content-Disposition"); // Importante para el nombre del archivo
     }

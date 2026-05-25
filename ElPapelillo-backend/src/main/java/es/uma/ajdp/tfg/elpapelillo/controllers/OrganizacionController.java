@@ -27,10 +27,6 @@ public class OrganizacionController {
         return repository.save(org);
     }
 
-    /**
-     * CORRECCIÓN: Cambiado de Long a Integer para coincidir con OrganizacionRepository
-     */
-
     @PutMapping("/{id}")
     public ResponseEntity<Organizacion> actualizar(@PathVariable @NonNull Integer id, @RequestBody @NonNull Organizacion orgActualizada) {
         return repository.findById(id).map(org -> {
@@ -40,7 +36,6 @@ public class OrganizacionController {
             org.setTelefono(orgActualizada.getTelefono());
             org.setUbicacion(orgActualizada.getUbicacion());
             
-            // Crucial: aquí se recibe el 'activo: false' del borrado lógico
             org.setActivo(orgActualizada.getActivo()); 
 
             Organizacion guardada = repository.save(org);

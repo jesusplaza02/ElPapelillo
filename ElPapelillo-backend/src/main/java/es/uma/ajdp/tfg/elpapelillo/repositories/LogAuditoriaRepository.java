@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LogAuditoriaRepository extends JpaRepository<LogAuditoria, Integer> {
-    // Al extender de JpaRepository, ya están disponibles métodos como save(), findAll(), findById(), delete(), etc.
+    
     
     @Query(value = "SELECT l.* FROM logauditoria l " +
                "JOIN administrador a ON l.administrador_id = a.idUsuario " +

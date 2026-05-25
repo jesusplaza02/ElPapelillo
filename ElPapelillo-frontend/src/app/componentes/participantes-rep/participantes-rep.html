@@ -7,11 +7,11 @@
   </div>
 
   @if (esHistorico) {
-    <div class="info-box-historico" style="background-color: #edf2f7; border-left: 5px solid #4a5568; color: #2d3748; padding: 15px; margin-bottom: 20px; border-radius: 6px; display: flex; align-items: center; gap: 12px; font-family: sans-serif; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-      <i class="fas fa-archive" style="color: #4a5568; font-size: 1.4rem;"></i>
+    <div class="info-box-historico">
+      <i class="fas fa-archive info-box-icon"></i>
       <div>
-        <strong style="display: block; margin-bottom: 2px;">Modo Consulta Histórica Activo</strong>
-        <span style="font-size: 0.9rem; color: #718096;">Este concurso ya ha finalizado. El registro oficial de participantes y personal auxiliar se encuentra congelado y en modo solo lectura.</span>
+        <strong class="info-box-title">Modo Consulta Histórica Activo</strong>
+        <span class="info-box-subtitle">Este concurso ya ha finalizado. El registro oficial de participantes y personal auxiliar se encuentra congelado y en modo solo lectura.</span>
       </div>
     </div>
   }
@@ -33,15 +33,15 @@
   </header>
 
   @if (!esHistorico) {
-    <div class="alert-warning-card" style="display: flex; flex-direction: column; gap: 10px;">
-      <div style="display: flex; align-items: flex-start; gap: 10px;">
+    <div class="alert-warning-card">
+      <div class="alert-warning-main">
         <div class="alert-icon">⚠️</div>
         <div class="alert-text">
           El listado de participantes se imprimirá a las <strong>00:01 del día de la actuación</strong>. Cualquier participante inscrito después de esa hora no podrá acceder al teatro.
         </div>
       </div>
       
-      <div style="border-top: 1px solid rgba(217, 119, 6, 0.3); padding-top: 8px; margin-left: 28px; font-size: 0.88rem; line-height: 1.4; color: #b45309;">
+      <div class="alert-warning-footer">
         <strong>Aviso de cupos máximos:</strong> Los límites específicos de componentes permitidos para cada tipo de modalidad o agrupación deberán consultarse en las bases reglamentarias de dicho concurso. La aplicación <em>"El Papelillo"</em> queda eximida de cualquier responsabilidad legal, penal o administrativa ante incidencias, descalificaciones o problemas derivados del incumplimiento de dichos cupos por parte de la agrupación.
       </div>
     </div>
@@ -50,7 +50,7 @@
   <div class="table-responsive-container">
     <h2 class="section-title">Componentes e Inscritos</h2>
 
-    <div *ngIf="loading" class="text-center" style="padding: 30px; color: #006666;">
+    <div *ngIf="loading" class="table-loading-text">
       <strong>Cargando listado oficial...</strong>
     </div>
 
@@ -67,7 +67,7 @@
       <tbody>
         <tr *ngFor="let part of listaParticipantes">
           <td class="font-semibold">{{ part.participante?.nombre }}</td>
-          <td class="DNI-cell text-muted">{{ enmascararDniVisual(part.participante?.dni) }}</td>
+          <td class="DNI-cell text-muted font-mono">{{ part.participante?.dni }}</td>
           <td class="text-muted">{{ part.participante?.fechaNacimiento | date:'dd/MM/yyyy' }}</td>
           <td>
             <span class="role-badge">{{ part.rol }}</span>
@@ -86,7 +86,7 @@
 
     <div class="empty-table-row" *ngIf="!loading && listaParticipantes.length === 0">
       <p>Aún no hay ningún participante inscrito en este expediente.</p>
-      <p class="text-muted" style="font-size: 0.85rem; margin-top: 5px;" *ngIf="!esHistorico">Haga clic en " + Añadir" para registrar al primer integrante.</p>
+      <p class="text-muted empty-table-sub" *ngIf="!esHistorico">Haga clic en " + Añadir" para registrar al primer integrante.</p>
     </div>
   </div>
 
@@ -110,6 +110,7 @@
             name="dniBusqueda"
             class="form-control unique-dni-input" 
             [(ngModel)]="dniBusqueda" 
+            (blur)="verificarDniAutomatico()"
             placeholder="Introduce el DNI para verificar..."
           />
           <button class="btn-search-dni" type="button" (click)="buscarParticipantePorDni()">
@@ -127,9 +128,9 @@
         </div>
       </div>
 
-      <div class="error-container" *ngIf="mensajeErrorForm" style="margin-bottom: 15px; border-left: 4px solid #e53e3e;">
-        <span style="font-size: 1.1rem;">⚠️</span>
-        <div style="margin-left: 5px;">
+      <div class="error-container" *ngIf="mensajeErrorForm">
+        <span class="error-icon-inline">⚠️</span>
+        <div class="error-text-inline">
           <strong>Atención:</strong> {{ mensajeErrorForm }}
         </div>
       </div>
@@ -147,11 +148,12 @@
               name="nombre" 
               class="form-control" 
               required
+              [disabled]="!!nuevoParticipante.idParticipanteBase"
               #nombreModel="ngModel"
               [(ngModel)]="nuevoParticipante.nombre"
               placeholder="Nombre y apellidos"
             />
-            <small class="text-danger" *ngIf="nombreModel.invalid && nombreModel.touched" style="color: #e53e3e; font-size: 0.8rem;">
+            <small class="text-danger" *ngIf="nombreModel.invalid && nombreModel.touched">
               El nombre es obligatorio.
             </small>
           </div>
@@ -164,12 +166,13 @@
               name="dni" 
               class="form-control" 
               required
-              [disabled]="!!nuevoParticipante.idParticipacion"
+              (blur)="detectarDniEscritoAManos()"
+              [disabled]="!!nuevoParticipante.idParticipacion || !!nuevoParticipante.idParticipanteBase"
               #dniModel="ngModel"
               [(ngModel)]="nuevoParticipante.dni"
               placeholder="12345678X"
             />
-            <small class="text-danger" *ngIf="dniModel.invalid && dniModel.touched" style="color: #e53e3e; font-size: 0.8rem;">
+            <small class="text-danger" *ngIf="dniModel.invalid && dniModel.touched">
               El DNI es obligatorio.
             </small>
           </div>
@@ -182,10 +185,11 @@
               name="fechaNacimiento" 
               class="form-control" 
               required
+              [disabled]="!!nuevoParticipante.idParticipanteBase"
               #fechaModel="ngModel"
               [(ngModel)]="nuevoParticipante.fechaNacimiento"
             />
-            <small class="text-danger" *ngIf="fechaModel.invalid && fechaModel.touched" style="color: #e53e3e; font-size: 0.8rem;">
+            <small class="text-danger" *ngIf="fechaModel.invalid && fechaModel.touched">
               La fecha es requerida.
             </small>
           </div>
@@ -199,10 +203,17 @@
               required
               [(ngModel)]="nuevoParticipante.rol"
             >
-              <optgroup *ngFor="let grupo of ROLES_DISPONIBLES" [label]="grupo.grupo">
-                <option *ngFor="let r of grupo.roles" [value]="r">
-                  {{ r }}
-                </option>
+              <optgroup label="Componentes">
+                <option value="VOZ">Voz</option>
+                <option value="GUITARRA">Guitarra</option>
+                <option value="CAJA">Caja</option>
+                <option value="BOMBO">Bombo</option>
+              </optgroup>
+              <optgroup label="Personal Auxiliar">
+                <option value="AYUDANTE_DE_ESCENA">Ayudantes de escena</option>
+                <option value="MONTADOR">Montadores</option>
+                <option value="MAQUILLADORA">Maquilladoras</option>
+                <option value="OTRO">Otros</option>
               </optgroup>
             </select>
           </div>
@@ -212,7 +223,11 @@
           <button class="btn-secondary" type="button" (click)="cerrarFormulario()">
             Cancelar
           </button>
-          <button class="btn-confirm-save" type="submit" [disabled]="partForm.invalid">
+          <button 
+            class="btn-confirm-save" 
+            type="submit" 
+            [disabled]="partForm.invalid || !!participanteEncontradoHistorico"
+          >
             {{ nuevoParticipante.idParticipacion ? 'Actualizar Ficha' : 'Confirmar Alta' }}
           </button>
         </div>
@@ -224,50 +239,44 @@
 
 </div>
 
-<div class="success-modal-overlay" *ngIf="mostrarModalExito" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
-  <div class="success-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-    <div style="width: 70px; height: 70px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
-      <i class="fas fa-check-circle" style="color: #2e7d32; font-size: 2rem;"></i>
+<div class="modal-system-overlay-success" *ngIf="mostrarModalExito">
+  <div class="modal-system-card">
+    <div class="modal-system-icon-circle-success">
+      <span class="modal-system-icon-check">✓</span>
     </div>
-    <h3 style="margin: 0 0 10px 0; color: #1b5e20; font-size: 1.4rem; font-weight: 700;">{{ tituloModalExito }}</h3>
-    <p style="margin: 0 0 25px 0; color: #555; font-size: 0.95rem; line-height: 1.5;">
-      {{ contenidoModalExito }}
-    </p>
-    <button (click)="mostrarModalExito = false" style="background: #2e7d32; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
+    <h3 class="modal-system-title-success">{{ tituloModalExito }}</h3>
+    <p class="modal-system-text">{{ contenidoModalExito }}</p>
+    <button class="modal-system-btn-success" (click)="mostrarModalExito = false">
       Entendido, continuar
     </button>
   </div>
 </div>
 
-<div class="error-modal-overlay" *ngIf="mostrarModalError" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
-  <div class="error-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-    <div style="width: 70px; height: 70px; background: #fff5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid #feb2b2;">
-      <i class="fas fa-exclamation-triangle" style="color: #e53e3e; font-size: 2rem;"></i>
+<div class="modal-system-overlay-error" *ngIf="mostrarModalError">
+  <div class="modal-system-card">
+    <div class="modal-system-icon-circle-error">
+      <span class="modal-system-icon-warning">⚠️</span>
     </div>
-    <h3 style="margin: 0 0 10px 0; color: #c53030; font-size: 1.35rem; font-weight: 700;">{{ tituloModalError }}</h3>
-    <p style="margin: 0 0 25px 0; color: #4a5568; font-size: 0.95rem; line-height: 1.5; padding: 0 10px;">
-      {{ contenidoModalError }}
-    </p>
-    <button (click)="mostrarModalError = false" style="background: #e53e3e; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(229, 62, 62, 0.2);" onmouseover="this.style.background='#c53030'" onmouseout="this.style.background='#e53e3e'">
+    <h3 class="modal-system-title-error">{{ tituloModalError }}</h3>
+    <p class="modal-system-text-error">{{ contenidoModalError }}</p>
+    <button class="modal-system-btn-error" (click)="mostrarModalError = false">
       Aceptar y revisar
     </button>
   </div>
 </div>
 
-<div class="confirm-modal-overlay" *ngIf="mostrarModalConfirmar" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
-  <div class="confirm-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-    <div style="width: 70px; height: 70px; background: #fffde7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid #fff59d;">
-      <i class="fas fa-trash-alt" style="color: #fbc02d; font-size: 1.8rem;"></i>
+<div class="modal-system-overlay-confirm" *ngIf="mostrarModalConfirmar">
+  <div class="modal-system-card">
+    <div class="modal-system-icon-circle-confirm">
+      <span class="modal-system-icon-trash">🗑️</span>
     </div>
-    <h3 style="margin: 0 0 10px 0; color: #574c00; font-size: 1.35rem; font-weight: 700;">¿Confirmar eliminación?</h3>
-    <p style="margin: 0 0 25px 0; color: #5a5a5a; font-size: 0.95rem; line-height: 1.5;">
-      ¿Estás completamente seguro de que deseas dar de baja a este integrante de la agrupación? Esta acción es irreversible.
-    </p>
-    <div style="display: flex; gap: 12px;">
-      <button (click)="mostrarModalConfirmar = false" style="background: #e0e0e0; color: #333; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; flex: 1;">
+    <h3 class="modal-system-title-confirm">¿Confirmar eliminación?</h3>
+    <p class="modal-system-text">¿Estás completamente seguro de que deseas dar de baja a este integrante de la agrupación? Esta acción es irreversible.</p>
+    <div class="modal-system-actions-gap">
+      <button class="modal-system-btn-cancel" (click)="mostrarModalConfirmar = false">
         Cancelar
       </button>
-      <button (click)="confirmarEliminar()" style="background: #d32f2f; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; flex: 1; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.2);" onmouseover="this.style.background='#b71c1c'" onmouseout="this.style.background='#d32f2f'">
+      <button class="modal-system-btn-delete" (click)="confirmarEliminar()">
         Eliminar
       </button>
     </div>

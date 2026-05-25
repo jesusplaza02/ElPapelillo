@@ -95,12 +95,6 @@ public class ConcursoController {
         return inscripcionRepository.findAllById(ids);
     }
 
-    /**
-     * Endpoint principal para la tabla de concursos.
-     * Filtra automáticamente: 
-     * - SYSADMIN: Ve todos.
-     * - ADMIN/SUPERADMIN: Solo los de su organización.
-     */
     @GetMapping("/mis-concursos/{idUsuarioActual}")
     public ResponseEntity<List<Concurso>> getConcursosPorRol(@PathVariable Integer idUsuarioActual) {
         try {
@@ -111,21 +105,11 @@ public class ConcursoController {
         }
     }
 
-    /**
-     * Endpoint para obtener solo concursos activos (útil para selects o landing page).
-     */
     @GetMapping("/activos")
     public ResponseEntity<List<Concurso>> getActivos() {
         return ResponseEntity.ok(concursoService.findActivos());
     }
 
-    /**
-     * Endpoint para obtener el detalle de un concurso específico de forma verídica.
-     * Fuerza la sincronización de Hibernate con el registro real de la base de datos.
-     */
-    /**
-     * Endpoint principal para obtener el detalle de un concurso específico.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<Concurso> getById(@PathVariable Integer id) {
         return concursoService.findById(id) 
@@ -150,9 +134,6 @@ public class ConcursoController {
         }
     }
 
-    /**
-     * Actualizar un concurso existente (PUT)
-     */
     @PutMapping("/{id}")
     public ResponseEntity<Concurso> actualizarConcurso(@PathVariable Integer id, @RequestBody Concurso concurso) {
         try {

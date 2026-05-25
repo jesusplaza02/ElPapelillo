@@ -100,6 +100,35 @@ canvas[style*="pointer-events"] {
   transform: scale(0.98);
 }
 
+/* Info Box Histórico */
+.info-box-historico {
+  background-color: #edf2f7; 
+  border-left: 5px solid #4a5568; 
+  color: #2d3748; 
+  padding: 15px; 
+  margin-bottom: 20px; 
+  border-radius: 6px; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.info-box-icon {
+  color: #4a5568; 
+  font-size: 1.4rem;
+}
+
+.info-box-title {
+  display: block; 
+  margin-bottom: 2px;
+}
+
+.info-box-subtitle {
+  font-size: 0.9rem; 
+  color: #718096;
+}
+
 /* ==========================================================================
    ⚠️ TARJETA DE ADVERTENCIA HORARIA
    ========================================================================== */
@@ -111,6 +140,15 @@ canvas[style*="pointer-events"] {
   margin-bottom: 30px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alert-warning-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
 
 .alert-icon {
@@ -122,6 +160,15 @@ canvas[style*="pointer-events"] {
   color: #5c4300;
   font-size: 0.95rem;
   line-height: 1.4;
+}
+
+.alert-warning-footer {
+  border-top: 1px solid rgba(217, 119, 6, 0.3); 
+  padding-top: 8px; 
+  margin-left: 28px; 
+  font-size: 0.88rem; 
+  line-height: 1.4; 
+  color: #b45309;
 }
 
 /* ==========================================================================
@@ -283,7 +330,7 @@ canvas[style*="pointer-events"] {
   border-radius: 4px;
   font-size: 0.95rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background-color 0.2s;
   box-sizing: border-box;
   width: 100%;
 }
@@ -291,6 +338,18 @@ canvas[style*="pointer-events"] {
 .form-control:focus {
   border-color: #006666;
   box-shadow: 0 0 0 3px rgba(0,102,102,0.1);
+}
+
+.form-control:disabled {
+  background-color: #edf2f7;
+  color: #4a5568;
+  cursor: not-allowed;
+  border-color: #cbd5e0;
+}
+
+.text-danger {
+  color: #e53e3e; 
+  font-size: 0.8rem;
 }
 
 .form-actions-row {
@@ -336,6 +395,16 @@ canvas[style*="pointer-events"] {
   gap: 8px;
   border: 1px solid #fed7d7;
   box-sizing: border-box;
+  margin-bottom: 15px; 
+  border-left: 4px solid #e53e3e;
+}
+
+.error-icon-inline {
+  font-size: 1.1rem;
+}
+
+.error-text-inline {
+  margin-left: 5px;
 }
 
 /* ==========================================================================
@@ -349,7 +418,13 @@ canvas[style*="pointer-events"] {
   border: 1px solid #e2e8f0;
   box-sizing: border-box;
   width: 100%;
-  overflow-x: visible; /* Eliminamos scrollbar horizontal feo */
+  overflow-x: visible; 
+}
+
+.table-loading-text {
+  text-align: center;
+  padding: 30px; 
+  color: #006666;
 }
 
 .section-title {
@@ -396,6 +471,11 @@ canvas[style*="pointer-events"] {
   color: #718096;
 }
 
+.empty-table-sub {
+  font-size: 0.85rem; 
+  margin-top: 5px;
+}
+
 .DNI-cell {
   font-family: monospace;
   font-size: 1rem;
@@ -440,6 +520,117 @@ canvas[style*="pointer-events"] {
 }
 
 /* ==========================================================================
+   🔔 SISTEMA CENTRALIZADO DE MODALES DE NOTIFICACIÓN
+   ========================================================================== */
+.modal-system-overlay-success,
+.modal-system-overlay-error,
+.modal-system-overlay-confirm {
+  position: fixed; 
+  top: 0; left: 0; 
+  width: 100%; height: 100%; 
+  background: rgba(0, 0, 0, 0.4); 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  z-index: 10000; 
+  font-family: sans-serif;
+}
+
+.modal-system-overlay-confirm {
+  background: rgba(0, 0, 0, 0.5); 
+}
+
+.modal-system-card {
+  background: white; 
+  padding: 30px; 
+  border-radius: 12px; 
+  max-width: 420px; 
+  width: 90%; 
+  text-align: center; 
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-sizing: border-box;
+}
+
+.modal-system-icon-circle-success,
+.modal-system-icon-circle-error,
+.modal-system-icon-circle-confirm {
+  width: 70px; 
+  height: 70px; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  margin: 0 auto 20px auto;
+}
+
+.modal-system-icon-circle-success { background: #e8f5e9; }
+.modal-system-icon-circle-error { background: #fff5f5; border: 2px solid #feb2b2; }
+.modal-system-icon-circle-confirm { background: #fffde7; border: 2px solid #fff59d; }
+
+.modal-system-icon-check { color: #2e7d32; font-size: 2rem; font-weight: bold; }
+.modal-system-icon-warning { color: #e53e3e; font-size: 2rem; }
+.modal-system-icon-trash { color: #fbc02d; font-size: 1.8rem; }
+
+.modal-system-title-success,
+.modal-system-title-error,
+.modal-system-title-confirm {
+  margin: 0 0 10px 0; 
+  font-size: 1.35rem; 
+  font-weight: 700;
+}
+.modal-system-title-success { color: #1b5e20; }
+.modal-system-title-error { color: #c53030; }
+.modal-system-title-confirm { color: #574c00; }
+
+.modal-system-text {
+  margin: 0 0 25px 0; 
+  color: #555; 
+  font-size: 0.95rem; 
+  line-height: 1.5;
+}
+.modal-system-text-error {
+  margin: 0 0 25px 0; 
+  color: #4a5568; 
+  font-size: 0.95rem; 
+  line-height: 1.5;
+  padding: 0 10px;
+}
+
+.modal-system-btn-success,
+.modal-system-btn-error,
+.modal-system-btn-cancel,
+.modal-system-btn-delete {
+  border: none; 
+  padding: 11px 24px; 
+  border-radius: 6px; 
+  font-weight: 600; 
+  font-size: 0.95rem; 
+  cursor: pointer; 
+  transition: background-color 0.2s;
+}
+
+.modal-system-btn-success {
+  background: #2e7d32; color: white; width: 100%; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);
+}
+.modal-system-btn-success:hover { background: #1b5e20; }
+
+.modal-system-btn-error {
+  background: #e53e3e; color: white; width: 100%; box-shadow: 0 4px 10px rgba(229, 62, 62, 0.2);
+}
+.modal-system-btn-error:hover { background: #c53030; }
+
+.modal-system-actions-gap {
+  display: flex; gap: 12px;
+}
+.modal-system-btn-cancel {
+  background: #e0e0e0; color: #333; flex: 1;
+}
+.modal-system-btn-delete {
+  background: #d32f2f; color: white; flex: 1; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.2);
+}
+.modal-system-btn-delete:hover { background: #b71c1c; }
+
+/* ==========================================================================
    📱 ⚡ RESPONSIVE MEDIA QUERY (MÓVILES Y TABLETAS)
    ========================================================================== */
 @media (max-width: 768px) {
@@ -462,13 +653,11 @@ canvas[style*="pointer-events"] {
     text-align: center;
   }
 
-  /* Desarmamos la rejilla del formulario para que sea de 1 sola columna */
   .grid-form {
     grid-template-columns: 1fr;
     gap: 10px;
   }
 
-  /* 🔑 MAGIA RESPONSIVE: Convertir la tabla rígida en Tarjetas Flexibles */
   .styled-table, 
   .styled-table thead, 
   .styled-table tbody, 
@@ -480,14 +669,12 @@ canvas[style*="pointer-events"] {
     box-sizing: border-box;
   }
   
-  /* Escondemos los encabezados de la tabla original */
   .styled-table thead tr { 
     position: absolute;
     top: -9999px;
     left: -9999px;
   }
   
-  /* Cada fila se convierte en una bonita tarjeta individual */
   .styled-table tr {
     background: #ffffff;
     border: 1px solid #e2e8f0;
@@ -501,12 +688,11 @@ canvas[style*="pointer-events"] {
     background-color: #ffffff;
   }
   
-  /* Estilizamos cada celda añadiendo etiquetas dinámicas simuladas */
   .styled-table td { 
     border: none;
     border-bottom: 1px dashed #f0f4f8;
     position: relative;
-    padding: 8px 0 8px 45%; /* Deja espacio a la izquierda para los títulos ficticios */
+    padding: 8px 0 8px 45%; 
     text-align: right; 
     font-size: 0.9rem;
   }
@@ -516,7 +702,6 @@ canvas[style*="pointer-events"] {
     padding-bottom: 4px;
   }
   
-  /* Inyectamos los títulos de columna usando CSS antes del valor real */
   .styled-table td::before { 
     position: absolute;
     left: 6px;
@@ -529,14 +714,12 @@ canvas[style*="pointer-events"] {
     color: #4a5568;
   }
   
-  /* Mapeo exacto de los nombres de columna */
   .styled-table td:nth-of-type(1)::before { content: "Nombre"; }
   .styled-table td:nth-of-type(2)::before { content: "DNI"; }
   .styled-table td:nth-of-type(3)::before { content: "Nacimiento"; }
   .styled-table td:nth-of-type(4)::before { content: "Rol"; }
   .styled-table td:nth-of-type(5)::before { content: "Acciones"; }
 
-  /* Ajustamos las acciones para que se centren abajo de la mini tarjeta */
   .action-buttons-cell {
     justify-content: flex-end;
     width: 100%;
