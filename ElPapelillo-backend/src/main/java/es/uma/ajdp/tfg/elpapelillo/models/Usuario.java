@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.AllArgsConstructor;
+import es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil;
 
 @Entity
 @Table(name = "usuario")
@@ -63,14 +64,36 @@ public class Usuario {
     @Column(nullable = false)
     private String rol;
 
+    // --- CICLOS DE VIDA DE JPA PARA EL CIFRADO Y LA AUDITORÍA ---
+
+    @PostLoad
+    public void decryptDni() {
+        if (this.getDNI() != null) {
+            this.setDNI(CryptoUtil.decrypt(this.getDNI()));
+        }
+    }
+
     @PrePersist
-    protected void onCreate() {
-        this.fechaRegistro = LocalDate.now();
+    public void onPrePersist() {
+        // 1. Lógica que ya tenías antes para la auditoría de fecha
+        this.fechaRegistro = LocalDate.now(); 
+        
+        // 2. Lógica del cifrado del DNI
+        if (this.getDNI() != null) {
+            String dniLimpio = this.getDNI().trim().toUpperCase();
+            this.setDNI(CryptoUtil.encrypt(dniLimpio));
+        }
+    }
+
+    @PreUpdate
+    public void encryptDniOnUpdate() {
+        if (this.getDNI() != null) {
+            String dniLimpio = this.getDNI().trim().toUpperCase();
+            this.setDNI(CryptoUtil.encrypt(dniLimpio));
+        }
     }
 
     public Boolean isActivo() {
         return this.activo;
     }
-
-    
 }

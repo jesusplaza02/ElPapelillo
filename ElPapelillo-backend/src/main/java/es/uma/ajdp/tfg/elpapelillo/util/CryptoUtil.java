@@ -7,7 +7,6 @@ import java.util.Base64;
 public class CryptoUtil {
 
     private static final String ALGORITHM = "AES";
-    // ⚠️ Usa una clave de exactamente 16 caracteres para AES-128 bits. Cambia esto en producción.
     private static final String SECRET_KEY = "ClAvEsEcReTa_TFG"; 
 
     public static String encrypt(String strToEncrypt) {
