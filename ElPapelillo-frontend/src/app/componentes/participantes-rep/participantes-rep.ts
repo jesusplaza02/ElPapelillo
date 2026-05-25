@@ -19,12 +19,11 @@ export class GestionParticipantesComponent implements OnInit {
   idInscripcionActual: string | null = null;
   inscripcionActiva: any = null;
 
-  // --- VARIABLES DE ESTADO Y DIÁLOGOS ---
   loading: boolean = true;
+  exitoCargaContexto: boolean = false;
   mostrarFormulario: boolean = false;
   mensajeErrorForm: string | null = null;
 
-  // VARIABLES PARA LAS VENTANAS MODALES INTEGRADAS
   mostrarModalExito: boolean = false;
   tituloModalExito: string = '';
   contenidoModalExito: string = '';
@@ -36,7 +35,6 @@ export class GestionParticipantesComponent implements OnInit {
   mostrarModalConfirmar: boolean = false;
   idParticipacionAEliminar: number | null = null;
 
-  // --- MODELOS DE BÚSQUEDA E INSERCIÓN ---
   dniBusqueda: string = '';
   participanteEncontradoHistorico: any = null;
   
@@ -179,7 +177,9 @@ export class GestionParticipantesComponent implements OnInit {
       return;
     }
 
-    this.http.get<any>(`http://localhost:8080/api/participantes/buscar-historico?dni=${this.dniBusqueda.trim().toUpperCase()}`)
+    const adminId = localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1';
+
+    this.http.get<any>(`http://localhost:8080/api/participantes/buscar-historico?dni=${this.dniBusqueda.trim().toUpperCase()}&idUsuarioActual=${adminId}`)
       .subscribe({
         next: (res) => {
           if (res) {
@@ -190,8 +190,12 @@ export class GestionParticipantesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error al verificar DNI:', err);
-          this.mensajeErrorForm = '⚠️ Error al consultar el histórico del servidor.';
-          this.cd.detectChanges();
+          if (err.status === 403) {
+            this.manejarBloqueoSeguridad();
+          } else {
+            this.mensajeErrorForm = '⚠️ Error al consultar el histórico del servidor.';
+            this.cd.detectChanges();
+          }
         }
       });
   }
@@ -221,19 +225,29 @@ export class GestionParticipantesComponent implements OnInit {
   }
 
   cargarDatosContexto(idInscripcion: string) {
-    this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}`)
+    const adminId = localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1';
+
+    this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}?idUsuarioActual=${adminId}`)
       .subscribe({
         next: (res) => {
           this.inscripcionActiva = res;
+          this.exitoCargaContexto = true;
           this.cd.detectChanges();
         },
-        error: (err) => console.error('Error cargando cabecera', err)
+        error: (err) => {
+          console.error('Error cargando cabecera', err);
+          if (err.status === 403) {
+            this.manejarBloqueoSeguridad();
+          }
+        }
       });
   }
 
   cargarParticipantes(idInscripcion: string) {
     this.loading = true;
-    this.http.get<any[]>(`http://localhost:8080/api/participantes/inscripcion/${idInscripcion}`)
+    const adminId = localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1';
+
+    this.http.get<any[]>(`http://localhost:8080/api/participantes/inscripcion/${idInscripcion}?idUsuarioActual=${adminId}`)
       .subscribe({
         next: (data) => {
           this.listaParticipantes = data ? data : [];
@@ -243,7 +257,11 @@ export class GestionParticipantesComponent implements OnInit {
         error: (err) => {
           console.error('Error cargando participantes:', err);
           this.loading = false;
-          this.cd.detectChanges();
+          if (err.status === 403) {
+            this.manejarBloqueoSeguridad();
+          } else {
+            this.cd.detectChanges();
+          }
         }
       });
   }
@@ -275,11 +293,9 @@ export class GestionParticipantesComponent implements OnInit {
     }
 
     let rolFinalEnum = this.nuevoParticipante.rol ? String(this.nuevoParticipante.rol).toUpperCase().trim() : 'VOZ';
+    const adminId = localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1';
 
-    // PAYLOAD MIXTO DEFINITIVO: Enviamos TODOS los campos tanto planos como estructurados.
-    // Esto previene que falle tanto si busca inscripcionMap como si busca participanteMap u objeto plano.
     const payloadDefinitivo = {
-      // 1. Campos Planos en la Raíz
       idParticipacion: this.nuevoParticipante.idParticipacion,
       idInscripcion: Number(this.idInscripcionActual),
       idParticipante: this.nuevoParticipante.idParticipanteBase,
@@ -287,13 +303,10 @@ export class GestionParticipantesComponent implements OnInit {
       dni: dniAEnviar,
       fechaNacimiento: this.nuevoParticipante.fechaNacimiento,
       rol: rolFinalEnum,
-
-      // 2. Mapa de Inscripción (Exigido por tu backend según el último error)
+      idUsuarioActual: Number(adminId),
       inscripcion: {
         idInscripcion: Number(this.idInscripcionActual)
       },
-
-      // 3. Mapa de Participante (Por si también lo desestructura como mapa)
       participante: {
         id: this.nuevoParticipante.idParticipanteBase,
         idParticipante: this.nuevoParticipante.idParticipanteBase,
@@ -317,8 +330,13 @@ export class GestionParticipantesComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error detallado de respuesta backend:', err);
-          this.mensajeErrorForm = err.error?.error || err.error?.message || 'Error de procesamiento en el servidor.';
-          this.cd.detectChanges();
+          if (err.status === 403) {
+            this.cerrarFormulario();
+            this.manejarBloqueoSeguridad();
+          } else {
+            this.mensajeErrorForm = err.error?.error || err.error?.message || 'Error de procesamiento en el servidor.';
+            this.cd.detectChanges();
+          }
         }
       });
   }
@@ -368,7 +386,9 @@ export class GestionParticipantesComponent implements OnInit {
   confirmarEliminar() {
     if (this.esHistorico || !this.idParticipacionAEliminar) return;
 
-    this.http.delete(`http://localhost:8080/api/participantes/eliminar/${this.idParticipacionAEliminar}`)
+    const adminId = localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1';
+
+    this.http.delete(`http://localhost:8080/api/participantes/eliminar/${this.idParticipacionAEliminar}?idUsuarioActual=${adminId}`)
       .subscribe({
         next: () => {
           this.mostrarModalConfirmar = false;
@@ -387,5 +407,17 @@ export class GestionParticipantesComponent implements OnInit {
           this.cd.detectChanges();
         }
       });
+  }
+
+  private manejarBloqueoSeguridad() {
+    this.loading = false;
+    this.exitoCargaContexto = false;
+    this.tituloModalError = 'Acceso Restringido';
+    this.contenidoModalError = 'Seguridad LOPD: No dispones de los permisos requeridos para gestionar o visualizar los integrantes de esta agrupación.';
+    this.mostrarModalError = true;
+    this.cd.detectChanges();
+    setTimeout(() => {
+      this.irAlPanel();
+    }, 3000);
   }
 }

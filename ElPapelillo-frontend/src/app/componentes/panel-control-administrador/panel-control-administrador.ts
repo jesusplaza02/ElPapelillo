@@ -19,7 +19,7 @@ import { PanelControlAdministradorConcursoService } from './panel-control-admini
 })
 export class PanelControlAdministradorComponent implements OnInit {
   private router = inject(Router);
-  private cdr = inject(ChangeDetectorRef); // <-- Control de renderizado inmediato
+  private cdr = inject(ChangeDetectorRef); // <-- Inyección clave para forzar el renderizado inmediato
   isMenuOpen = false;
   borradoExitoso: boolean = false;
   
@@ -147,10 +147,10 @@ export class PanelControlAdministradorComponent implements OnInit {
       this.contenidoModalErrorGlobal = contenido;
       this.mostrarModalErrorGlobal = true;
     }
-    this.cdr.detectChanges(); // Fuerza al HTML a pintar el modal de forma fulminante
+    this.cdr.detectChanges(); // Redibuja el HTML instantáneamente
   }
 
-  // --- MÉTODOS DE ORGANIZACIONES (REVISADOS Y BLINDADOS) ---
+  // --- MÉTODOS DE ORGANIZACIONES ---
   cargarOrganizaciones(): void {
     this.organizacionService.getOrganizaciones().subscribe({
       next: (res) => {
@@ -223,6 +223,7 @@ export class PanelControlAdministradorComponent implements OnInit {
       next: () => {
         this.mostrandoFormOrg = false;
         this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
+        this.cdr.detectChanges();
         this.cargarOrganizaciones(); 
         this.cargarDatosSincronizados();
       },
@@ -230,6 +231,7 @@ export class PanelControlAdministradorComponent implements OnInit {
         if (err.status === 200 || err.status === 201) {
           this.mostrandoFormOrg = false;
           this.lanzarModalInformativo('Éxito', 'La organización se ha guardado correctamente.', 'success');
+          this.cdr.detectChanges();
           this.cargarOrganizaciones(); 
           this.cargarDatosSincronizados();
         } else {
@@ -259,6 +261,7 @@ export class PanelControlAdministradorComponent implements OnInit {
           this.mostrarModalBorradoOrg = false;
           this.lanzarModalInformativo('Eliminada', 'La organización ha sido desactivada en el sistema.', 'success');
           this.orgABorrar = null;
+          this.cdr.detectChanges();
           this.cargarDatosSincronizados(); 
           this.cargarOrganizaciones();     
         },
@@ -267,10 +270,12 @@ export class PanelControlAdministradorComponent implements OnInit {
           if (err.status === 200 || err.status === 201) {
             this.lanzarModalInformativo('Eliminada', 'La organización ha sido desactivada en el sistema.', 'success');
             this.orgABorrar = null;
+            this.cdr.detectChanges();
             this.cargarDatosSincronizados(); 
             this.cargarOrganizaciones();     
           } else {
             this.lanzarModalInformativo('Conflicto de eliminación', 'No se puede dar de baja debido a dependencias activas.', 'error');
+            this.cdr.detectChanges();
           }
         }
       });
@@ -299,7 +304,7 @@ export class PanelControlAdministradorComponent implements OnInit {
             });
         this.usuariosFiltrados = [...this.usuarios];
 
-        // Auditoría
+        // Mapeo Auditoría
         this.logs = auditoriaRes.map((log: any) => {
           const fechaObj = new Date(log.fecha);
           return {
@@ -419,7 +424,15 @@ export class PanelControlAdministradorComponent implements OnInit {
 
   abrirModalRegistro(): void { this.modoFormulario = 'crear'; this.resetForm(); this.mostrandoFormulario = true; this.cdr.detectChanges(); }
   verDetalles(u: Usuario): void { this.modoFormulario = 'ver'; this.prepararUsuarioParaFormulario(u); this.mostrandoFormulario = true; this.cdr.detectChanges(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
-  editar(u: Usuario): void { this.modoFormulario = 'editar'; this.prepararUsuarioParaFormulario(u); this.mostrandoFormulario = true; this.cdr.detectChanges(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  
+  editar(u: Usuario): void { 
+    this.modoFormulario = 'editar'; 
+    this.prepararUsuarioParaFormulario(u); 
+    this.mostrandoFormulario = true; 
+    this.cdr.detectChanges(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
+  }
+
   private prepararUsuarioParaFormulario(u: Usuario): void { this.nuevoUsuario = { ...u }; const rol = (u as any).rol?.toUpperCase() || ''; this.nuevoUsuario.rol = rol; }
   
   guardarFormulario(): void {
@@ -474,7 +487,7 @@ export class PanelControlAdministradorComponent implements OnInit {
     }
   }
 
-  // --- MÉTODOS DE CONCURSOS (REVISADOS Y BLINDADOS) ---
+  // --- MÉTODOS DE CONCURSOS ---
   private formatearFechaInput(fechaStr: string): string {
     if (!fechaStr) return '';
     const d = new Date(fechaStr);
@@ -523,7 +536,7 @@ export class PanelControlAdministradorComponent implements OnInit {
           this.finalizarGuardado('El concurso se ha configurado de manera idónea.');
         } else {
           console.error(err);
-          this.lanzarModalInformativo('Error del Servidor', 'Verifique los campos obligatorios del concurso.', 'error');
+          this.lanzarModalInformativo('Error del Servidor', 'Verifique los campos obligatorios del concurso y sus restricciones.', 'error');
         }
       }
     });
@@ -534,11 +547,11 @@ export class PanelControlAdministradorComponent implements OnInit {
     this.mostrandoFormularioConcurso = false;
     this.mostrandoFormOrg = false;
     
-    // Mostramos el modal de información INMEDIATAMENTE
+    // Primero desplegamos la confirmación visual de éxito
     this.lanzarModalInformativo('Operación Completada', mensaje, 'success');
-    this.cdr.detectChanges(); // Redibujamos la UI antes de ir a por los servicios
+    this.cdr.detectChanges(); // Redibujamos la pantalla ipso facto
 
-    // Recargas en segundo plano sin interrumpir los modales
+    // Solicitamos la sincronización de las tablas en segundo plano
     this.cargarDatosSincronizados();
     if (this.rolSesionActual?.toUpperCase() === 'SYSADMIN') {
       this.cargarOrganizaciones();
@@ -572,6 +585,7 @@ export class PanelControlAdministradorComponent implements OnInit {
         this.mostrarModalBorrado = false; 
         this.lanzarModalInformativo('Usuario Desactivado', 'Se ha inhabilitado el usuario con éxito.', 'success');
         this.usuarioABorrar = null;
+        this.cdr.detectChanges();
         this.cargarDatosSincronizados();
       },
       error: (err) => {
@@ -579,11 +593,13 @@ export class PanelControlAdministradorComponent implements OnInit {
         if (err.status === 200 || err.status === 201) {
           this.lanzarModalInformativo('Usuario Desactivado', 'Se ha inhabilitado el usuario con éxito.', 'success');
           this.usuarioABorrar = null;
+          this.cdr.detectChanges();
           this.cargarDatosSincronizados();
         } else {
           this.usuarioABorrar = null;
           const mensajeError = typeof err.error === 'string' ? err.error : 'No está permitido eliminar tu propio usuario de sesión activo.';
           this.lanzarModalInformativo('Restricción', mensajeError, 'error');
+          this.cdr.detectChanges();
         }
       }
     });
@@ -658,9 +674,10 @@ export class PanelControlAdministradorComponent implements OnInit {
     if (this.idConcursoABorrar) {
       this.concursoService.eliminarConcurso(this.idConcursoABorrar).subscribe({
         next: () => {
-          this.mostrarModalBorradoConcurso = false; // <-- Ocultamos modal de confirmación primero
+          this.mostrarModalBorradoConcurso = false; 
           this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
           this.idConcursoABorrar = null;
+          this.cdr.detectChanges();
           this.cargarDatosSincronizados(); 
         },
         error: (err) => {
@@ -668,6 +685,7 @@ export class PanelControlAdministradorComponent implements OnInit {
             this.mostrarModalBorradoConcurso = false;
             this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
             this.idConcursoABorrar = null;
+            this.cdr.detectChanges();
             this.cargarDatosSincronizados(); 
           } else {
             this.esErrorModalBorradoConcurso = true;

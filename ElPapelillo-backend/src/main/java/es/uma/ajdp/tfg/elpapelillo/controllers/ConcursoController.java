@@ -18,6 +18,7 @@ import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -111,17 +112,33 @@ public class ConcursoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Concurso> getById(@PathVariable Integer id) {
-        return concursoService.findById(id) 
-                .map(concurso -> {
-                    // Mapeo correcto con la propiedad de tu entidad
-                    System.out.println("====== [BACKEND] ENVIANDO CONCURSO ======");
-                    System.out.println("Nombre: " + concurso.getNombre());
-                    System.out.println("Estado Real del Enum: " + concurso.getEstadoConcurso());
-                    System.out.println("=========================================");
-                    return ResponseEntity.ok(concurso);
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<?> getById(
+            @PathVariable Integer id,
+            @RequestParam(value = "idUsuarioActual", required = false) Integer idUsuarioActual) {
+        
+        Optional<Concurso> concursoOpt = concursoService.findById(id);
+        if (!concursoOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Concurso concurso = concursoOpt.get();
+        if (idUsuarioActual != null) {
+            try {
+                List<Concurso> concursosPermitidos = concursoService.listarConcursosSegunRol(idUsuarioActual);
+                
+                boolean esPermitido = concursosPermitidos.stream()
+                        .anyMatch(c -> c.getIdConcurso().equals(concurso.getIdConcurso()));
+                
+                if (!esPermitido) {
+                    return ResponseEntity.status(403).body("{\"message\": \"Acceso denegado: Este concurso pertenece a otra organización.\"}");
+                }
+            } catch (Exception e) {
+                // Si el usuario no existe o el rol falla, por seguridad denegamos
+                return ResponseEntity.status(403).body("{\"message\": \"Error de autenticación.\"}");
+            }
+        }
+
+        return ResponseEntity.ok(concurso);
     }
 
     @PostMapping

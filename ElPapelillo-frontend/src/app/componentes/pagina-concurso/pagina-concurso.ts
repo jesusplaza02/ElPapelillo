@@ -64,10 +64,11 @@ export class DetalleConcursoComponent implements OnInit {
   contenidoModalErrorGlobal: string = '';
 
   ngOnInit(): void {
-    this.idConcurso = Number(this.route.snapshot.paramMap.get('id'));
-    this.cargarDatosConcurso();
-    this.cargarInscripciones();
-  }
+  this.idConcurso = Number(this.route.snapshot.paramMap.get('id'));
+  
+  // Primero cargamos el concurso y validamos la seguridad
+  this.cargarDatosConcurso();
+}
 
   lanzarModalInformativo(titulo: string, contenido: string, tipo: 'success' | 'error'): void {
     if (tipo === 'success') {
@@ -83,21 +84,48 @@ export class DetalleConcursoComponent implements OnInit {
   }
 
   cargarDatosConcurso(): void {
-    this.http.get(`http://localhost:8080/api/concursos/${this.idConcurso}`).subscribe({
+    const idUsuarioLogueado = localStorage.getItem('idUsuario') || '0';
+    this.http.get(`http://localhost:8080/api/concursos/${this.idConcurso}?idUsuarioActual=${idUsuarioLogueado}`).subscribe({
       next: (data: any) => {
         if (data) {
+          const miRol = localStorage.getItem('rol')?.toUpperCase();
+          const miIdOrg = localStorage.getItem('id_organizacion') ;
+          const idOrgConcurso = data.id_organizacion;
+
+          if (miRol !== 'SYSADMIN' && String(idOrgConcurso) !== String(miIdOrg)) {
+            this.lanzarModalInformativo('Acceso Denegado', 'No tienes permisos para acceder a este concurso.', 'error');
+            this.router.navigate(['/panel-control-administrador']);
+            return;
+          }
+
           this.concurso = data;
           const estadoEnum = data?.estadoConcurso;
           this.esHistorico = estadoEnum && String(estadoEnum).trim().toUpperCase() === 'HISTORICO';
+          
+          this.cdRef.detectChanges();
+          this.cargarInscripciones(); 
         } else {
-          this.concurso = null;
+          this.router.navigate(['/panel-control-administrador']);
         }
-        this.cdRef.detectChanges();
       },
       error: (err) => {
-        console.error('Error al cargar datos del concurso:', err);
+        console.error('Error IDOR o Concurso ajeno:', err);
+        
+        // Si el backend da error (porque es el concurso 23 de otra persona), activamos la expulsión:
         this.concurso = null;
-        this.lanzarModalInformativo('Error de Conexión', 'No se ha podido sincronizar la ficha técnica de este concurso.', 'error');
+        this.cdRef.detectChanges();
+        
+        this.lanzarModalInformativo(
+          'Acceso Restringido', 
+          'No tienes autorización para visualizar este concurso. Redirigiendo...', 
+          'error'
+        );
+
+        setTimeout(() => {
+          this.mostrarModalErrorGlobal = false;
+          this.router.navigate(['/panel-control-administrador']);
+          this.cdRef.detectChanges();
+        }, 3000);
       }
     });
   }

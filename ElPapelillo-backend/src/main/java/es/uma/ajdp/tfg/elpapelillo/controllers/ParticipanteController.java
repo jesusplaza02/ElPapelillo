@@ -3,10 +3,12 @@ package es.uma.ajdp.tfg.elpapelillo.controllers;
 import es.uma.ajdp.tfg.elpapelillo.models.Inscripcion;
 import es.uma.ajdp.tfg.elpapelillo.models.Participante;
 import es.uma.ajdp.tfg.elpapelillo.models.Participacion;
-import es.uma.ajdp.tfg.elpapelillo.models.enums.RolParticipante; // 🔑 Importamos tu Enum correcto
+import es.uma.ajdp.tfg.elpapelillo.models.Administrador;
+import es.uma.ajdp.tfg.elpapelillo.models.enums.RolParticipante;
 import es.uma.ajdp.tfg.elpapelillo.repositories.InscripcionRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.ParticipanteRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.ParticipacionRepository;
+import es.uma.ajdp.tfg.elpapelillo.repositories.UsuarioRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,9 +35,46 @@ public class ParticipanteController {
     @Autowired
     private InscripcionRepository inscripcionRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    private boolean validarAccesoInscripcion(Integer idInscripcion, Integer idUsuarioActual) {
+        if (idInscripcion == null || idUsuarioActual == null) {
+            return false;
+        }
+        
+        boolean esAdmin = usuarioRepository.findById(idUsuarioActual)
+                .map(user -> user instanceof Administrador)
+                .orElse(false);
+                
+        if (esAdmin) {
+            return true;
+        }
+
+        Optional<Inscripcion> inscripOpt = inscripcionRepository.findById(idInscripcion);
+        if (inscripOpt.isEmpty()) {
+            return false;
+        }
+
+        Inscripcion inscripcion = inscripOpt.get();
+        if (inscripcion.getAgrupacion() != null && inscripcion.getAgrupacion().getRepresentante() != null) {
+            Integer idRepresentanteReal = inscripcion.getAgrupacion().getRepresentante().getIdUsuario();
+            return idUsuarioActual.equals(idRepresentanteReal);
+        }
+        
+        return false;
+    }
+
     @GetMapping("/inscripcion/{idInscripcion}")
-    public ResponseEntity<List<Participacion>> obtenerPorInscripcion(@PathVariable Integer idInscripcion) {
+    public ResponseEntity<?> obtenerPorInscripcion(
+            @PathVariable Integer idInscripcion,
+            @RequestParam(value = "idUsuarioActual", required = true) Integer idUsuarioActual) {
         try {
+            if (!validarAccesoInscripcion(idInscripcion, idUsuarioActual)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Acceso denegado: No tienes permisos para ver estos participantes."));
+            }
+
             List<Participacion> lista = participacionRepository.findByInscripcionIdInscripcion(idInscripcion);
             if (lista == null) {
                 return ResponseEntity.ok(new ArrayList<>());
@@ -48,14 +87,24 @@ public class ParticipanteController {
     }
 
     @GetMapping("/buscar-historico")
-    public ResponseEntity<?> buscarPorDni(@RequestParam String dni) {
+    public ResponseEntity<?> buscarPorDni(
+            @RequestParam String dni,
+            @RequestParam(value = "idUsuarioActual", required = true) Integer idUsuarioActual) {
         try {
-            String dniCifrado = es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil.encrypt(dni.trim());
+            boolean esAdmin = usuarioRepository.findById(idUsuarioActual)
+                    .map(user -> user instanceof Administrador)
+                    .orElse(false);
+                    
+            if (!esAdmin && usuarioRepository.findById(idUsuarioActual).isEmpty()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Acceso denegado: Sesión no válida."));
+            }
 
+            String dniCifrado = es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil.encrypt(dni.trim());
             List<Participante> participantes = participanteRepository.findAllByDni(dniCifrado);
             
             if (participantes != null && !participantes.isEmpty()) {
-                return ResponseEntity.ok(participantes.get(0)); // JPA ejecutará @PostLoad y el JSON llevará el DNI limpio
+                return ResponseEntity.ok(participantes.get(0));
             }
             return ResponseEntity.ok(null);
         } catch (Exception e) {
@@ -76,15 +125,21 @@ public class ParticipanteController {
     @PostMapping("/guardar")
     public ResponseEntity<?> guardarParticipante(@RequestBody Map<String, Object> payload) {
         try {
+            Integer idUsuarioActual = (Integer) payload.get("idUsuarioActual");
+            Map<String, Object> inscripcionMap = (Map<String, Object>) payload.get("inscripcion");
+            Integer idInscripcion = (Integer) inscripcionMap.get("idInscripcion");
+
+            if (!validarAccesoInscripcion(idInscripcion, idUsuarioActual)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Acceso denegado: No tienes permisos para modificar esta inscripción."));
+            }
+
             Integer idParticipacion = (Integer) payload.get("idParticipacion");
             Integer idParticipanteBase = (Integer) payload.get("idParticipante"); 
             String nombre = (String) payload.get("nombre");
             String dni = ((String) payload.get("dni")).trim();
             String fechaNacStr = (String) payload.get("fechaNacimiento");
-            String rolStr = (String) payload.get("rol"); // Viene como texto ("Ayudantes de escena", "Voz"...)
-            
-            Map<String, Object> inscripcionMap = (Map<String, Object>) payload.get("inscripcion");
-            Integer idInscripcion = (Integer) inscripcionMap.get("idInscripcion");
+            String rolStr = (String) payload.get("rol"); 
 
             Inscripcion inscripcion = inscripcionRepository.findById(idInscripcion)
                     .orElseThrow(() -> new RuntimeException("Inscripción no encontrada."));
@@ -160,13 +215,22 @@ public class ParticipanteController {
         }
     }
 
-    
     @DeleteMapping("/eliminar/{idParticipacion}")
-    public ResponseEntity<?> eliminarParticipante(@PathVariable Integer idParticipacion) {
+    public ResponseEntity<?> eliminarParticipante(
+            @PathVariable Integer idParticipacion,
+            @RequestParam(value = "idUsuarioActual", required = true) Integer idUsuarioActual) {
         try {
             Optional<Participacion> participacionOpt = participacionRepository.findById(idParticipacion);
             if (participacionOpt.isPresent()) {
-                participacionRepository.delete(participacionOpt.get());
+                Participacion part = participacionOpt.get();
+                Integer idInscripcion = part.getInscripcion().getIdInscripcion();
+
+                if (!validarAccesoInscripcion(idInscripcion, idUsuarioActual)) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("error", "Acceso denegado: No tienes permisos para eliminar este participante."));
+                }
+
+                participacionRepository.delete(part);
                 return ResponseEntity.ok(Map.of("status", "OK", "mensaje", "El participante ha sido desvinculado con éxito."));
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)

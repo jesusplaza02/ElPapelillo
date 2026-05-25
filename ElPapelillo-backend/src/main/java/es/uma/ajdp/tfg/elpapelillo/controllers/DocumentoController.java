@@ -43,8 +43,8 @@ public class DocumentoController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("idInscripcion") @NonNull Integer idInscripcion,
             @RequestParam("nombreDoc") String nombreDoc,
-            @RequestParam(value = "tipo", required = false, defaultValue = "PDF") String tipo, // Opcional con valor por defecto
-            @RequestParam(value = "usuarioId", required = false) Integer usuarioId) { // Opcional para pruebas en Postman
+            @RequestParam(value = "tipo", required = false, defaultValue = "PDF") String tipo, 
+            @RequestParam(value = "usuarioId", required = true) Integer usuarioId) { // 🔥 Lo hacemos obligatorio
 
         String contentType = file.getContentType();
         if (contentType == null || !contentType.equals("application/pdf")) {
@@ -56,6 +56,26 @@ public class DocumentoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("{\"error\": \"El archivo supera el límite de 5MB.\"}");
         }
+
+        // --- 🔒 NUEVO FILTRO DE SEGURIDAD ANTES DE GUARDAR NADA ---
+        Optional<Inscripcion> inscripOpt = inscripcionRepository.findById(idInscripcion);
+        if (inscripOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("{\"error\": \"Inscripción no encontrada.\"}");
+        }
+
+        Inscripcion inscripcion = inscripOpt.get();
+
+        // Validamos que el usuario que intenta subir el archivo sea el verdadero representante
+        if (inscripcion.getAgrupacion() != null && inscripcion.getAgrupacion().getRepresentante() != null) {
+            Integer idRepresentanteReal = inscripcion.getAgrupacion().getRepresentante().getIdUsuario();
+            
+            if (!usuarioId.equals(idRepresentanteReal)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("{\"error\": \"Acceso denegado: No puedes añadir documentación a un expediente ajeno.\"}");
+            }
+        }
+        // -----------------------------------------------------------
 
         try {
             String filenameOriginal = file.getOriginalFilename();
@@ -76,20 +96,12 @@ public class DocumentoController {
             doc.setTipo(tipo);
             doc.setUrlArchivo("archivos/" + nombreFisicoLimpio);
             doc.setEstado(EstadoAdministrativo.PENDIENTE);
-
-            Optional<Inscripcion> inscrip = inscripcionRepository.findById(idInscripcion);
-            if (inscrip.isPresent()) {
-                doc.setInscripcion(inscrip.get());
-            } else {
-                Files.deleteIfExists(rutaArchivo);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("{\"error\": \"Inscripción no encontrada.\"}");
-            }
+            doc.setInscripcion(inscripcion); // Usamos la que ya encontramos arriba
 
             documentoRepository.save(doc);
 
             usuarioRepository.findById(usuarioId).ifPresent(user -> {
-                if (user instanceof Administrador admin) { // Java 16+ Pattern Matching
+                if (user instanceof Administrador admin) { 
                     LogAuditoria log = new LogAuditoria(
                             admin,
                             "ADJUNTAR",
@@ -108,14 +120,47 @@ public class DocumentoController {
     }
 
     @GetMapping("/inscripcion/{id}")
-    public ResponseEntity<List<Documento>> listarPorInscripcion(@PathVariable Integer id) { // Cambiado a Integer
-        if (id == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        List<Documento> docs = documentoService.listarPorInscripcion(id);
-        return ResponseEntity.ok(docs);
+public ResponseEntity<?> listarPorInscripcion(
+        @PathVariable Integer id,
+        @RequestParam(value = "idUsuarioActual", required = true) Integer idUsuarioActual) {
+    
+    if (id == null) {
+        return ResponseEntity.badRequest().build();
     }
 
+    Optional<Inscripcion> inscripOpt = inscripcionRepository.findById(id);
+    if (inscripOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("{\"error\": \"Inscripción no encontrada.\"}");
+    }
+
+    Inscripcion inscripcion = inscripOpt.get();
+
+    // 1. Verificamos primero si el usuario actual es un ADMINISTRADOR
+    boolean esAdmin = usuarioRepository.findById(idUsuarioActual)
+            .map(user -> user instanceof Administrador) // Revisa si usas herencia, o cámbialo por: user.getRole().equals("ADMIN")
+            .orElse(false);
+
+    // 2. APLICAMOS EL FILTRO INTELIGENTE
+    if (!esAdmin) { 
+        // Si NO es administrador, obligatoriamente tiene que ser el representante dueño de la agrupación
+        if (inscripcion.getAgrupacion() != null && inscripcion.getAgrupacion().getRepresentante() != null) {
+            Integer idRepresentanteReal = inscripcion.getAgrupacion().getRepresentante().getIdUsuario();
+            
+            if (!idUsuarioActual.equals(idRepresentanteReal)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("{\"error\": \"Acceso denegado: No tienes permisos para ver esta agrupación.\"}");
+            }
+        } else {
+            // Si la inscripción no tiene representante asignado y el usuario no es admin, denegamos por seguridad
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
+    // Si es Admin o es el Representante dueño, el flujo continúa con éxito:
+    List<Documento> docs = documentoService.listarPorInscripcion(id);
+    return ResponseEntity.ok(docs);
+}
     @PutMapping("/{id}")
     public ResponseEntity<?> evaluarDocumento(
             @PathVariable Integer id, 

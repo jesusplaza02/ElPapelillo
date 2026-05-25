@@ -1,12 +1,13 @@
 package es.uma.ajdp.tfg.elpapelillo.controllers;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Map;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,14 +20,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.uma.ajdp.tfg.elpapelillo.models.Inscripcion;
+import es.uma.ajdp.tfg.elpapelillo.models.Administrador;
+import es.uma.ajdp.tfg.elpapelillo.models.Concurso;
 import es.uma.ajdp.tfg.elpapelillo.repositories.AgrupacionRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.ConcursoRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.InscripcionRepository;
+import es.uma.ajdp.tfg.elpapelillo.repositories.UsuarioRepository;
+import es.uma.ajdp.tfg.elpapelillo.services.ConcursoService;
 import es.uma.ajdp.tfg.elpapelillo.services.InscripcionService;
-import es.uma.ajdp.tfg.elpapelillo.models.enums.CategoriaAgrupacion;
-import es.uma.ajdp.tfg.elpapelillo.models.enums.ModalidadDioses;
-
-
 
 @RestController
 @RequestMapping("/api/inscripciones")
@@ -40,22 +41,25 @@ public class InscripcionController {
     private InscripcionRepository inscripcionRepository;
     
     @Autowired
+    private UsuarioRepository usuarioRepository; 
+
+    @Autowired
     private AgrupacionRepository agrupacionRepository; 
 
-     @Autowired
-    private ConcursoRepository concursoRepository; 
-
+    @Autowired
+    private ConcursoRepository concursoRepository;
+    
+    @Autowired
+    private ConcursoService concursoService;
 
     // 1. Obtener inscripciones de un representante
-   @GetMapping("/representante/{idRepresentante}")
-    @org.springframework.transaction.annotation.Transactional(readOnly = true) // 🔑 LA SOLUCIÓN AQUÍ
+    @GetMapping("/representante/{idRepresentante}")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<List<Inscripcion>> getInscripcionesRepresentante(@PathVariable Integer idRepresentante) {
-        
-        // Tu lógica original (sin los System.out.println del toString() que rompían)
         List<Inscripcion> inscripciones = inscripcionService.obtenerInscripcionesPorRepresentante(idRepresentante);
-        
         return ResponseEntity.ok(inscripciones);
     }
+
     // 2. Obtener inscripciones de un concurso concreto
     @GetMapping("/concurso/{idConcurso}")
     public ResponseEntity<List<Inscripcion>> getInscripcionesConcurso(@PathVariable Integer idConcurso) {
@@ -64,21 +68,19 @@ public class InscripcionController {
     }
 
     // 3. Crear una nueva inscripción
-   @PostMapping(consumes = "application/json")
+    @SuppressWarnings("unchecked")
+    @PostMapping(consumes = "application/json")
     public ResponseEntity<?> crearInscripcion(@RequestBody java.util.Map<String, Object> payload) {
         try {
             Inscripcion nuevaInscripcion = new Inscripcion();
             
-            // ==========================================================
             // 1. VINCULAR Y CARGAR EL CONCURSO REAL DE LA BD
-            // ==========================================================
             es.uma.ajdp.tfg.elpapelillo.models.Concurso concursoReal = null;
             if (payload.containsKey("concurso") && payload.get("concurso") != null) {
                 java.util.Map<String, Object> concursoMap = (java.util.Map<String, Object>) payload.get("concurso");
                 if (concursoMap.containsKey("idConcurso") && concursoMap.get("idConcurso") != null) {
                     int idConcurso = ((Number) concursoMap.get("idConcurso")).intValue();
                     
-                    // Buscamos el concurso completo en la BD para tener su fechaInicio
                     concursoReal = concursoRepository.findById(idConcurso).orElse(null);
                     if (concursoReal != null) {
                         nuevaInscripcion.setConcurso(concursoReal);
@@ -90,9 +92,7 @@ public class InscripcionController {
                 return ResponseEntity.badRequest().body("El concurso especificado no existe o es obligatorio.");
             }
             
-            // ==========================================================
-            // 🔥 SOLUCIÓN SEGURA PARA EXTRAER EL AÑO DE LA FECHA
-            // ==========================================================
+            // EXTRAER EL AÑO DE LA FECHA
             Integer anioConcurso = null;
             if (concursoReal.getFechaInicio() != null) {
                 Object fechaObj = concursoReal.getFechaInicio();
@@ -102,14 +102,11 @@ public class InscripcionController {
                     cal.setTime((java.util.Date) fechaObj);
                     anioConcurso = cal.get(java.util.Calendar.YEAR);
                 } else if (fechaObj instanceof java.time.temporal.TemporalAccessor) {
-                    // Captura de forma segura cualquier tipo de java.time (LocalDate, LocalDateTime, ZonedDateTime, etc.)
                     anioConcurso = ((java.time.temporal.TemporalAccessor) fechaObj).get(java.time.temporal.ChronoField.YEAR);
                 }
             }
             
-            // ==========================================================
             // 2. CONSTRUIR Y MAPEAR LA AGRUPACIÓN
-            // ==========================================================
             if (payload.containsKey("agrupacion") && payload.get("agrupacion") != null) {
                 java.util.Map<String, Object> agrupacionMap = (java.util.Map<String, Object>) payload.get("agrupacion");
                 
@@ -122,7 +119,7 @@ public class InscripcionController {
 
                 String nombreAgrupacion = (String) agrupacionMap.get("nombre");
 
-                // 🛑 VALIDACIÓN: Nombre único por concurso vía Repositorio
+                // VALIDACIÓN: Nombre único por concurso vía Repositorio
                 if (nombreAgrupacion != null) {
                     boolean yaExisteNombre = inscripcionRepository.existsByConcurso_IdConcursoAndAgrupacion_NombreIgnoreCase(
                         concursoReal.getIdConcurso(), 
@@ -137,34 +134,27 @@ public class InscripcionController {
                 boolean esNuevaAgrupacion = (agrupacionMap.get("idAgrupacion") == null);
 
                 if (!esNuevaAgrupacion) {
-                    // ----------------------------------------------------------
-                    // CASO A: REUTILIZAR EXISTENTE
-                    // ----------------------------------------------------------
+                    // REUTILIZAR EXISTENTE
                     agrupacionFinal = new es.uma.ajdp.tfg.elpapelillo.models.Agrupacion() {};
                     agrupacionFinal.setIdAgrupacion(((Number) agrupacionMap.get("idAgrupacion")).intValue());
                     
                 } else {
-                    // ----------------------------------------------------------
-                    // CASO B: CREAR NUEVA AGRUPACIÓN DESDE CERO SEGÚN SU SUBTIPO
-                    // ----------------------------------------------------------
+                    // CREAR NUEVA AGRUPACIÓN DESDE CERO
                     java.util.Map<String, Object> camposEspecificosMap = agrupacionMap;
                     
                     if ("CANTO".equalsIgnoreCase(tipoStr)) {
                         es.uma.ajdp.tfg.elpapelillo.models.AgrupacionCanto canto = new es.uma.ajdp.tfg.elpapelillo.models.AgrupacionCanto();
-                        
                         if (agrupacionMap.containsKey("agrupacionCanto")) {
                             camposEspecificosMap = (java.util.Map<String, Object>) agrupacionMap.get("agrupacionCanto");
                         }
-                        
                         if (camposEspecificosMap != null) {
                             canto.setAutorLetra((String) camposEspecificosMap.get("autorLetra"));
                             canto.setAutorMusica((String) camposEspecificosMap.get("autorMusica"));
                             canto.setDireccion((String) camposEspecificosMap.get("direccion"));
                             
-                            // Guardar la Modalidad de Canto (Enum ModalidadCanto)
                             String modStr = (String) camposEspecificosMap.get("modalidad");
                             if (modStr == null) {
-                                modStr = (String) payload.get("modalidad"); // Por si viene en la raíz del payload de Angular
+                                modStr = (String) payload.get("modalidad");
                             }
                             if (modStr != null) {
                                 try {
@@ -178,11 +168,9 @@ public class InscripcionController {
                         
                     } else if ("DRAG".equalsIgnoreCase(tipoStr)) {
                         es.uma.ajdp.tfg.elpapelillo.models.AgrupacionDrag drag = new es.uma.ajdp.tfg.elpapelillo.models.AgrupacionDrag();
-                        
                         if (agrupacionMap.containsKey("agrupacionDrag")) {
                             camposEspecificosMap = (java.util.Map<String, Object>) agrupacionMap.get("agrupacionDrag");
                         }
-                        
                         if (camposEspecificosMap != null) {
                             drag.setNombreArtisticoDrag((String) camposEspecificosMap.get("nombreArtisticoDrag"));
                             drag.setDisenador((String) camposEspecificosMap.get("disenador"));
@@ -191,22 +179,16 @@ public class InscripcionController {
                         
                     } else if ("DIOSES".equalsIgnoreCase(tipoStr)) {
                         es.uma.ajdp.tfg.elpapelillo.models.AgrupacionDioses dioses = new es.uma.ajdp.tfg.elpapelillo.models.AgrupacionDioses();
-                        
                         if (agrupacionMap.containsKey("agrupacionDioses")) {
                             camposEspecificosMap = (java.util.Map<String, Object>) agrupacionMap.get("agrupacionDioses");
                         }
-                        
                         if (camposEspecificosMap != null) {
                             dioses.setModelo((String) camposEspecificosMap.get("modelo"));
                             dioses.setDisenador((String) camposEspecificosMap.get("disenador"));
                             
-                            // Guardar la Modalidad de Dios/Diosa (Enum ModalidadDios)
-                            String modDiosStr = (String) camposEspecificosMap.get("modalidadDios");
+                            String modDiosStr = (String) camposEspecificosMap.get("categoria"); 
                             if (modDiosStr == null) {
-                                modDiosStr = (String) camposEspecificosMap.get("categoria"); 
-                            }
-                            if (modDiosStr == null) {
-                                modDiosStr = (String) payload.get("modalidadDios"); // Respaldo raíz
+                                modDiosStr = (String) payload.get("modalidadDios"); 
                             }
                             if (modDiosStr != null) {
                                 try {
@@ -219,15 +201,10 @@ public class InscripcionController {
                         agrupacionFinal = dioses;
                         
                     } else {
-                        // 🚀 CASO "OTRO": Instanciar la clase real heredada
                         es.uma.ajdp.tfg.elpapelillo.models.AgrupacionOtros otros = new es.uma.ajdp.tfg.elpapelillo.models.AgrupacionOtros();
-                        
                         if (agrupacionMap.containsKey("agrupacionOtros")) {
                             camposEspecificosMap = (java.util.Map<String, Object>) agrupacionMap.get("agrupacionOtros");
-                        } else {
-                            camposEspecificosMap = payload; // Por si Angular lo envía suuelto en la raíz
                         }
-                        
                         if (camposEspecificosMap != null) {
                             otros.setComentariosDestacables((String) camposEspecificosMap.get("comentariosDestacables"));
                         }
@@ -242,13 +219,10 @@ public class InscripcionController {
                         agrupacionFinal.setNombreUltimaParticipacion((String) agrupacionMap.get("nombreUltimaParticipacion"));
                     }
                     
-                    // 🔥 ASIGNACIÓN AUTOMÁTICA DEL AÑO: Extraído del concurso
                     if (anioConcurso != null) {
                         agrupacionFinal.setAnio(anioConcurso);
-                    } else if (agrupacionMap.get("anio") != null) {
-                        agrupacionFinal.setAnio(((Number) agrupacionMap.get("anio")).intValue());
                     }
-                    
+
                     if (tipoStr != null) {
                         try {
                             agrupacionFinal.setTipoConcurso(es.uma.ajdp.tfg.elpapelillo.models.enums.TipoConcurso.valueOf(tipoStr.toUpperCase()));
@@ -263,15 +237,11 @@ public class InscripcionController {
                         if (repMap.get("idUsuario") != null) {
                             es.uma.ajdp.tfg.elpapelillo.models.Representante rep = new es.uma.ajdp.tfg.elpapelillo.models.Representante();
                             rep.setIdUsuario(((Number) repMap.get("idUsuario")).intValue());
-                            try {
-                                agrupacionFinal.setRepresentante(rep);
-                            } catch (Exception e) {
-                                System.err.println("No se pudo asignar el representante.");
-                            }
+                            agrupacionFinal.setRepresentante(rep);
                         }
                     }
 
-                    // Mapear Categoría General de la Agrupación (Adulto, Juvenil, etc.)
+                    // Mapear Categoría
                     if (agrupacionMap.get("categoria") != null) {
                         String catStr = (String) agrupacionMap.get("categoria");
                         try {
@@ -281,7 +251,6 @@ public class InscripcionController {
                         }
                     }
 
-                    // 🔥 PERSISTENCIA PREVIA: Guardar la agrupación en la BD antes de enlazar la inscripción
                     if (esNuevaAgrupacion) {
                         agrupacionFinal = agrupacionRepository.save(agrupacionFinal);
                     }
@@ -290,9 +259,7 @@ public class InscripcionController {
                 }
             }
             
-            // ==========================================================
             // 3. PERSISTIR LA INSCRIPCIÓN FINAL
-            // ==========================================================
             Inscripcion guardada = inscripcionService.crearInscripcion(nuevaInscripcion);
             return ResponseEntity.ok(guardada);
             
@@ -303,55 +270,104 @@ public class InscripcionController {
                     .body("Error interno del servidor: " + e.getMessage());
         }
     }
-    // ===================================================================
-    // NUEVO: Obtener una inscripción individual por su ID para el detalle
-    // ===================================================================
+
     @GetMapping("/{id}")
-    public ResponseEntity<Inscripcion> getInscripcionPorId(@PathVariable Integer id) {
-        Inscripcion inscripcion = inscripcionService.obtenerInscripcionPorId(id);
-        
-        if (inscripcion != null) {
-            return ResponseEntity.ok(inscripcion);
+public ResponseEntity<?> getInscripcionPorId(
+        @PathVariable Integer id,
+        @RequestParam(value = "idUsuarioActual", required = true) Integer idUsuarioActual) {
+
+    Optional<Inscripcion> inscripOpt = inscripcionRepository.findById(id);
+    if (inscripOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("{\"error\": \"Inscripción no encontrada.\"}");
+    }
+
+    Inscripcion inscripcion = inscripOpt.get();
+
+    // 1. Comprobamos si el usuario actual es Administrador
+    boolean esAdmin = usuarioRepository.findById(idUsuarioActual)
+            .map(user -> user instanceof Administrador) // Modifica según cómo tengas tu herencia o roles
+            .orElse(false);
+
+    // 2. Si no es administrador, verificamos si es el Representante de la agrupación
+    if (!esAdmin) {
+        if (inscripcion.getAgrupacion() != null && inscripcion.getAgrupacion().getRepresentante() != null) {
+            Integer idRepresentanteReal = inscripcion.getAgrupacion().getRepresentante().getIdUsuario();
+            
+            // Si el ID del usuario actual no coincide con el del dueño, entonces SÍ es un intruso
+            if (!idUsuarioActual.equals(idRepresentanteReal)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("{\"error\": \"Acceso denegado: No tienes permisos para ver esta inscripción.\"}");
+            }
         } else {
-            return ResponseEntity.notFound().build(); // Devuelve 404 si el ID no existe en la BD
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
     }
 
-    // ===================================================================
-    // NUEVO: Actualizar el estado de la inscripción (APROBADO/RECHAZADO)
-    // ===================================================================
+    // Si es Administrador o el Representante correcto, el flujo continúa:
+    return ResponseEntity.ok(inscripcion);
+}
+
+    // 5. 🔒 Actualizar estado de inscripción (CON CERROJO IDOR)
     @PutMapping("/{id}/estado")
-    public ResponseEntity<Inscripcion> actualizarEstadoInscripcion(
+    public ResponseEntity<?> actualizarEstadoInscripcion(
             @PathVariable Integer id, 
+            @RequestParam(value = "idUsuarioActual", required = false) Integer idUsuarioActual,
             @RequestBody Map<String, String> body) {
         
-        String nuevoEstado = body.get("estado");
-        Inscripcion actualizada = inscripcionService.cambiarEstadoInscripcion(id, nuevoEstado);
-        
-        if (actualizada != null) {
-            return ResponseEntity.ok(actualizada);
-        } else {
+        Inscripcion inscripcion = inscripcionService.obtenerInscripcionPorId(id);
+        if (inscripcion == null) {
             return ResponseEntity.notFound().build();
         }
+
+        // Bloqueamos cambios ilícitos de estado en grupos de otra organización
+        if (idUsuarioActual != null && inscripcion.getConcurso() != null) {
+            try {
+                List<Concurso> concursosPermitidos = concursoService.listarConcursosSegunRol(idUsuarioActual);
+                boolean esPermitido = concursosPermitidos.stream()
+                        .anyMatch(c -> c.getIdConcurso().equals(inscripcion.getConcurso().getIdConcurso()));
+                
+                if (!esPermitido) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body("{\"message\": \"No tienes permisos para modificar agrupaciones ajenas.\"}");
+                }
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        String nuevoEstado = body.get("estado");
+        Inscripcion actualizada = inscripcionService.cambiarEstadoInscripcion(id, nuevoEstado);
+        return ResponseEntity.ok(actualizada);
     }
 
-    @CrossOrigin(origins = "http://localhost:4200")
+    // 6. 🔒 Exportación individual de PDF (CON CERROJO IDOR)
     @GetMapping("/{id}/exportar-pdf")
-    public ResponseEntity<byte[]> exportarListadoComponentesPdf(@PathVariable Integer id) {
+    public ResponseEntity<byte[]> exportarListadoComponentesPdf(
+            @PathVariable Integer id,
+            @RequestParam(value = "idUsuarioActual", required = false) Integer idUsuarioActual) {
         try {
             Inscripcion inscripcion = inscripcionService.obtenerInscripcionPorId(id);
             if (inscripcion == null) {
                 return ResponseEntity.notFound().build();
             }
             
-            // 1. Llamamos al generador real que usa com.lowagie.text
+            // Si intentan forzar la descarga de otra organización, se corta la petición
+            if (idUsuarioActual != null && inscripcion.getConcurso() != null) {
+                List<Concurso> concursosPermitidos = concursoService.listarConcursosSegunRol(idUsuarioActual);
+                boolean esPermitido = concursosPermitidos.stream()
+                        .anyMatch(c -> c.getIdConcurso().equals(inscripcion.getConcurso().getIdConcurso()));
+                
+                if (!esPermitido) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+                }
+            }
+            
             byte[] pdfBytes = inscripcionService.generarPdfComponentes(inscripcion);
             
-            // 2. Configuramos las cabeceras HTTP usando clases puras de Spring
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
             
-            // Reemplazamos espacios por guiones bajos para que el nombre del archivo no se rompa
             String nombreAgrupacion = "Agrupacion";
             if (inscripcion.getAgrupacion() != null && inscripcion.getAgrupacion().getNombre() != null) {
                 nombreAgrupacion = inscripcion.getAgrupacion().getNombre().replace(" ", "_");
@@ -360,25 +376,21 @@ public class InscripcionController {
             String nombreArchivo = "Listado_" + nombreAgrupacion + ".pdf";
             headers.setContentDispositionFormData("attachment", nombreArchivo);
             
-            // 3. Devolvemos la respuesta con estado 200 OK y los bytes del PDF
-            return new ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
             
         } catch (Exception e) {
             System.err.println("Error en el controlador al exportar PDF: " + e.getMessage());
-            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // =========================================================================
-    // NUEVO 7: Exportar el Listado Resumen General de todo el Concurso (Por ID)
-    // =========================================================================
+    // 7. Exportar el Listado Resumen General de todo el Concurso
     @PostMapping("/exportar-pdf-general")
     public ResponseEntity<byte[]> descargarPdfGeneral(
             @RequestParam("idConcurso") Long idConcurso,
             @RequestParam("nombreConcurso") String nombreConcurso) {
         try {
-            // El propio backend recupera las inscripciones limpias de la base de datos
-            List<Inscripcion> inscripciones = inscripcionService.obtenerInscripcionesPorConcurso(idConcurso); 
+            List<Inscripcion> inscripciones = inscripcionService.obtenerInscripcionesPorConcurso(idConcurso.intValue()); 
 
             byte[] pdfBytes = inscripcionService.generarPdfGeneralConcurso(nombreConcurso, inscripciones);
             
@@ -397,30 +409,26 @@ public class InscripcionController {
         }
     }
 
-    // =========================================================================
-    // NUEVO 8: Exportar fichas de los componentes de grupos SELECCIONADOS (Checkbox)
-    // =========================================================================
-   @PostMapping("/exportar-pdf-seleccionados")
-public ResponseEntity<byte[]> exportarPdfSeleccionados(@RequestBody List<Integer> idsInscripcionesInt) {
-    try {
-        if (idsInscripcionesInt == null || idsInscripcionesInt.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    // 8. Exportar fichas de los componentes de grupos SELECCIONADOS (Checkbox)
+    @PostMapping("/exportar-pdf-seleccionados")
+    public ResponseEntity<byte[]> exportarPdfSeleccionados(@RequestBody List<Integer> idsInscripcionesInt) {
+        try {
+            if (idsInscripcionesInt == null || idsInscripcionesInt.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            byte[] pdfBytes = inscripcionService.generarPdfSeleccionadosPorIds(idsInscripcionesInt);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Fichas_Componentes_Seleccionados.pdf");
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (Exception e) {
+            System.err.println("Error al exportar seleccionados: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        // Le pasamos la lista de Integer directamente al servicio, SIN conversiones raras
-        byte[] pdfBytes = inscripcionService.generarPdfSeleccionadosPorIds(idsInscripcionesInt);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", "Fichas_Componentes_Seleccionados.pdf");
-
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-
-    } catch (Exception e) {
-        System.err.println("Error al exportar seleccionados: " + e.getMessage());
-        e.printStackTrace();
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-}
-
 }

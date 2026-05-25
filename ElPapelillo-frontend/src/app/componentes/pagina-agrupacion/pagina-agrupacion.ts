@@ -60,7 +60,9 @@ export class DetalleAgrupacionComponent implements OnInit {
   }
 
   cargarDetalleInscripcion(): void {
-    this.http.get(`http://localhost:8080/api/inscripciones/${this.idInscripcion}`).subscribe({
+    const adminId = localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1';
+
+    this.http.get(`http://localhost:8080/api/inscripciones/${this.idInscripcion}?idUsuarioActual=${adminId}`).subscribe({
       next: (data: any) => {
         this.inscripcion = data;
         this.participantes = data?.agrupacion?.participantes || [];
@@ -98,6 +100,20 @@ export class DetalleAgrupacionComponent implements OnInit {
       },
       error: (errInsc: HttpErrorResponse) => {
         console.error('Error general al cargar la inscripción:', errInsc);
+        
+        // 🔒 CAPTURAMOS EL BLOQUEO DE SEGURIDAD DEL BACKEND
+        if (errInsc.status === 403) {
+          this.tituloModalError = 'Acceso Restringido';
+          this.contenidoModalError = 'Acceso denegado: Esta agrupación pertenece a una organización o concurso que no gestionas.';
+          this.mostrarModalError = true;
+
+          // 🕒 Esperamos 3 segundos para que lea el modal y lo mandamos a su panel
+          setTimeout(() => {
+            // Pon aquí la ruta exacta de tu panel de control (ej: '/panel', '/dashboard', '/concursos'...)
+            this.router.navigate(['/panel-control-administrador']); 
+          }, 3000);
+        }
+
         this.cdRef.detectChanges();
       }
     }); 

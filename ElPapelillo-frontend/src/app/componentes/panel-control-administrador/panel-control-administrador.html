@@ -151,7 +151,7 @@
 
           <div class="form-group">
             <label>Tipo de Concurso</label>
-            <select [(ngModel)]="concursoSeleccionado.tipoConcurso" name="tipoConcurso" required>
+            <select [(ngModel)]="concursoSeleccionado.tipoConcurso" name="tipoConcurso" required [disabled]="modoFormularioConcurso === 'editar'">
               <option value="" disabled selected>Selecciona un tipo...</option>
               <option value="CANTO">Canto</option>
               <option value="DRAG">Drag</option>
@@ -323,19 +323,19 @@
             
             <div class="form-group">
               <label>Rol</label>
-              <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver'">
-                @if (rolSesionActual === 'SYSADMIN') {
+              <select [(ngModel)]="nuevoUsuario.rol" name="rol" [disabled]="modoFormulario === 'ver' || modoFormulario === 'editar'">
+                @if (rolSesionActual?.toUpperCase() === 'SYSADMIN') {
                   <option value="SYSADMIN">Sysadmin</option>
                   <option value="REPRESENTANTE">Representante</option>
                   <option value="SUPERADMIN">Superadmin</option>
                   <option value="ADMINISTRADOR">Administrador</option>
                 }
-                @if (rolSesionActual === 'SUPERADMIN') {
+                @if (rolSesionActual?.toUpperCase() === 'SUPERADMIN') {
                   <option value="SUPERADMIN">Superadmin</option>
                   <option value="ADMINISTRADOR">Administrador</option>
                   <option value="REPRESENTANTE">Representante</option>
                 }
-                @if (rolSesionActual === 'ADMINISTRADOR') {
+                @if (rolSesionActual?.toUpperCase() === 'ADMINISTRADOR') {
                   <option value="REPRESENTANTE">Representante</option>
                 }
               </select>
