@@ -7,7 +7,7 @@
 
 .content-wrapper {
     position: relative;
-    z-index: 10 !important; /* Valor alto para estar encima de los papelillos */
+    z-index: 10 !important; 
     max-width: 1500px;
     margin: 0 auto;
     padding: 20px;
@@ -47,7 +47,7 @@
     color: #333;
 }
 
-/* BADGES (ESTILO CÁPSULA) */
+/* BADGES */
 .badges {
     display: flex;
     flex-wrap: wrap;
@@ -60,7 +60,7 @@
     align-items: center;
     justify-content: center;
     height: 30px;
-    width: auto !important; /* IMPORTANTE: Para que no sea un círculo */
+    width: auto !important; 
     min-width: 90px;
     padding: 0 15px !important;
     border-radius: 15px !important;
@@ -71,7 +71,7 @@
 
 .badge-tipo {
     background-color: #e8eaf6 !important;
-    color: #283593 !important; /* Azul oscuro para que se vea el texto */
+    color: #283593 !important; 
     border: 1px solid #c5cae9;
 }
 
@@ -81,17 +81,17 @@
     border: 1px solid #b2dfdb;
 }
 
-/* BADGES (ESTILO CÁPSULA) - AJUSTE DE COLORES */
+/* BADGES - AJUSTE DE COLORES */
 
 .badge-aprobada {
-    background-color: #d4edda !important; /* Verde suave de fondo */
-    color: #155724 !important;           /* Verde oscuro para el texto */
+    background-color: #d4edda !important; 
+    color: #155724 !important;          
     border: 1px solid #c3e6cb;
 }
 
 .badge-rechazada {
-    background-color: #f8d7da !important; /* Rojo suave de fondo */
-    color: #721c24 !important;           /* Rojo oscuro para el texto */
+    background-color: #f8d7da !important; 
+    color: #721c24 !important;           
     border: 1px solid #f5c6cb;
 }
 
@@ -155,7 +155,6 @@
     margin: 20px 0 30px 0;
 }
 
-/* Rejilla del formulario */
 .grid-form {
     display: grid;
     grid-template-columns: 1fr 1fr; /* Dos columnas */
@@ -192,7 +191,7 @@
 
 /* Alineación de botones */
 .form-actions {
-    grid-column: 1 / span 2; /* Ocupa las dos columnas */
+    grid-column: 1 / span 2; 
     display: flex;
     justify-content: flex-end;
     gap: 15px;
@@ -227,20 +226,17 @@
 
 
 @media (max-width: 768px) {
-    /* El contenedor del formulario ocupa casi todo el ancho */
     .inscripcion-card {
         padding: 20px;
         margin: 10px;
         border-radius: 20px;
     }
 
-    /* La rejilla pasa de 2 columnas a 1 sola */
     .grid-form {
         grid-template-columns: 1fr !important; 
         gap: 15px;
     }
 
-    /* Los botones de abajo se ponen uno debajo del otro */
     .form-actions {
         grid-column: 1;
         flex-direction: column;
@@ -248,17 +244,15 @@
     }
 
     .form-actions button {
-        width: 100%; /* Botones a lo ancho del móvil */
+        width: 100%; 
         padding: 15px;
     }
 
-    /* Ajuste para que los inputs no se vean tan grandes */
     .form-field input, .form-field select {
-        font-size: 16px; /* Evita que el iPhone haga zoom automático */
+        font-size: 16px;
         padding: 12px;
     }
 
-    /* Título un poco más pequeño en móvil */
     .inscripcion-card h2 {
         font-size: 1.3rem;
     }
@@ -266,7 +260,6 @@
 
 @media (max-width: 768px) {
   
-  /* 1. Forzar a que el contenedor del formulario no sature los bordes */
   form, 
   .card,
   div[style*="grid-column"] {
@@ -278,23 +271,19 @@
     margin-right: 0 !important;
   }
 
-  /* 2. Desactivar el Grid horizontal: pasamos todo a una sola columna */
-  /* Reemplaza '.tu-contenedor-grid' por la clase real de tu formulario si la tiene */
   .container, form {
     display: flex !important;
     flex-direction: column !important;
     gap: 15px !important;
   }
 
-  /* 3. Romper las celdas compartidas (como la de Nombre y Nombre Última Participación) */
   .form-field {
-    grid-column: 1 / span 1 !important; /* Deja de ocupar 2 columnas */
+    grid-column: 1 / span 1 !important; 
     width: 100% !important;
     display: flex !important;
     flex-direction: column !important;
   }
 
-  /* 4. Asegurar que NINGÚN input o select se estire más allá de la pantalla */
   .form-input-styled,
   .form-select,
   input[type="text"],
@@ -303,10 +292,9 @@
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
-    font-size: 16px !important; /* 🔑 Truco extra: Evita que iOS haga zoom automático al pulsar */
+    font-size: 16px !important; 
   }
 
-  /* 5. Ajustar los radio buttons de arriba para que no se pisen */
   .form-check-inline {
     display: flex !important;
     align-items: center !important;
@@ -314,7 +302,6 @@
     margin-right: 0 !important;
   }
 
-  /* 6. Hacer que los botones de Confirmar y Cancelar ocupen todo el ancho y no se solapen */
   button[type="submit"],
   .btn {
     width: 100% !important;

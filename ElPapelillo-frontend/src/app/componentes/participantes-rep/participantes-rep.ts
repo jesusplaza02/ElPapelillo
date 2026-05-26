@@ -116,7 +116,7 @@ export class GestionParticipantesComponent implements OnInit {
         );
 
         if (yaExisteLocal) {
-          this.mensajeErrorForm = '⚠️ Este participante ya figura inscrito en este listado.';
+          this.mensajeErrorForm = 'Este participante ya figura inscrito en este listado.';
           return;
         }
 
@@ -164,7 +164,7 @@ export class GestionParticipantesComponent implements OnInit {
     if (!this.dniBusqueda.trim()) return;
 
     if (!this.validarFormFormatDni(this.dniBusqueda)) {
-      this.mensajeErrorForm = '⚠️ El formato del DNI introducido no es válido.';
+      this.mensajeErrorForm = 'El formato del DNI introducido no es válido.';
       return;
     }
 
@@ -173,7 +173,7 @@ export class GestionParticipantesComponent implements OnInit {
     );
     
     if (yaExisteEnEstaInscripcion) {
-      this.mensajeErrorForm = '⚠️ Este participante ya figura inscrito en este listado actual.';
+      this.mensajeErrorForm = 'Este participante ya figura inscrito en este listado actual.';
       return;
     }
 
@@ -193,7 +193,7 @@ export class GestionParticipantesComponent implements OnInit {
           if (err.status === 403) {
             this.manejarBloqueoSeguridad();
           } else {
-            this.mensajeErrorForm = '⚠️ Error al consultar el histórico del servidor.';
+            this.mensajeErrorForm = 'Error al consultar el histórico del servidor.';
             this.cd.detectChanges();
           }
         }
@@ -270,7 +270,7 @@ export class GestionParticipantesComponent implements OnInit {
     if (this.esHistorico || !this.idInscripcionActual) return;
 
     if (this.participanteEncontradoHistorico) {
-      this.mensajeErrorForm = '⚠️ Debe pulsar el botón "Importar Datos" antes de registrar este DNI existente.';
+      this.mensajeErrorForm = 'Debe pulsar el botón "Importar Datos" antes de registrar este DNI existente.';
       return;
     }
 
@@ -278,7 +278,7 @@ export class GestionParticipantesComponent implements OnInit {
     const dniAEnviar = this.nuevoParticipante.dni.trim().toUpperCase();
 
     if (!this.validarFormFormatDni(dniAEnviar)) {
-      this.mensajeErrorForm = '⚠️ La estructura del DNI/NIE es incorrecta o la letra no se corresponde.';
+      this.mensajeErrorForm = 'La estructura del DNI/NIE es incorrecta o la letra no se corresponde.';
       return;
     }
 
@@ -287,7 +287,7 @@ export class GestionParticipantesComponent implements OnInit {
         p => p.participante?.dni?.toUpperCase() === dniAEnviar
       );
       if (duplicadoLocal) {
-        this.mensajeErrorForm = '⚠️ Este participante ya se encuentra registrado en esta agrupación.';
+        this.mensajeErrorForm = 'Este participante ya se encuentra registrado en esta agrupación.';
         return;
       }
     }

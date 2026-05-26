@@ -1,13 +1,10 @@
-/* ==========================================================================
-   1. CONTENEDOR DE CONFETI (PAPELILLOS)
-   ========================================================================== */
+/* CONTENEDOR DE CONFETI (PAPELILLOS) */
 .confetti-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    /* Bajamos un poco el nivel para que el menú esté por encima */
     z-index: 1; 
     pointer-events: none; 
     overflow: hidden;
@@ -21,9 +18,7 @@
     opacity: 0.8;
 }
 
-/* ==========================================================================
-   2. HEADER AZUL OSCURO
-   ========================================================================== */
+/* HEADER AZUL OSCURO */
 .main-header {
     display: flex !important;
     justify-content: space-between !important;
@@ -47,9 +42,7 @@
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3) !important;
 }
 
-/* ==========================================================================
-   3. PERFIL Y MENÚ (LO MÁS IMPORTANTE)
-   ========================================================================== */
+/* PERFIL Y MENÚ  */
 .user-profile {
     position: relative;
     /* Subimos el perfil a nivel 2500 para que esté POR ENCIMA de los papelillos */
@@ -70,7 +63,7 @@
 .user-name { color: white !important; }
 .user-avatar { color: #93c5fd !important; font-size: 1.8rem !important; }
 
-/* Menú desplegable: NIVEL MÁXIMO */
+/* Menú desplegable */
 .dropdown-menu {
     position: absolute !important;
     top: 130% !important;
@@ -79,7 +72,6 @@
     min-width: 220px !important;
     border-radius: 12px !important;
     box-shadow: 0 10px 40px rgba(0,0,0,0.4) !important;
-    /* z-index heredado del padre (.user-profile), así que está en 2500 */
     overflow: hidden !important;
     border: none !important;
     padding: 0 !important;
@@ -103,19 +95,17 @@
 
 @media (max-width: 600px) {
     .main-header {
-        padding: 0.8rem 1rem !important; /* Reducimos padding lateral */
+        padding: 0.8rem 1rem !important; 
     }
 
     .main-header h1 {
-        font-size: 1.2rem !important; /* Título un poco más pequeño */
+        font-size: 1.2rem !important; 
     }
 
-    /* OCULTAR EL EMAIL EN MÓVIL (Para que no rompa el diseño) */
     .user-name {
         display: none !important; 
     }
 
-    /* Hacemos que el botón del usuario sea un círculo perfecto */
     .user-info {
         padding: 8px !important;
         background: transparent !important;
@@ -123,13 +113,12 @@
     }
 
     .user-avatar {
-        font-size: 2.2rem !important; /* El icono un poco más grande para que sea fácil de pulsar */
+        font-size: 2.2rem !important; 
     }
 
-    /* Ajustamos el menú desplegable para que no se salga de la pantalla */
     .dropdown-menu {
         right: 10px !important;
-        width: calc(100vw - 20px) !important; /* Casi todo el ancho del móvil */
+        width: calc(100vw - 20px) !important; 
         max-width: 250px !important;
     }
 }
@@ -137,10 +126,10 @@
 @media (max-width: 600px) {
     .user-name {
         display: block !important;
-        max-width: 120px; /* Limitamos el ancho */
+        max-width: 120px; 
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis; /* Añade los "..." al final */
+        text-overflow: ellipsis; 
     }
 }
 

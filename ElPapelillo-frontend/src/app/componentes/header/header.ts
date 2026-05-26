@@ -18,24 +18,16 @@ export class HeaderComponent implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
-    // Carga inicial al refrescar la página
     this.cargarDatosUsuario();
     
-    // Escucha cambios en el storage por si el login ocurre en otra pestaña
     window.addEventListener('storage', () => this.cargarDatosUsuario());
   }
 
-  /**
-   * Carga los datos básicos del storage y limpia comillas residuales
-   */
-
-  // AÑADE ESTA FUNCIÓN
   toggleMenu(event: Event) {
-    event.stopPropagation(); // Evita que el clic cierre el menú inmediatamente
+    event.stopPropagation(); 
     this.menuAbierto = !this.menuAbierto;
   }
 
-  // RECOMENDADO: Añadir esto al constructor o ngOnInit para cerrar el menú al hacer clic fuera
   cerrarMenuGlobal() {
     window.onclick = () => {
       this.menuAbierto = false;
@@ -49,10 +41,6 @@ export class HeaderComponent implements OnInit {
     this.nombreUsuario = nombre ? nombre.replace(/"/g, '').trim() : '';
   }
 
-  /**
-   * Getter dinámico: Esta es la clave para que el nombre aparezca 
-   * siempre actualizado en el HTML sin necesidad de F5.
-   */
   get nombreAMostrar(): string {
     const nombre = localStorage.getItem('nombreUsuario');
     const email = localStorage.getItem('email');
@@ -66,16 +54,10 @@ export class HeaderComponent implements OnInit {
     return 'Usuario';
   }
 
-  /**
-   * Verifica si hay una sesión activa
-   */
   isLoggedIn(): boolean {
     return localStorage.getItem('idUsuario') !== null;
   }
 
-  /**
-   * Redirección inteligente según el rol guardado
-   */
   redirigirAlPanel() {
     const rol = localStorage.getItem('rolUsuario');
     
@@ -89,17 +71,14 @@ export class HeaderComponent implements OnInit {
 
     const rolLimpio = rol.trim().toUpperCase().replace(/"/g, '');
 
-    // Caso Administradores y Sysadmin
     if (['ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'].includes(rolLimpio)) {
       console.log("Accediendo a Panel de Control de Administración");
       this.router.navigate(['/panel-control-administrador']);
     } 
-    // Caso Representantes
     else if (rolLimpio === 'REPRESENTANTE') {
       console.log("Accediendo a Panel de Representante");
       this.router.navigate(['/panel-representante']);
     } 
-    // Otros casos o error
     else {
       console.error("Rol no reconocido o sin permiso:", rolLimpio);
       this.router.navigate(['/home']);

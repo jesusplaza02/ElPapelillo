@@ -22,11 +22,9 @@ export class LoginComponent implements OnInit {
 
   public config = GlobalConfig;
 
-  // Estados de la interfaz
   errorMessage: string = '';
   showPassword: boolean = false;
 
-  // Control de ventanas modales dinámicas
   mostrarModalExitoGlobal: boolean = false;
   tituloModalExitoGlobal: string = '';
   contenidoModalExitoGlobal: string = '';
@@ -35,7 +33,6 @@ export class LoginComponent implements OnInit {
   tituloModalErrorGlobal: string = '';
   contenidoModalErrorGlobal: string = '';
 
-  // Configuración visual (Confeti)
   confettis: any[] = [];
   colors = ['#FFCDD2', '#F8BBD0', '#E1BEE7', '#D1C4E9', '#C5CAE9', '#B3E5FC', '#C8E6C9', '#FFF9C4'];
 
@@ -147,7 +144,6 @@ export class LoginComponent implements OnInit {
     
     this.http.post(url, { email: email }).subscribe({
       next: () => {
-        // Cambiado: Ahora muestra el modal estilizado en vez del alert nativo
         this.lanzarModalInformativo(
           'Contraseña Restablecida', 
           '¡Nueva contraseña generada y enviada! Por favor, revisa la bandeja de entrada de tu correo electrónico.', 
@@ -156,7 +152,6 @@ export class LoginComponent implements OnInit {
         this.errorMessage = '';
       },
       error: (err: any) => {
-        // Control de errores con ventana modal
         this.lanzarModalInformativo(
           'Error de Envío', 
           'No se ha podido procesar la solicitud. Verifica que el email ingresado pertenezca a un usuario registrado.', 

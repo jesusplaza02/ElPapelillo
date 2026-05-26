@@ -40,9 +40,6 @@ export class DocumentacionRepComponent implements OnInit {
   tituloModalError: string = '';
   contenidoModalError: string = '';
 
-  /**
-   * Getter que comprueba si el concurso asociado a la inscripción es histórico.
-   */
   get esHistorico(): boolean {
     if (!this.inscripcionActiva || !this.inscripcionActiva.concurso) {
       return false;
@@ -75,7 +72,6 @@ export class DocumentacionRepComponent implements OnInit {
   }
 
   toggleFormulario() {
-    // Si es histórico, impedimos abrir el formulario por seguridad
     if (this.esHistorico) return;
 
     this.mostrarForm = !this.mostrarForm;
@@ -194,7 +190,6 @@ export class DocumentacionRepComponent implements OnInit {
 
     const adminId = localStorage.getItem('idUsuario') || localStorage.getItem('idAdministrador') || localStorage.getItem('id') || '1';
 
-    // 1. Intentamos cargar los documentos
     this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${idInscripcion}?idUsuarioActual=${adminId}`)
       .subscribe({
         next: (data) => {
@@ -205,8 +200,7 @@ export class DocumentacionRepComponent implements OnInit {
             this.loading = false;
             this.cd.detectChanges();
           } else {
-            // 2. Si no hay documentos, rescatamos la inscripción para saber el contexto (nombre del grupo, etc.)
-            this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}?idUsuarioActual=${adminId}`)
+              this.http.get<any>(`http://localhost:8080/api/inscripciones/${idInscripcion}?idUsuarioActual=${adminId}`)
               .subscribe({
                 next: (res) => {
                   this.inscripcionActiva = res; 
@@ -214,16 +208,14 @@ export class DocumentacionRepComponent implements OnInit {
                   this.cd.detectChanges();
                 },
                 error: (errInsc) => {
-                  this.loading = false; // Quitamos el estado de carga para que refresque el HTML
+                  this.loading = false;
                   
-                  // 🔒 CONTROL DE INTRUSOS EN LA INSCRIPCIÓN
                   if (errInsc.status === 403) {
                     this.tituloModalError = 'Acceso Restringido';
                     this.contenidoModalError = 'Medida de seguridad: No tienes credenciales autorizadas para visualizar este expediente digital.';
                     this.mostrarModalError = true;
-                    this.cd.detectChanges(); // Forzamos a Angular a pintar el modal inmediatamente
+                    this.cd.detectChanges(); 
                     
-                    // 🕒 Expulsión a los 3 segundos
                     setTimeout(() => {
                       this.irAlPanel();
                     }, 3000);
@@ -238,16 +230,14 @@ export class DocumentacionRepComponent implements OnInit {
           }
         },
         error: (errDocs) => {
-          this.loading = false; // Quitamos el estado de carga
-          
-          // 🔒 CONTROL DE INTRUSOS EN LOS DOCUMENTOS
+          this.loading = false; 
+
           if (errDocs.status === 403) {
             this.tituloModalError = 'Acceso Restringido';
             this.contenidoModalError = 'Medida de seguridad: No tienes credenciales autorizadas para visualizar este expediente digital.';
             this.mostrarModalError = true;
-            this.cd.detectChanges(); // Forzamos el redibujado
+            this.cd.detectChanges(); 
             
-            // 🕒 Expulsión a los 3 segundos
             setTimeout(() => {
               this.irAlPanel();
             }, 3000);

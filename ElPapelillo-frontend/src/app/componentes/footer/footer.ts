@@ -1,6 +1,6 @@
 // footer.ts
 import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router'; // 1. Importas esto
+import { RouterLink } from '@angular/router';
 import { GlobalConfig } from '../../../constants';
 
 @Component({

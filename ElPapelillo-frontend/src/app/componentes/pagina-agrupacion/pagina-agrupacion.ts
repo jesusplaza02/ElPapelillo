@@ -23,28 +23,22 @@ export class DetalleAgrupacionComponent implements OnInit {
   inscripcion: any = null; 
   participantes: any[] = []; 
 
-  // Control visual del bloque de fianza
   fianzaSubida: boolean = false;
   mostrandoFormularioFianza: boolean = false;
-
-  // 🔒 CONTROL DE EDICIÓN PARA CONCURSOS HISTÓRICOS/CERRADOS
   esHistorico: boolean = false;
 
-  // Variables para enlazar los inputs del formulario de fianza
   datosFianza = {
     importe: 300, 
     fechaPago: new Date().toISOString().substring(0, 16) 
   };
   archivoFianzaSeleccionado: File | null = null;
 
-  // Lista de requerimientos de documentación
   documentosRequeridos: any[] = [];
 
-  // Paginación para las tablas/listas
   paginaActual: number = 1;
+  paginaActualDocs: number = 1;
   elementosPorPagina: number = 5;
 
-  // Variables de control para ventanas modales integradas
   mostrarModalExito: boolean = false;
   mensajeModalExito: string = '';
   
@@ -67,53 +61,40 @@ export class DetalleAgrupacionComponent implements OnInit {
         this.inscripcion = data;
         this.participantes = data?.agrupacion?.participantes || [];
         
-        console.log("--- [FRONTEND] DATA INTEGRAL RECIBIDA ---", data);
-
-        // 🎯 LEEMOS LA PROPIEDAD CORRECTA REVELADA POR EL MODELO: estadoConcurso
         const estadoEnum = data?.concurso?.estadoConcurso; 
-        console.log("Valor real del Estado Enum en Angular:", estadoEnum);
 
-        // Evaluamos el string exacto que manda el @Enumerated(EnumType.STRING)
         if (estadoEnum && String(estadoEnum).trim().toUpperCase() === 'HISTORICO') {
           this.esHistorico = true;
-          console.log("🔒 VISTA BLOQUEADA: El concurso de esta inscripción es HISTORICO.");
         } else {
           this.esHistorico = false;
-          console.log("🔓 VISTA ACTIVA: El concurso está ACTIVO.");
         }
 
-        // Renderizado del bloque de fianza
         this.comprobarEstadoFianza();
-        this.cdRef.detectChanges(); // Forzamos el redibujado de los *ngIf en el HTML
+        this.cdRef.detectChanges(); 
 
-        // Carga de la documentación
-        this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${this.idInscripcion}`).subscribe({
+        this.http.get<any[]>(`http://localhost:8080/api/documentos/inscripcion/${this.idInscripcion}?idUsuarioActual=${adminId}`).subscribe({
           next: (docs) => {
             this.documentosRequeridos = docs || [];
+            this.paginaActualDocs = 1;
             this.cdRef.detectChanges();
           },
           error: (errDocs: HttpErrorResponse) => {
-            console.error('Error al obtener documentos:', errDocs);
+            console.error(errDocs);
             this.cdRef.detectChanges();
           }
         });
       },
       error: (errInsc: HttpErrorResponse) => {
-        console.error('Error general al cargar la inscripción:', errInsc);
-        
-        // 🔒 CAPTURAMOS EL BLOQUEO DE SEGURIDAD DEL BACKEND
+        console.error(errInsc);
         if (errInsc.status === 403) {
           this.tituloModalError = 'Acceso Restringido';
           this.contenidoModalError = 'Acceso denegado: Esta agrupación pertenece a una organización o concurso que no gestionas.';
           this.mostrarModalError = true;
 
-          // 🕒 Esperamos 3 segundos para que lea el modal y lo mandamos a su panel
           setTimeout(() => {
-            // Pon aquí la ruta exacta de tu panel de control (ej: '/panel', '/dashboard', '/concursos'...)
             this.router.navigate(['/panel-control-administrador']); 
           }, 3000);
         }
-
         this.cdRef.detectChanges();
       }
     }); 
@@ -150,8 +131,8 @@ export class DetalleAgrupacionComponent implements OnInit {
     };
 
     this.http.post('http://localhost:8080/api/auditoria', payloadAuditoria).subscribe({
-      next: () => console.log(`[Auditoría] Registro guardado con éxito`),
-      error: (err) => console.error('[Auditoría] Error:', err)
+      next: () => {},
+      error: (err) => console.error(err)
     });
   }
 
@@ -336,7 +317,7 @@ export class DetalleAgrupacionComponent implements OnInit {
   }
 
   get documentosPaginados(): any[] {
-    const inicio = (this.paginaActual - 1) * this.elementosPorPagina;
+    const inicio = (this.paginaActualDocs - 1) * this.elementosPorPagina;
     return this.documentosRequeridos.slice(inicio, inicio + this.elementosPorPagina);
   }
 
@@ -345,11 +326,17 @@ export class DetalleAgrupacionComponent implements OnInit {
   }
 
   paginaSiguiente(): void { 
-    if (this.paginaActual < this.totalPaginas) this.paginaActual++; 
+    if (this.paginaActualDocs < this.totalPaginas) {
+      this.paginaActualDocs++; 
+      this.cdRef.detectChanges();
+    }
   }
   
   paginaAnterior(): void { 
-    if (this.paginaActual > 1) this.paginaActual--; 
+    if (this.paginaActualDocs > 1) {
+      this.paginaActualDocs--; 
+      this.cdRef.detectChanges();
+    }
   }
   
   descargarPDF(): void { 

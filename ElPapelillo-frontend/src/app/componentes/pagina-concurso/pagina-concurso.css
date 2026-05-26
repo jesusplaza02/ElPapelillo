@@ -1,6 +1,3 @@
-/* ==========================================================================
-   🧱 CONTENEDOR ESTRUCTURAL (Z-INDEX FIJADO PARA PAPELILLOS DETRÁS)
-   ========================================================================== */
 .concurso-dashboard-wrapper {
   width: 100%;
   max-width: 1200px;
@@ -9,13 +6,10 @@
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #2d3748;
-  
-  /* Esto blinda el dashboard mandando los papelillos al fondo absoluto */
   position: relative;
   z-index: 1;
 }
 
-/* Tarjetas contenedoras sólidas */
 .concurso-main-card {
   background: #ffffff !important;
   border-radius: 12px;
@@ -26,7 +20,6 @@
   border: 1px solid #e2e8f0;
 }
 
-/* Barra móvil oculta por defecto en PC */
 .mobile-select-all-bar {
   display: none;
   background: #ffffff;
@@ -34,7 +27,7 @@
   border-radius: 8px;
   margin-bottom: 12px;
   border: 1px solid #cbd5e0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
 .mobile-checkbox-label {
@@ -52,9 +45,6 @@
   height: 18px;
 }
 
-/* ==========================================================================
-   🎯 SECCIÓN SUPERIOR: HEADER Y DATOS DEL CONCURSO
-   ========================================================================== */
 .header-concurso-section {
   display: flex;
   flex-direction: column;
@@ -95,8 +85,15 @@
   text-transform: uppercase;
 }
 
-.badge-activo { background: #e6fffa; color: #006666; }
-.badge-historico { background: #edf2f7; color: #4a5568; }
+.badge-activo {
+  background: #e6fffa;
+  color: #006666;
+}
+
+.badge-historico {
+  background: #edf2f7;
+  color: #4a5568;
+}
 
 .btn-toggle-status-custom {
   background: #4a5568;
@@ -109,7 +106,10 @@
   font-weight: 600;
   transition: background 0.2s;
 }
-.btn-toggle-status-custom:hover { background: #2d3748; }
+
+.btn-toggle-status-custom:hover {
+  background: #2d3748;
+}
 
 .dates-flex-container {
   display: flex;
@@ -127,8 +127,17 @@
   min-width: 240px;
   border-left: 4px solid #006666;
 }
-.date-info-box p { margin: 4px 0; font-size: 0.9rem; }
-.date-box-title { font-weight: 700; color: #2d3748; margin-bottom: 6px !important; }
+
+.date-info-box p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+
+.date-box-title {
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 6px !important;
+}
 
 .btn-action-pdf-general {
   background: #e2e8f0;
@@ -140,11 +149,11 @@
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn-action-pdf-general:hover { background: #cbd5e0; }
 
-/* ==========================================================================
-   📊 TARJETAS DE ESTADÍSTICAS
-   ========================================================================== */
+.btn-action-pdf-general:hover {
+  background: #cbd5e0;
+}
+
 .stats-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -159,26 +168,56 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   border: 1px solid #e2e8f0;
 }
-.card-total { border-bottom: 5px solid #4299e1; }
-.card-advertencia { border-bottom: 5px solid #ed8936; }
-.card-peligro { border-bottom: 5px solid #ecc94b; }
 
-.stat-text-side h3 { margin: 0; font-size: 0.9rem; color: #718096; text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-number-display { margin: 5px 0 0 0; font-size: 2.2rem; font-weight: 800; color: #1a202c; }
-.stat-icon-side { font-size: 2.5rem; opacity: 0.3; }
+.card-total {
+  border-bottom: 5px solid #4299e1;
+}
 
-/* ==========================================================================
-   🔍 BUSCADOR Y FILTROS
-   ========================================================================== */
+.card-advertencia {
+  border-bottom: 5px solid #ed8936;
+}
+
+.card-peligro {
+  border-bottom: 5px solid #ecc94b;
+}
+
+.stat-text-side h3 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number-display {
+  margin: 5px 0 0 0;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1a202c;
+}
+
+.stat-icon-side {
+  font-size: 2.5rem;
+  opacity: 0.3;
+}
+
 .search-input-wrapper {
   position: relative;
   width: 100%;
   margin-bottom: 15px;
 }
-.search-icon-inside { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); opacity: 0.5; }
+
+.search-icon-inside {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+}
+
 .search-input-wrapper input {
   width: 100%;
   padding: 12px 12px 12px 40px;
@@ -195,7 +234,13 @@
   flex-wrap: wrap;
   gap: 15px;
 }
-.select-filters-cluster { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.select-filters-cluster {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .select-filters-cluster select {
   padding: 10px 14px;
   border: 1px solid #cbd5e0;
@@ -204,20 +249,43 @@
   font-size: 0.9rem;
 }
 
-.action-buttons-cluster { display: flex; gap: 10px; flex-wrap: wrap; }
-.btn-custom-comunicado {
-  background: #006666; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;
+.action-buttons-cluster {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
-.btn-custom-comunicado:disabled { background: #cbd5e0; cursor: not-allowed; }
+
+.btn-custom-comunicado {
+  background: #006666;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-custom-comunicado:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+}
 
 .btn-custom-lote {
-  background: #48bb78; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;
+  background: #48bb78;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
 }
-.btn-custom-lote:disabled { background: #cbd5e0; opacity: 0.5; cursor: not-allowed; }
 
-/* ==========================================================================
-   📋 TABLA DATA (ESCRITORIO)
-   ========================================================================== */
+.btn-custom-lote:disabled {
+  background: #cbd5e0;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .table-responsive-wrapper {
   padding: 0;
   overflow: hidden;
@@ -242,14 +310,35 @@
   color: #4a5568;
 }
 
-.custom-data-table tbody tr { transition: background 0.2s; }
-.custom-data-table tbody tr:hover { background: #f8fafc; }
-.font-bold-table-cell { font-weight: 700; color: #1a202c; }
+.custom-data-table tbody tr {
+  transition: background 0.2s;
+}
 
-/* Badges de las filas */
-.table-badge { padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
-.badge-modalidad { background: #fef3c7; color: #d97706; }
-.badge-categoria { background: #e0f2fe; color: #0369a1; }
+.custom-data-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.font-bold-table-cell {
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.table-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge-modalidad {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.badge-categoria {
+  background: #e0f2fe;
+  color: #0369a1;
+}
 
 .status-pill {
   display: inline-block;
@@ -258,19 +347,38 @@
   font-size: 0.8rem;
   font-weight: 700;
 }
-.pill-aprobado { background: #c6f6d5; color: #22543d; }
-.pill-pendiente { background: #feebc8; color: #744210; }
-.pill-rechazado { background: #fed7d7; color: #742a2a; }
 
-.mobile-label { display: none; }
-.empty-table-fallback { text-align: center; color: #a0aec0; padding: 40px 0 !important; }
+.pill-aprobado {
+  background: #c6f6d5;
+  color: #22543d;
+}
 
-/* ==========================================================================
-   📬 MODALES Y DIÁLOGOS FLOTANTES
-   ========================================================================== */
+.pill-pendiente {
+  background: #feebc8;
+  color: #744210;
+}
+
+.pill-rechazado {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.mobile-label {
+  display: none;
+}
+
+.empty-table-fallback {
+  text-align: center;
+  color: #a0aec0;
+  padding: 40px 0 !important;
+}
+
 .custom-modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: rgba(0, 0, 0, 0.6) !important;
   display: flex;
   justify-content: center;
@@ -281,56 +389,199 @@
 }
 
 .custom-modal-box {
-  background: white; width: 100%; max-width: 600px; border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; display: flex; flex-direction: column;
+  background: white;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+
 .custom-modal-header {
-  background: #006666; color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+  background: #006666;
+  color: white;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.custom-modal-header h2 { margin: 0; font-size: 1.2rem; }
-.close-modal-x { background: none; border: none; color: white; font-size: 1.6rem; cursor: pointer; }
 
-.custom-modal-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; max-height: 65vh; overflow-y: auto; }
-.destinatarios-alert-box { background: #ebf8ff; color: #2b6cb0; padding: 10px; border-radius: 6px; font-size: 0.85rem; }
-.error-modal-banner { background: #fff5f5; color: #c53030; padding: 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; }
-
-.modal-form-row { display: flex; flex-direction: column; gap: 5px; }
-.modal-form-row label { font-weight: 600; font-size: 0.85rem; }
-.modal-form-row input, .modal-form-row textarea {
-  width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box;
+.custom-modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
 }
-.drop-zone-area { border: 2px dashed #cbd5e0; padding: 20px; text-align: center; border-radius: 8px; position: relative; background: #f7fafc; }
-.drop-zone-area input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
 
-.files-preview-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.file-preview-tag { background: #edf2f7; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
-.btn-remove-file-tag { background: none; border: none; color: #e53e3e; font-weight: bold; cursor: pointer; }
+.close-modal-x {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.6rem;
+  cursor: pointer;
+}
 
-.custom-modal-footer { padding: 15px 20px; background: #f7fafc; border-top: 1px solid #edf2f7; display: flex; justify-content: flex-end; gap: 10px; }
-.btn-secondary-modal { background: #cbd5e0; color: #2d3748; border:none; padding: 10px 16px; border-radius: 6px; font-weight:600; cursor:pointer; }
-.btn-primary-modal { background: #006666; color: white; border:none; padding: 10px 20px; border-radius: 6px; font-weight:600; cursor:pointer; }
+.custom-modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-height: 65vh;
+  overflow-y: auto;
+}
 
-.global-alert-toast { background: white; padding: 24px; border-radius: 12px; text-align: center; max-width: 360px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-.toast-icon { font-size: 2.5rem; margin-bottom: 10px; }
-.success-toast .toast-icon { color: #48bb78; }
-.error-toast .toast-icon { color: #e53e3e; }
-.btn-close-toast { background: #2d3748; color: white; border: none; padding: 8px 20px; border-radius: 6px; margin-top: 15px; cursor: pointer; }
+.destinatarios-alert-box {
+  background: #ebf8ff;
+  color: #2b6cb0;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
 
-/* ==========================================================================
-   📱 REGLAS DE RESPONSIVIDAD (MÓVILES Y TABLETS)
-   ========================================================================== */
+.error-modal-banner {
+  background: #fff5f5;
+  color: #c53030;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.modal-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modal-form-row label {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.modal-form-row input, 
+.modal-form-row textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.drop-zone-area {
+  border: 2px dashed #cbd5e0;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  position: relative;
+  background: #f7fafc;
+}
+
+.drop-zone-area input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.files-preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.file-preview-tag {
+  background: #edf2f7;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-remove-file-tag {
+  background: none;
+  border: none;
+  color: #e53e3e;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.custom-modal-footer {
+  padding: 15px 20px;
+  background: #f7fafc;
+  border-top: 1px solid #edf2f7;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-secondary-modal {
+  background: #cbd5e0;
+  color: #2d3748;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary-modal {
+  background: #006666;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.global-alert-toast {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.toast-icon {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+.success-toast .toast-icon {
+  color: #48bb78;
+}
+
+.error-toast .toast-icon {
+  color: #e53e3e;
+}
+
+.btn-close-toast {
+  background: #2d3748;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
 @media (max-width: 850px) {
-  /* Activamos la barra de selección masiva superior */
   .mobile-select-all-bar {
     display: block;
   }
 
-  /* Ocultamos cabecera nativa */
-  .custom-data-table thead { 
-    display: none; 
+  .custom-data-table thead {
+    display: none;
   }
 
-  /* Pasamos la tabla a formato tarjetas apiladas */
   .custom-data-table tbody tr {
     display: flex;
     flex-direction: column;
@@ -351,22 +602,21 @@
     box-sizing: border-box;
   }
 
-  .custom-data-table td:last-child { 
-    border-bottom: none; 
+  .custom-data-table td:last-child {
+    border-bottom: none;
   }
 
-  /* Mostramos las etiquetas descriptivas a la izquierda del valor */
-  .mobile-label { 
-    display: inline-block; 
-    font-weight: 700; 
-    color: #718096; 
-    font-size: 0.85rem; 
+  .mobile-label {
+    display: inline-block;
+    font-weight: 700;
+    color: #718096;
+    font-size: 0.85rem;
   }
 
-  /* Ajuste visual para el checkbox de cada tarjeta */
   .checkbox-cell {
     justify-content: space-between;
   }
+
   .checkbox-cell input[type="checkbox"] {
     width: 18px;
     height: 18px;
@@ -374,8 +624,21 @@
 }
 
 @media (max-width: 650px) {
-  .dates-flex-container { flex-direction: column; align-items: stretch; }
-  .filters-and-actions-flex { flex-direction: column; align-items: stretch; }
-  .select-filters-cluster select { width: 100%; }
-  .action-buttons-cluster button { width: 100%; }
+  .dates-flex-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters-and-actions-flex {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select-filters-cluster {
+    width: 100%;
+  }
+
+  .action-buttons-cluster button {
+    width: 100%;
+  }
 }

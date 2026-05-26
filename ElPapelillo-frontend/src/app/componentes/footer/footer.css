@@ -48,18 +48,17 @@
 
 @media (max-width: 768px) {
   .main-footer {
-    height: auto !important; /* Permitimos que crezca si el texto rompe en dos líneas */
-    padding: 8px 4px !important; /* Un poco de respiro arriba y abajo */
+    height: auto !important; 
+    padding: 8px 4px !important; 
   }
 
   .footer-content {
-    gap: 12px !important; /* Reducimos el hueco de 50px a 12px para que quepa en un iPhone */
-    flex-wrap: wrap !important; /* Si aun así no cabe, que baje a la siguiente línea sin romperse */
+    gap: 12px !important;
+    flex-wrap: wrap !important; 
     justify-content: center !important;
     text-align: center !important;
   }
 
-  /* Letra un pelín más compacta para garantizar espacio */
   .footer-content p, 
   .footer-content nav,
   .footer-content span,

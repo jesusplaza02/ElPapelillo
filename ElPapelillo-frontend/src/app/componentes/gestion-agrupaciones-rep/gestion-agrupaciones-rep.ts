@@ -20,7 +20,6 @@ export class GestionAgrupacionesRepComponent implements OnInit {
 
   inscripciones: Inscripcion[] = [];
   
-  // 🎯 Mantenemos el máster de agrupaciones y creamos el array que se mostrará en el HTML
   misAgrupacionesBase: any[] = []; 
   misAgrupacionesFiltradas: any[] = []; 
   
@@ -51,7 +50,7 @@ export class GestionAgrupacionesRepComponent implements OnInit {
   cargarDatos(idRep: number): void {
     this.loading = true;
 
-    // 1. Cargar las Inscripciones para la tabla principal
+    // Carga de Inscripciones para la tabla principal
     this.agrupacionService.getInscripcionesPorRepresentante(idRep).subscribe({
       next: (data) => {
         this.inscripciones = data;
@@ -64,7 +63,7 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       }
     });
 
-    // 2. Cargar Agrupaciones Base para "Existente" (Filtrando duplicados de ID)
+    // Carga de Agrupaciones Base para "Existente" (Filtrando duplicados de ID)
     this.agrupacionService.getMisAgrupacionesBase(idRep).subscribe({
       next: (data: any[]) => {
         if (data && Array.isArray(data)) {
@@ -79,7 +78,6 @@ export class GestionAgrupacionesRepComponent implements OnInit {
             return false; 
           });
           
-          // 🎯 Inicialmente vacías hasta que se escoja un concurso en el form
           this.misAgrupacionesFiltradas = [];
         } else {
           this.misAgrupacionesBase = [];
@@ -92,7 +90,7 @@ export class GestionAgrupacionesRepComponent implements OnInit {
       }
     });
 
-    // 3. CARGAR Y FILTRAR CONCURSOS (Excluyendo estrictamente HISTORICO)
+    // CARGAR Y FILTRAR CONCURSOS (Excluyendo HISTORICO)
     this.agrupacionService.getConcursosActivos().subscribe({
       next: (data: any[]) => {
         if (data && Array.isArray(data)) {
@@ -111,9 +109,7 @@ export class GestionAgrupacionesRepComponent implements OnInit {
     });
   }
 
-  // ======================================================================
-  // 🎯 INTERCEPTOR CLAVE: Al cambiar el concurso, filtramos por tipo de concurso
-  // ======================================================================
+  // Al cambiar el concurso, filtramos por tipo de concurso
   onConcursoChange(): void {
     // Reseteamos siempre la selección previa para evitar mezclas erróneas
     this.agrupacionExistenteSeleccionada = null; 

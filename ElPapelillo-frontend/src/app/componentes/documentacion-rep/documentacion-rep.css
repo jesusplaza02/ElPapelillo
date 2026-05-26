@@ -1,19 +1,15 @@
-/* ==========================================================================
-   CONTENEDOR PRINCIPAL - BLINDADO CONTRA CAPAS INFERIORES (PAPELILLOS)
-   ========================================================================== */
+/* CONTENEDOR PRINCIPAL - BLINDADO CONTRA CAPAS INFERIORES (PAPELILLOS) */
 .main-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  
-  /* --- SOLUCIÓN DE PAPELILLOS DEBAJO --- */
-  position: relative;   /* Permite activar el eje Z */
-  z-index: 10;          /* Fuerza a que el contenido esté siempre POR ENCIMA del fondo */
+  position: relative;  
+  z-index: 10;          
 }
 
-/* --- FILA DE NAVEGACIÓN Y BOTÓN VOLVER --- */
+/* FILA DE NAVEGACIÓN Y BOTÓN VOLVER */
 .navigation-row {
   display: flex;
   justify-content: flex-start;
@@ -38,7 +34,7 @@
   color: #1a436d;
 }
 
-/* --- CABECERA DE LA PÁGINA --- */
+/* CABECERA DE LA PÁGINA */
 .doc-header {
   display: flex;
   justify-content: space-between;
@@ -84,9 +80,7 @@
   background-color: #1a436d;
 }
 
-/* ==========================================================================
-   TARJETA DE FIANZA ESPECIAL (REORGANIZADA AL ANCHO MÁXIMO)
-   ========================================================================== */
+/* TARJETA DE FIANZA ESPECIAL (REORGANIZADA AL ANCHO MÁXIMO) */
 .fianza-special-card {
   border-left: 5px solid #2b6cb0;
   background-color: #f7fafc;
@@ -169,7 +163,7 @@
   gap: 8px;
 }
 
-/* --- SEPARADOR DE SECCIONES --- */
+/* SEPARADOR DE SECCIONES */
 .section-divider {
   display: flex;
   align-items: center;
@@ -193,9 +187,7 @@
   padding: 0 15px;
 }
 
-/* ==========================================================================
-   BLOQUE DEL FORMULARIO DE SUBIDA 
-   ========================================================================== */
+/* BLOQUE DEL FORMULARIO DE SUBIDA */
 .upload-form-card {
   background: white;
   padding: 24px;
@@ -271,9 +263,7 @@
   cursor: not-allowed;
 }
 
-/* ==========================================================================
-   CONTENEDOR DE TARJETAS BLANCAS DE DOCUMENTOS 
-   ========================================================================== */
+/* CONTENEDOR DE TARJETAS BLANCAS DE DOCUMENTOS */
 .doc-card-container {
   background: white;
   border-radius: 8px;
@@ -339,7 +329,7 @@
   margin-top: 2px;
 }
 
-/* --- BADGES DE ESTADOS --- */
+/*BADGES DE ESTADOS*/
 .status-badge {
   padding: 4px 12px;
   border-radius: 20px;

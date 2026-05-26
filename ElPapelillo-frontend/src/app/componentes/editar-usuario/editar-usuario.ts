@@ -36,20 +36,16 @@ export class EditarUsuarioComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log('%c --- DEBUG SESIÓN --- ', 'background: #222; color: #bada55');
     
-    // 1. OBTENER NUESTRA IDENTIDAD REAL (A prueba de errores de JSON)
     const dataStored = localStorage.getItem('usuario');
     let miIdReal: any = null;
 
     if (dataStored) {
       try {
-        // Solo intentamos parsear si parece un objeto JSON (empieza por {)
         if (dataStored.trim().startsWith('{')) {
           const sesion = JSON.parse(dataStored);
           miIdReal = sesion.idUsuario || sesion.id;
         } else {
-          // Si no es JSON (es un texto como el email), buscamos el ID en otra clave
           console.warn('El storage "usuario" es texto plano, no JSON.');
           miIdReal = localStorage.getItem('idUsuario'); 
         }
@@ -58,7 +54,6 @@ export class EditarUsuarioComponent implements OnInit {
       }
     }
 
-    // 2. Si todo falla, forzamos el ID 1 (Tú) para que no se rompa nada en las pruebas
     if (!miIdReal) miIdReal = 1; 
 
     this.idUrl = this.route.snapshot.paramMap.get('id');
@@ -66,7 +61,6 @@ export class EditarUsuarioComponent implements OnInit {
     console.log('ID en la URL:', this.idUrl);
     console.log('ID real detectado (Fijo):', miIdReal);
 
-    // SEGURIDAD: Siempre cargamos NUESTRO perfil, ignoramos la URL para evitar confusiones
     this.cargarUsuario(miIdReal);
   }
 
@@ -75,7 +69,6 @@ export class EditarUsuarioComponent implements OnInit {
       .subscribe({
         next: (res: any) => {
           this.usuario = res;
-          // Mapeo por si el campo en DB es diferente
           if (res.telefono_emergencia) this.usuario.contacto_emergencia = res.telefono_emergencia;
           this.cdr.detectChanges(); 
         },
@@ -84,9 +77,8 @@ export class EditarUsuarioComponent implements OnInit {
   }
 
   actualizar() {
-    // Recuperar identidad para el guardado
     const dataStored = localStorage.getItem('usuario');
-    let miIdReal: any = 1; // Default por seguridad
+    let miIdReal: any = 1; 
 
     try {
       if (dataStored && dataStored.trim().startsWith('{')) {
@@ -97,7 +89,6 @@ export class EditarUsuarioComponent implements OnInit {
       }
     } catch(e) { miIdReal = 1; }
 
-    // BLINDAJE: El ID que se envía al servidor es el nuestro, SIEMPRE.
     this.usuario.idUsuario = miIdReal;
 
     const url = `http://localhost:8080/api/usuarios/perfil?idEjecutor=${miIdReal}`;

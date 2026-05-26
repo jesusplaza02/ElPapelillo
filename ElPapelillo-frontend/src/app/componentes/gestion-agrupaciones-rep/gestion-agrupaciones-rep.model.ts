@@ -5,7 +5,7 @@ export interface Agrupacion {
   categoria: string;
   tipo?: string;
   nombreUltimaParticipacion?: string;
-  representante?: {          // ¡AÑADIDO!
+  representante?: {         
     idUsuario: number;
     nombre?: string;
   };
@@ -14,7 +14,6 @@ export interface Agrupacion {
   agrupacionDioses?: any;
 }
 
-// Ahora definimos la Inscripción, que es lo que nos devuelve el Backend
 export interface Inscripcion {
   idInscripcion: number;
   fechaInscripcion: string;
@@ -25,7 +24,7 @@ export interface Inscripcion {
     nombre: string;
     tipoConcurso: string;
   };
-  agrupacion: Agrupacion; // La agrupación va por dentro (y el repre dentro de ella)
+  agrupacion: Agrupacion; 
   fianza?: {
     pagada: boolean;
   };

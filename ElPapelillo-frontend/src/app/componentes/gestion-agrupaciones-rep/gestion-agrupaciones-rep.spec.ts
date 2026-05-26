@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router'; // Añadimos esto para que no fallen los botones
+import { provideRouter } from '@angular/router'; 
 import { GestionAgrupacionesRepComponent } from './gestion-agrupaciones-rep';
 
 describe('GestionAgrupacionesRepComponent', () => {
@@ -9,15 +9,13 @@ describe('GestionAgrupacionesRepComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      // Importamos la clase correcta
       imports: [GestionAgrupacionesRepComponent],
-      // Añadimos el proveedor de rutas porque tu HTML usa routerLink
       providers: [provideRouter([])] 
     }).compileComponents();
 
     fixture = TestBed.createComponent(GestionAgrupacionesRepComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges(); // Esto es mejor que await fixture.whenStable() para tests simples
+    fixture.detectChanges(); 
   });
 
   it('should create', () => {

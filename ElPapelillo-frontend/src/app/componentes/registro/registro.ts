@@ -30,7 +30,7 @@ export class RegistroComponent {
   constructor(
     private http: HttpClient, 
     private router: Router,
-    private cdr: ChangeDetectorRef // 2. Inyectamos el detector de cambios
+    private cdr: ChangeDetectorRef
   ) {}
 
   finalizarRegistro() {
@@ -40,7 +40,7 @@ export class RegistroComponent {
       .subscribe({
         next: (res: any) => {
           this.mostrarMensaje('✅ ' + (res.message || '¡Registro exitoso!'), true);
-          this.cdr.detectChanges(); // Forzamos refresco
+          this.cdr.detectChanges();
           setTimeout(() => this.router.navigate(['/login']), 3000);
         },
         error: (err) => {
@@ -55,7 +55,6 @@ export class RegistroComponent {
 
           this.mostrarMensaje('❌ ' + textoError, false);
           
-          // 3. ¡LA CLAVE! Forzamos a Angular a pintar el mensaje AHORA
           this.cdr.detectChanges(); 
         }
       });

@@ -46,7 +46,6 @@ export const routes: Routes = [
   { path: 'registro', component: RegistroComponent },
   { path: 'politica-privacidad', component: PoliticaPrivacidadComponent },
   
-  // RUTA DE EDICIÓN DE USUARIO (Para ambos roles)
   { 
     path: 'editar-usuario', 
     component: EditarUsuarioComponent,
@@ -59,7 +58,7 @@ export const routes: Routes = [
     canActivate: [roleGuard(['REPRESENTANTE', 'ADMINISTRADOR', 'SUPERADMIN', 'SYSADMIN'])] 
   },
 
-  // 🎭 SOLO PARA REPRESENTANTES
+  // SOLO PARA REPRESENTANTES
   { 
     path: 'panel-representante', 
     component: GestionAgrupacionesRepComponent,
@@ -72,14 +71,13 @@ export const routes: Routes = [
     canActivate: [roleGuard(['REPRESENTANTE'])]
   },
 
-  // 🔑 RUTA NUEVA: Gestión de componentes vinculada al ID de Inscripción
   {
     path: 'participantes-rep/:id',
     component: GestionParticipantesComponent,
     canActivate: [roleGuard(['REPRESENTANTE'])]
   },
 
-  // 💼 SOLO PARA ADMINISTRADORES
+  // SOLO PARA ADMINISTRADORES
   { 
     path: 'panel-control-administrador', 
     component: PanelControlAdministradorComponent,

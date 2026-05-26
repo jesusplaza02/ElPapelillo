@@ -81,7 +81,7 @@ export class PanelControlAdministradorComponent implements OnInit {
   mensajeModalBorradoConcurso = '';
   tituloModalBorradoConcurso = '';
   idConcursoABorrar: number | null = null;
-  nombreConcursoABorrar: string = ''; // 👈 Guardará temporalmente el nombre para el Log de auditoría
+  nombreConcursoABorrar: string = ''; // Guardará temporalmente el nombre para el Log de auditoría
 
   concursos: any[] = [];
   concursosFiltrados: any[] = [];
@@ -711,11 +711,11 @@ export class PanelControlAdministradorComponent implements OnInit {
 
   abrirModalBorradoConcurso(concurso: any): void {
     this.idConcursoABorrar = concurso.idConcurso || concurso.id;
-    this.nombreConcursoABorrar = concurso.nombre || 'Concurso sin nombre'; // 👈 Se guarda el nombre del objeto
+    this.nombreConcursoABorrar = concurso.nombre || 'Concurso sin nombre'; 
     
     this.esErrorModalBorradoConcurso = false;
     this.tituloModalBorradoConcurso = 'Confirmar Eliminación de Concurso';
-    this.mensajeModalBorradoConcurso = `¿Estás seguro de que deseas eliminar permanentemente el concurso "${this.nombreConcursoABorrar}"?`; // 👈 Renderiza con nombre
+    this.mensajeModalBorradoConcurso = `¿Estás seguro de que deseas eliminar permanentemente el concurso "${this.nombreConcursoABorrar}"?`; 
     this.mostrarModalBorradoConcurso = true;
     this.cdr.detectChanges();
   }
@@ -724,25 +724,23 @@ export class PanelControlAdministradorComponent implements OnInit {
     if (this.idConcursoABorrar) {
       this.concursoService.eliminarConcurso(this.idConcursoABorrar).subscribe({
         next: () => {
-          // 🎯 AUDITORÍA CON NOMBRE EN VEZ DE ID
           this.registrarAuditoria('ELIMINAR_CONCURSO', `Se ha eliminado permanentemente el concurso: "${this.nombreConcursoABorrar}" (ID: ${this.idConcursoABorrar})`);
 
           this.mostrarModalBorradoConcurso = false; 
           this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
           this.idConcursoABorrar = null;
-          this.nombreConcursoABorrar = ''; // Limpieza de variable
+          this.nombreConcursoABorrar = ''; 
           this.cdr.detectChanges();
           this.cargarDatosSincronizados();
         },
         error: (err) => {
           if (err.status === 200 || err.status === 201) {
-            // 🎯 AUDITORÍA CON NOMBRE EN VEZ DE ID (MÁSCARA 201)
             this.registrarAuditoria('ELIMINAR_CONCURSO', `Se ha eliminado permanentemente el concurso: "${this.nombreConcursoABorrar}"`);
 
             this.mostrarModalBorradoConcurso = false;
             this.lanzarModalInformativo('Registro Eliminado', 'El concurso se ha eliminado de forma permanente.', 'success');
             this.idConcursoABorrar = null;
-            this.nombreConcursoABorrar = ''; // Limpieza de variable
+            this.nombreConcursoABorrar = ''; 
             this.cdr.detectChanges();
             this.cargarDatosSincronizados();
           } else {
@@ -758,7 +756,7 @@ export class PanelControlAdministradorComponent implements OnInit {
   cerrarModalBorradoConcurso(): void {
     this.mostrarModalBorradoConcurso = false;
     this.idConcursoABorrar = null;
-    this.nombreConcursoABorrar = ''; // Limpieza de seguridad
+    this.nombreConcursoABorrar = ''; 
     this.cdr.detectChanges();
   }   
 }

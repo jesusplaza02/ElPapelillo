@@ -12,21 +12,17 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
       tap((res: any) => {
         if (res) {
-          // 1. Guardamos el Token
           localStorage.setItem('token', res.token);
           
-          // 2. EL ROL: Lo guardamos con ambos nombres para no romper nada
           const rolLimpio = (res.rol || '').toUpperCase().trim();
-          localStorage.setItem('rol', rolLimpio); // Para el Guard
-          localStorage.setItem('rolUsuario', rolLimpio); // Para el Panel de Control
+          localStorage.setItem('rol', rolLimpio);
+          localStorage.setItem('rolUsuario', rolLimpio); 
 
-          // 3. DATOS DE USUARIO: Para que el Header no salga vacío
           localStorage.setItem('usuario', res.username || res.email || '');
           localStorage.setItem('email', res.email || '');
           localStorage.setItem('nombreUsuario', res.nombre || '');
           localStorage.setItem('idUsuario', res.idUsuario?.toString() || '');
 
-          // 4. ORGANIZACIÓN: Vital para que Pepe vea a su equipo
           const orgId = res.id_organizacion || res.idOrganizacion;
           if (orgId != null) {
             localStorage.setItem('id_organizacion', orgId.toString());
@@ -36,8 +32,6 @@ export class AuthService {
       })
     );
   }
-
-  // --- MÉTODOS DE APOYO ---
 
   isLogged(): boolean {
     return !!localStorage.getItem('token');

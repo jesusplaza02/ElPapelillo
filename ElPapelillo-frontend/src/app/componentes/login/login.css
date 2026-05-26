@@ -1,4 +1,4 @@
-/* 1. ESTRUCTURA GLOBAL (Mata el scroll) */
+/* ESTRUCTURA GLOBAL */
 :host {
     display: flex;
     flex-direction: column;
@@ -11,7 +11,7 @@
 }
 
 .content {
-    flex: 1; /* Ocupa el espacio restante bajo el header */
+    flex: 1; 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,10 +19,9 @@
     box-sizing: border-box;
     position: relative;
     z-index: 5;
-    /* Eliminamos padding-top exagerados */
 }
 
-/* 2. LA TARJETA (Login Card) */
+/* LA TARJETA */
 .login-card {
     background-color: white;
     padding: 30px 40px;
@@ -33,7 +32,6 @@
     text-align: center;
     box-sizing: border-box;
     z-index: 10;
-    /* Seguridad para pantallas muy bajas: permite scroll solo interno */
     max-height: 90vh;
     overflow-y: auto;
 }
@@ -51,7 +49,6 @@
     margin-bottom: 25px;
 }
 
-/* 3. INPUTS Y GRUPOS */
 .input-group {
     text-align: left;
     margin-bottom: 18px;
@@ -74,7 +71,7 @@
     background-color: #FAFAFA;
 }
 
-/* 4. BOTONES (Estilo original recuperado) */
+/* BOTONES */
 .btn {
     width: 100%;
     padding: 14px;
@@ -110,7 +107,7 @@
     margin-top: 5px;
 }
 
-/* 5. CAJA DE INFO (Con el marco azul original) */
+/* CAJA DE INFO */
 .info-box {
     background-color: #E8F4FD;
     color: #1565C0;
@@ -136,7 +133,6 @@
     margin-top: 5px;
 }
 
-/* 6. PASSWORD EYE Y ERRORES */
 .password-container {
     position: relative;
     display: flex;
@@ -169,7 +165,7 @@
     40%, 60% { transform: translate3d(2px, 0, 0); }
 }
 
-/* 7. AJUSTES PARA PANTALLAS PEQUEÑAS (Laptop/Móvil) */
+/* AJUSTES PARA PANTALLAS PEQUEÑAS */
 @media (max-height: 750px) {
     .login-card { padding: 20px 30px; }
     .login-card h2 { font-size: 26px; }

@@ -1,16 +1,16 @@
 /* 1. SEPARACIÓN DEL FOOTER Y CAPA SOBRE PAPELILLOS */
 .privacy-page-wrapper {
   min-height: 100vh;
-  padding: 40px 20px 120px 20px; /* 120px abajo para que el footer NUNCA lo pise */
+  padding: 40px 20px 120px 20px; 
   display: flex;
   justify-content: center;
   position: relative;
-  z-index: 10; /* Esto lo pone por delante del confeti */
+  z-index: 10; 
 }
 
-/* 2. LA TARJETA BLANCA (Para que el confeti pase por detrás) */
+/* LA TARJETA BLANCA */
 .privacy-card {
-  background: white; /* Fondo sólido para que no se trasluzca el confeti */
+  background: white; 
   max-width: 900px;
   width: 100%;
   padding: 40px;
@@ -32,7 +32,7 @@ h1 {
   color: #7f8c8d;
 }
 
-/* 3. DISEÑO EN CUADRÍCULA */
+/* DISEÑO EN CUADRÍCULA */
 .grid-sections {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));

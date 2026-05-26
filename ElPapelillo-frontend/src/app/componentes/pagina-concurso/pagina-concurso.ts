@@ -44,9 +44,7 @@ export class DetalleConcursoComponent implements OnInit {
     fianzasPendientes: 0
   };
 
-  // ==========================================================================
-  // 📧 GESTIÓN DE CIRCULARES INFORMATIVAS
-  // ==========================================================================
+  // GESTIÓN DE CIRCULARES INFORMATIVAS
   mostrarModalCircular: boolean = false;
   circularAsunto: string = '';
   circularCuerpo: string = '';
@@ -54,7 +52,7 @@ export class DetalleConcursoComponent implements OnInit {
   enviandoCircular: boolean = false;          
   errorCircular: string | null = null;        
 
-  // 🏛️ MODALES INTERNOS GENERALES (REEMPLAZAN ALERTS)
+  // MODALES INTERNOS GENERALES
   mostrarModalExitoGlobal: boolean = false;
   tituloModalExitoGlobal: string = '';
   contenidoModalExitoGlobal: string = '';
@@ -66,7 +64,6 @@ export class DetalleConcursoComponent implements OnInit {
   ngOnInit(): void {
   this.idConcurso = Number(this.route.snapshot.paramMap.get('id'));
   
-  // Primero cargamos el concurso y validamos la seguridad
   this.cargarDatosConcurso();
 }
 
@@ -110,8 +107,7 @@ export class DetalleConcursoComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error IDOR o Concurso ajeno:', err);
-        
-        // Si el backend da error (porque es el concurso 23 de otra persona), activamos la expulsión:
+ 
         this.concurso = null;
         this.cdRef.detectChanges();
         
@@ -130,19 +126,16 @@ export class DetalleConcursoComponent implements OnInit {
     });
   }
 
-  // 🔄 NUEVO MÉTODO: Conmutar entre Activo / Histórico
   conmutarEstadoConcurso(): void {
     if (!this.concurso) return;
 
     const nuevoEstado = this.esHistorico ? 'ACTIVO' : 'HISTORICO';
     
-    // Clonamos el objeto actual del concurso y modificamos su estado
     const concursoModificado = {
       ...this.concurso,
       estadoConcurso: nuevoEstado
     };
 
-    // Usamos la ruta CRUD clásica que ya existe en tu controlador de Spring Boot
     const url = `http://localhost:8080/api/concursos/${this.idConcurso}`;
 
     this.http.put(url, concursoModificado).subscribe({
