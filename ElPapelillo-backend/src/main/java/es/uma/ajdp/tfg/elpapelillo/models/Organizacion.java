@@ -41,9 +41,6 @@ public class Organizacion {
     @Column(nullable = false, columnDefinition = "boolean default true")
     private Boolean activo=true;
 
-
-    // Relación 1:N con Concurso
-    // Una organización puede tener muchos concursos (ej. Concurso de drags, Concurso de canto, etc.)
     @OneToMany(mappedBy = "organizacion", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @ToString.Exclude
@@ -51,8 +48,6 @@ public class Organizacion {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private List<Concurso> concursos = new ArrayList<>();
 
-    // Relación 1:N con Administrador
-    // Los administradores pertenecen a una organización específica
     @OneToMany(mappedBy = "organizacion", cascade = CascadeType.ALL)
     @JsonManagedReference
     @ToString.Exclude
