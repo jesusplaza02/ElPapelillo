@@ -223,6 +223,93 @@
     cursor: not-allowed;
 }
 
+.custom-select-trigger {
+  background: white; /* 🏢 ¡Corregido! Ya sin la almohadilla errónea */
+  border: 1px solid #ccc;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.custom-select-trigger:hover {
+  border-color: #80cbc4;
+}
+
+/* Pequeña flecha indicadora del despliegue */
+.custom-select-trigger .arrow {
+  font-size: 0.8rem;
+  transition: transform 0.2s;
+  color: #777;
+}
+
+/* Rotación de la flecha cuando el menú está desplegado */
+.custom-select-trigger .arrow.open {
+  transform: rotate(180deg);
+}
+
+/* El contenedor del menú con el scroll estricto que pidió tu tutor */
+.custom-select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  list-style: none;
+  padding: 0;
+  margin: 2px 0 0 0;
+  max-height: 140px;       
+  overflow-y: auto;        
+  z-index: 999;           
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+/* Estilo individual para cada opción del concurso */
+.custom-select-options li {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Efecto hover con el color verde corporativo suave */
+.custom-select-options li:hover {
+  background-color: #e8f5e9; 
+  color: #2e7d32;
+}
+
+/* Estilo para el texto de aviso si la lista estuviera vacía */
+.custom-select-options .no-options {
+  color: #999;
+  font-style: italic;
+  cursor: default;
+}
+
+/* Personalización fina de la barra de scroll (Estilo Webkit para Chrome/Edge) */
+.custom-select-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-select-options::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.custom-select-options::-webkit-scrollbar-thumb {
+  background: #b2dfdb;
+  border-radius: 3px;
+}
+
+.custom-select-options::-webkit-scrollbar-thumb:hover {
+  background: #80cbc4;
+}
+
 
 
 @media (max-width: 768px) {
@@ -256,6 +343,8 @@
     .inscripcion-card h2 {
         font-size: 1.3rem;
     }
+
+    
 }
 
 @media (max-width: 768px) {
@@ -308,4 +397,6 @@
     margin-top: 5px !important;
     padding: 12px !important;
   }
+
+  
 }

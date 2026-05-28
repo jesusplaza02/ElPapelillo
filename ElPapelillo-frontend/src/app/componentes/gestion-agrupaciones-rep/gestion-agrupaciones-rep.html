@@ -21,38 +21,56 @@
 
       <form #f="ngForm" (ngSubmit)="enviarFormulario(f)" class="grid-form">
         
-        <div class="form-field" style="grid-column: 1 / span 2;">
-          <label>Concurso Destino</label>
-          <select name="concurso" [(ngModel)]="concursoSeleccionado" (ngModelChange)="onConcursoChange()" required class="form-input-styled">
-            <option [ngValue]="null" disabled selected>Seleccione concurso...</option>
-            @for (c of concursosActivos; track c.idConcurso) {
-              <option [ngValue]="c">{{ c.nombre }} ({{ c.tipoConcurso }})</option>
-            }
-          </select>
-        </div>
+        <div class="form-field" style="grid-column: 1 / span 2; position: relative;">
+  <label>Concurso Destino</label>
+  
+  <div class="custom-select-trigger" (click)="dropdownAbierto = !dropdownAbierto">
+    {{ concursoSeleccionado ? (concursoSeleccionado.nombre + ' (' + concursoSeleccionado.tipoConcurso + ')') : 'Seleccione concurso...' }}
+    <span class="arrow" [class.open]="dropdownAbierto">▼</span>
+  </div>
+
+  @if (dropdownAbierto) {
+    <ul class="custom-select-options">
+      @for (c of concursosActivos; track c.idConcurso) {
+        <li (click)="seleccionarConcursoCustom(c)">
+          {{ c.nombre }} ({{ c.tipoConcurso }})
+        </li>
+      } @empty {
+        <li class="no-options">No hay concursos activos disponibles</li>
+      }
+    </ul>
+  }
+</div>
 
         @if (modoFormulario === 'EXISTENTE') {
-        <div class="form-field" style="grid-column: 1 / span 2; background: #f9f9f9; padding: 15px; border-radius: 8px;">
-          <label>Tus agrupaciones previas</label>
-          
-          @if (!concursoSeleccionado) {
-            <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">⚠️ Selecciona primero un concurso destino para ver tus agrupaciones compatibles.</p>
-          } @else if (misAgrupacionesFiltradas.length === 0) {
-            <p style="color: #c53030; font-size: 0.9rem; margin-top: 5px;">❌ No tienes ninguna agrupación previa registrada que sea de tipo <strong>{{ tipoDerivado }}</strong>.</p>
-          }
+        <div class="form-field" style="grid-column: 1 / span 2; background: #f9f9f9; padding: 15px; border-radius: 8px; position: relative;">
+  <label>Tus agrupaciones previas</label>
+  
+  @if (!concursoSeleccionado) {
+    <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">⚠️ Selecciona primero un concurso destino para ver tus agrupaciones compatibles.</p>
+  } @else if (misAgrupacionesFiltradas.length === 0) {
+    <p style="color: #c53030; font-size: 0.9rem; margin-top: 5px;">❌ No tienes ninguna agrupación previa registrada que sea de tipo <strong>{{ tipoDerivado }}</strong>.</p>
+  }
 
-          <select name="agrupacionExistente" [(ngModel)]="agrupacionExistenteSeleccionada" required class="form-input-styled" [disabled]="!concursoSeleccionado || misAgrupacionesFiltradas.length === 0">
-            <option [ngValue]="null" disabled selected>Selecciona una...</option>
-            
-            @for (ins of misAgrupacionesFiltradas; track ins.idInscripcion ?? $index) {
-              @if (ins.agrupacion) {
-                <option [ngValue]="ins.agrupacion">
-                  {{ ins.agrupacion.nombre }} ({{ ins.agrupacion.categoria }})
-                </option>
-              }
-            }
-          </select>
-        </div>
+  <div class="custom-select-trigger" 
+       [class.disabled-trigger]="!concursoSeleccionado || misAgrupacionesFiltradas.length === 0"
+       (click)="(!concursoSeleccionado || misAgrupacionesFiltradas.length === 0) ? null : dropdownAgrupacionesAbierto = !dropdownAgrupacionesAbierto">
+    {{ agrupacionExistenteSeleccionada ? (agrupacionExistenteSeleccionada.nombre + ' (' + agrupacionExistenteSeleccionada.categoria + ')') : 'Selecciona una...' }}
+    <span class="arrow" [class.open]="dropdownAgrupacionesAbierto">▼</span>
+  </div>
+
+  @if (dropdownAgrupacionesAbierto && concursoSeleccionado && misAgrupacionesFiltradas.length > 0) {
+    <ul class="custom-select-options">
+      @for (ins of misAgrupacionesFiltradas; track ins.idInscripcion ?? $index) {
+        @if (ins.agrupacion) {
+          <li (click)="seleccionarAgrupacionCustom(ins.agrupacion)">
+            {{ ins.agrupacion.nombre }} ({{ ins.agrupacion.categoria }})
+          </li>
+        }
+      }
+    </ul>
+  }
+</div>
       }
 
         @if (modoFormulario === 'NUEVA') {

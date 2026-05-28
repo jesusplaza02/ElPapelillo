@@ -38,6 +38,9 @@ export class GestionAgrupacionesRepComponent implements OnInit {
   mostrarModalDuplicado: boolean = false;
   mensajeErrorDuplicado: string = '';
 
+  dropdownAbierto: boolean = false;
+  dropdownAgrupacionesAbierto: boolean = false;
+
   ngOnInit(): void {
     const idLogueado = localStorage.getItem('idUsuario'); 
     if (idLogueado) {
@@ -113,6 +116,7 @@ export class GestionAgrupacionesRepComponent implements OnInit {
   onConcursoChange(): void {
     // Reseteamos siempre la selección previa para evitar mezclas erróneas
     this.agrupacionExistenteSeleccionada = null; 
+    this.dropdownAgrupacionesAbierto = false;
 
     if (this.concursoSeleccionado) {
       const fecha = new Date(this.concursoSeleccionado.fechaInicio);
@@ -144,6 +148,21 @@ export class GestionAgrupacionesRepComponent implements OnInit {
     this.tipoDerivado = '';
     this.modoFormulario = 'NUEVA';
     this.misAgrupacionesFiltradas = [];
+    this.dropdownAbierto = false;
+    this.dropdownAgrupacionesAbierto = false;
+    this.cdr.detectChanges();
+  }
+
+  seleccionarConcursoCustom(concurso: any): void {
+    this.concursoSeleccionado = concurso;
+    this.dropdownAbierto = false; // Cerramos el menú tras seleccionar
+    this.onConcursoChange();       
+  }
+
+  seleccionarAgrupacionCustom(agrupacion: any): void {
+    this.agrupacionExistenteSeleccionada = agrupacion;
+    this.dropdownAgrupacionesAbierto = false; // Cerramos el menú tras seleccionar
+    this.cdr.detectChanges();
   }
 
   confirmarCierreModalExito(): void {
