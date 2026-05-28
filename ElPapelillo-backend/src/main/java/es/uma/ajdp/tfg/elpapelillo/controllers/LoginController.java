@@ -6,6 +6,7 @@ import es.uma.ajdp.tfg.elpapelillo.models.Usuario;
 import es.uma.ajdp.tfg.elpapelillo.models.Administrador;
 import es.uma.ajdp.tfg.elpapelillo.repositories.UsuarioRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.AdministradorRepository;
+import es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil; // 🔑 Importamos tu utilidad criptográfica
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,16 @@ public class LoginController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginData) {
         try {
-            Optional<Usuario> userOpt = usuarioRepository.findByEmail(loginData.getEmail());
+            // 🚨 EL CAMBIO CRUCIAL:
+            // Ciframos el email que viene de Angular (limpiando espacios y a minúsculas) 
+            // para que coincida exactamente con el "churro" AES-256 de la base de datos.
+            String emailCifrado = "";
+            if (loginData.getEmail() != null) {
+                emailCifrado = CryptoUtil.encrypt(loginData.getEmail().trim().toLowerCase());
+            }
+
+            // Buscamos al usuario usando el email ya encriptado
+            Optional<Usuario> userOpt = usuarioRepository.findByEmail(emailCifrado);
 
             if (userOpt.isPresent()) {
                 Usuario user = userOpt.get();
@@ -59,6 +69,9 @@ public class LoginController {
                         }
                     }
 
+                    // 💡 Nota de arquitectura: Como el objeto 'user' pasó por el método @PostLoad de JPA
+                    // al salir de la base de datos, 'user.getEmail()' ya contiene el email limpito 
+                    // en texto plano. Así que Angular recibirá el correo legible de forma transparente.
                     LoginResponse res = new LoginResponse(
                         "token-generado-abc", 
                         user.getRol(),        

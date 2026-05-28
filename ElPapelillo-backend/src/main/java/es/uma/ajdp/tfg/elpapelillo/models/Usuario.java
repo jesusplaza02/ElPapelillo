@@ -1,7 +1,6 @@
 package es.uma.ajdp.tfg.elpapelillo.models;
 
 import java.time.LocalDate;
-
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,7 +20,6 @@ import es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil;
 @NoArgsConstructor
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-//CONFIGURACIÓN DE JACKSON PARA EVITAR RECURSIVIDAD Y ERRORES DE HERENCIA:
 @JsonTypeInfo
     (use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, 
     property = "type", defaultImpl = Usuario.class)
@@ -41,52 +39,85 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore // SEGURIDAD: Impide que la contraseña se envíe al Frontend
-    private String password;
+    @JsonIgnore 
+    private String password; 
 
     @Column(nullable = false)
     private String DNI;
 
     @Column(nullable = false)
-    private String nombre;
+    private String nombre; 
 
     @Column(nullable = false)
     private String telefono;
 
     @Column(nullable = false)
-    private String direccion;
+    private String direccion; 
 
     @Column(nullable = false, columnDefinition = "boolean default true")
-    private Boolean activo=true;
+    private Boolean activo = true;
 
     private LocalDate fechaRegistro;
 
     @Column(nullable = false)
     private String rol;
 
-
+    // =========================================================================
+    // 🔓 DESECIFRADO AUTOMÁTICO AL LEER DE LA BASE DE DATOS (Hacia Java/Angular)
+    // =========================================================================
     @PostLoad
-    public void decryptDni() {
+    public void decryptUserData() {
+        if (this.getEmail() != null) {
+            this.setEmail(CryptoUtil.decrypt(this.getEmail()));
+        }
         if (this.getDNI() != null) {
             this.setDNI(CryptoUtil.decrypt(this.getDNI()));
         }
-    }
-
-    @PrePersist
-    public void onPrePersist() {
-        this.fechaRegistro = LocalDate.now(); 
-        
-        if (this.getDNI() != null) {
-            String dniLimpio = this.getDNI().trim().toUpperCase();
-            this.setDNI(CryptoUtil.encrypt(dniLimpio));
+        if (this.getNombre() != null) {
+            this.setNombre(CryptoUtil.decrypt(this.getNombre()));
+        }
+        if (this.getTelefono() != null) {
+            this.setTelefono(CryptoUtil.decrypt(this.getTelefono()));
+        }
+        if (this.getDireccion() != null) {
+            this.setDireccion(CryptoUtil.decrypt(this.getDireccion()));
         }
     }
 
+    // =========================================================================
+    // 🔒 CIFRADO AUTOMÁTICO AL CREAR UN NUEVO USUARIO (INSERT)
+    // =========================================================================
+    @PrePersist
+    public void onPrePersist() {
+        this.fechaRegistro = LocalDate.now(); 
+        encryptData();
+    }
+
+    // =========================================================================
+    // 🔒 CIFRADO AUTOMÁTICO AL MODIFICAR UN USUARIO (UPDATE)
+    // =========================================================================
     @PreUpdate
-    public void encryptDniOnUpdate() {
+    public void onPreUpdate() {
+        encryptData();
+    }
+
+    // 🔄 Método privado auxiliar para aplicar el cifrado simétrico AES-256
+    private void encryptData() {
+        if (this.getEmail() != null) {
+            // Pasamos a minúsculas y limpiamos espacios antes de cifrar el email
+            this.setEmail(CryptoUtil.encrypt(this.getEmail().trim().toLowerCase()));
+        }
         if (this.getDNI() != null) {
-            String dniLimpio = this.getDNI().trim().toUpperCase();
-            this.setDNI(CryptoUtil.encrypt(dniLimpio));
+            this.setDNI(CryptoUtil.encrypt(this.getDNI().trim().toUpperCase()));
+        }
+        if (this.getNombre() != null) {
+            this.setNombre(CryptoUtil.encrypt(this.getNombre().trim()));
+        }
+        if (this.getTelefono() != null) {
+            this.setTelefono(CryptoUtil.encrypt(this.getTelefono().trim()));
+        }
+        if (this.getDireccion() != null) {
+            this.setDireccion(CryptoUtil.encrypt(this.getDireccion().trim()));
         }
     }
 

@@ -78,27 +78,6 @@ export class LoginComponent implements OnInit {
       next: (res: any) => {
         console.log('Respuesta del servidor:', res);
 
-        if (res.idUsuario) {
-          localStorage.setItem('idUsuario', res.idUsuario.toString());
-        }
-
-        if (res.id_organizacion !== undefined && res.id_organizacion !== null) {
-          localStorage.setItem('id_organizacion', res.id_organizacion.toString());
-        } else if (res.idOrganizacion) { 
-          localStorage.setItem('id_organizacion', res.idOrganizacion.toString());
-        }
-                
-        if (res.email) {
-          localStorage.setItem('email', res.email);
-        }
-
-        if (res.nombre) {
-          localStorage.setItem('nombreUsuario', res.nombre);
-        }
-
-        if (res.rol) {
-          localStorage.setItem('rolUsuario', res.rol.toString().toUpperCase().trim());
-        }
 
         const rolUsuario = (res.rol || '').toUpperCase().trim(); 
         console.log('Rol detectado:', rolUsuario);

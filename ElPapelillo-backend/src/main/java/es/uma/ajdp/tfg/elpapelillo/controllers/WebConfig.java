@@ -13,7 +13,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:archivos/");
     }
 
-    // AÑADE ESTO AQUÍ DEBAJO
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/archivos/**") // Permite CORS en la ruta de archivos

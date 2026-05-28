@@ -28,7 +28,7 @@ public class SecurityConfig {
             // 3. Autorizar peticiones
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/registro", "/api/login").permitAll() // Rutas abiertas
-                .anyRequest().permitAll() // Mientras desarrollas, permitimos todo para no bloquearte
+                .anyRequest().permitAll() // Mientras desarrollo, permitimos todo para no bloquearme
             );
             
         return http.build();

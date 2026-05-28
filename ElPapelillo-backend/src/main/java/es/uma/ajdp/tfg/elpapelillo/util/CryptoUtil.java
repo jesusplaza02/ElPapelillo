@@ -7,7 +7,7 @@ import java.util.Base64;
 public class CryptoUtil {
 
     private static final String ALGORITHM = "AES";
-    private static final String SECRET_KEY = "ClAvEsEcReTa_TFG"; 
+    private static final String SECRET_KEY = "ClAvEsEcReTa_TFG_Carnaval_2026__"; 
 
     public static String encrypt(String strToEncrypt) {
         if (strToEncrypt == null || strToEncrypt.trim().isEmpty()) return strToEncrypt;
