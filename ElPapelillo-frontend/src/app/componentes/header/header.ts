@@ -18,8 +18,13 @@ export class HeaderComponent implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
+    // 1. Carga inicial de datos (por si entramos directos con la sesión iniciada)
     this.cargarDatosUsuario();
     
+    // 📢 2. Escucha cambios en la MISMA pestaña (Para pintar el correo al segundo exacto de hacer Login)
+    window.addEventListener('local-storage-cambiado', () => this.cargarDatosUsuario());
+    
+    // 💻 3. Escucha cambios desde OTRAS pestañas (Comportamiento nativo del navegador)
     window.addEventListener('storage', () => this.cargarDatosUsuario());
   }
 
@@ -33,23 +38,23 @@ export class HeaderComponent implements OnInit {
       this.menuAbierto = false;
     };
   }
+
   cargarDatosUsuario() {
     const email = localStorage.getItem('email');
     const nombre = localStorage.getItem('nombreUsuario');
 
+    // Al usar el interceptor, las comillas del JSON ya vienen limpias, pero dejamos el formateo por seguridad
     this.usuarioEmail = email ? email.replace(/"/g, '').trim() : '';
     this.nombreUsuario = nombre ? nombre.replace(/"/g, '').trim() : '';
   }
 
+  // Muestra el nombre, si no el email, y si no 'Usuario' usando variables locales seguras
   get nombreAMostrar(): string {
-    const nombre = localStorage.getItem('nombreUsuario');
-    const email = localStorage.getItem('email');
-    
-    if (nombre && nombre !== 'undefined' && nombre !== 'null' && nombre !== '') {
-      return nombre.replace(/"/g, '').trim();
+    if (this.nombreUsuario && this.nombreUsuario !== 'undefined' && this.nombreUsuario !== 'null' && this.nombreUsuario !== '') {
+      return this.nombreUsuario;
     }
-    if (email && email !== 'undefined' && email !== 'null' && email !== '') {
-      return email.replace(/"/g, '').trim();
+    if (this.usuarioEmail && this.usuarioEmail !== 'undefined' && this.usuarioEmail !== 'null' && this.usuarioEmail !== '') {
+      return this.usuarioEmail;
     }
     return 'Usuario';
   }
