@@ -175,7 +175,7 @@
 
           <div class="form-group" *ngIf="rolSesionActual === 'SYSADMIN'">
             <label>ORGANIZACIÓN RESPONSABLE *</label>
-            <select [(ngModel)]="concursoSeleccionado.id_organizacion" class="filter-select">
+            <select [(ngModel)]="concursoSeleccionado.id_organizacion" class="filter-select" [disabled]="modoFormularioConcurso === 'editar'">
               <option [ngValue]="null" disabled>Selecciona una organización</option>
               <option *ngFor="let org of organizaciones" [value]="org.idOrganizacion">
                 {{ org.nombre }}
