@@ -46,7 +46,6 @@ public class EmailService {
         )
     )
     public void enviarEmailInstrucciones(String correoParam, String passwordSinCifrar) { 
-        // 🌟 ARREGLO: Nos aseguramos de descifrar el correo por si acaso viene de un @PrePersist
         String correoLimpio = CryptoUtil.decrypt(correoParam);
 
         log.info("Intentando enviar credenciales al destinatario: '{}'", correoLimpio);
@@ -54,13 +53,13 @@ public class EmailService {
         SimpleMailMessage mensaje = new SimpleMailMessage();
         
         mensaje.setFrom("ElPapelillo@gmail.com");
-        mensaje.setTo(correoLimpio); // 🌟 Usamos el correo descifrado en texto plano
+        mensaje.setTo(correoLimpio); 
         mensaje.setSubject("Bienvenido a El Papelillo - Instrucciones de Acceso");
 
         mensaje.setText("Hola,\n\n" +
                 "Tu cuenta ha sido creada correctamente.\n" +
                 "Tus credenciales de acceso son:\n" +
-                "Usuario: " + correoLimpio + "\n" + // 🌟 Evitamos mostrar el hash en el texto del mensaje
+                "Usuario: " + correoLimpio + "\n" + 
                 "Contraseña: " + passwordSinCifrar + "\n\n" +
                 "Saludos, el equipo de El Papelillo.");
 
@@ -90,7 +89,6 @@ public class EmailService {
     )
     public void enviarEmailCircularConAdjunto(String correoDestinatarioParam, String asunto, String cuerpo, 
                                              List<byte[]> listaArchivosBytes, List<String> listaNombresArchivos) {
-        // 🌟 ARREGLO: Blindamos también el envío masivo de circulares
         String correoDestinatarioLimpio = CryptoUtil.decrypt(correoDestinatarioParam);
 
         try {
@@ -100,7 +98,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
             
             helper.setFrom("ElPapelillo@gmail.com");
-            helper.setTo(correoDestinatarioLimpio); // 🌟 Usamos el correo descifrado
+            helper.setTo(correoDestinatarioLimpio);
             helper.setSubject(asunto);
             helper.setText(cuerpo, false); 
 
