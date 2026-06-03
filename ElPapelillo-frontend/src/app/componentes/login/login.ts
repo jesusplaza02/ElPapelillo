@@ -44,7 +44,6 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.generateConfetti();
     localStorage.clear();
   }
 
@@ -140,17 +139,5 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  generateConfetti() {
-    for (let i = 0; i < 35; i++) {
-      this.confettis.push({
-        style: {
-          left: Math.random() * 100 + 'vw',
-          top: Math.random() * 100 + 'vh',
-          'background-color': this.colors[Math.floor(Math.random() * this.colors.length)],
-          transform: `rotate(${Math.random() * 360}deg)`,
-          'border-radius': Math.random() > 0.5 ? '50%' : '0'
-        }
-      });
-    }
-  }
+  
 }

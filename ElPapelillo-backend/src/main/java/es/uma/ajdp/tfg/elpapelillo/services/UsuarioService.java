@@ -9,6 +9,7 @@ import es.uma.ajdp.tfg.elpapelillo.repositories.AdministradorRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.AgrupacionRepository; // AÑADIDO
 import es.uma.ajdp.tfg.elpapelillo.repositories.LogAuditoriaRepository;
 import es.uma.ajdp.tfg.elpapelillo.repositories.UsuarioRepository;
+import es.uma.ajdp.tfg.elpapelillo.util.CryptoUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -173,14 +174,6 @@ public class UsuarioService {
         throw new Exception("Permiso denegado: Solo el SuperAdmin gestiona Administradores.");
     }
 
-    if ("REPRESENTANTE".equals(objetivo.getRol())) {
-        List<Agrupacion> agrupaciones = agrupacionRepository.findByRepresentante_IdUsuario(idABorrar);
-        for (Agrupacion ag : agrupaciones) {
-            ag.setRepresentante(null);
-        }
-        agrupacionRepository.saveAll(agrupaciones);
-    }
-
     objetivo.setActivo(false);
     usuarioRepository.save(objetivo);
     registrarLog(ejecutor.getEmail(), "BORRADO_LOGICO", "Desactivado: " + objetivo.getEmail());
@@ -213,11 +206,17 @@ public class UsuarioService {
             logAuditoriaRepository.save(log);
         }
 
-    public void recuperarPasswordDefinitiva(String email) throws Exception {
-        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
+   public void recuperarPasswordDefinitiva(String emailPlano) throws Exception {
+        if (emailPlano == null || emailPlano.trim().isEmpty()) {
+            throw new Exception("El correo electrónico no puede estar vacío");
+        }
+
+        String emailCifrado = CryptoUtil.encrypt(emailPlano.trim().toLowerCase());
+
+        Usuario usuario = usuarioRepository.findByEmail(emailCifrado).orElse(null);
         
         if (usuario == null) {
-            throw new Exception("El usuario no existe");
+            throw new Exception("El usuario no existe en la base de datos.");
         }
 
         CharacterRule letras = new CharacterRule(EnglishCharacterData.UpperCase, 2);
@@ -230,8 +229,8 @@ public class UsuarioService {
         usuario.setPassword(passwordEncoder.encode(nuevaPasswordPlana));
         usuarioRepository.save(usuario);
 
-        emailService.enviarEmailInstrucciones(usuario.getEmail(), nuevaPasswordPlana);
+        emailService.enviarEmailInstrucciones(emailPlano, nuevaPasswordPlana);
         
-        log.info("Password recuperada para: {}", email);
+        log.info("Password recuperada y enviada para el usuario existente.");
     }
 }

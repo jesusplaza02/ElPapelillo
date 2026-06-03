@@ -39,9 +39,8 @@ export class App implements OnInit {
     this.generateConfetti();
   }
 
-  /**
-   * Genera los elementos visuales del fondo
-   */
+  
+  // Genera los elementos visuales del fondo
   generateConfetti() {
     this.confettis = []; // Limpiamos antes de generar
     for (let i = 0; i < 100; i++) {

@@ -8,5 +8,5 @@ export interface Concurso {
   tipoConcurso: string;
   estado: string;
   idOrganizacion: number;
-  nombreOrganizacion?: string; // Para mostrar el nombre de la empresa
+  nombreOrganizacion?: string;
 }

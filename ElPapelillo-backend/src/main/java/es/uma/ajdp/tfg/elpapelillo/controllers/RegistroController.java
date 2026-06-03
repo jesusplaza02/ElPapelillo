@@ -2,11 +2,10 @@ package es.uma.ajdp.tfg.elpapelillo.controllers;
 
 import es.uma.ajdp.tfg.elpapelillo.models.Representante;
 import es.uma.ajdp.tfg.elpapelillo.repositories.RepresentanteRepository;
+import es.uma.ajdp.tfg.elpapelillo.services.EmailService; // 🌟 IMPORTANTE: Importamos tu EmailService
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +20,9 @@ public class RegistroController {
     @Autowired
     private RepresentanteRepository representanteRepository;
 
+    // 🌟 Cambiamos JavaMailSender por tu EmailService blindado
     @Autowired
-    private JavaMailSender mailSender;
+    private EmailService emailService; 
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -73,7 +73,10 @@ public class RegistroController {
 
             representanteRepository.save(rep);
 
-            enviarEmail(rep.getEmail(), passwordPlana);
+            // 🌟 SOLUCIÓN: Usamos la variable local 'email' que viene limpia del JSON
+            // en lugar de usar rep.getEmail() que mutó por el @PrePersist.
+            // Además, llamamos a tu EmailService estructurado.
+            emailService.enviarEmailInstrucciones(email, passwordPlana);
 
             return ResponseEntity.ok(Map.of("status", "ok", "message", "Registro completado. Revisa tu email."));
 
@@ -96,12 +99,7 @@ public class RegistroController {
             return false;
         }
     }
-
-    private void enviarEmail(String destinatario, String clave) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(destinatario);
-        message.setSubject("Bienvenido a El Papelillo");
-        message.setText("Tu cuenta ha sido creada. Tu contraseña temporal es: " + clave);
-        mailSender.send(message);
-    }
+    
+    // 🌟 He eliminado el método manual "enviarEmail" que tenías aquí abajo 
+    // porque duplicaba lógica y rompía el descifrado del TFG.
 }

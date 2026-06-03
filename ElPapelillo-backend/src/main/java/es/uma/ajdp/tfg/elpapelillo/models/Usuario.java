@@ -62,9 +62,7 @@ public class Usuario {
     @Column(nullable = false)
     private String rol;
 
-    // =========================================================================
-    // 🔓 DESECIFRADO AUTOMÁTICO AL LEER DE LA BASE DE DATOS (Hacia Java/Angular)
-    // =========================================================================
+    // DESCIFRADO AUTOMÁTICO AL LEER DE LA BASE DE DATOS
     @PostLoad
     public void decryptUserData() {
         if (this.getEmail() != null) {
@@ -84,24 +82,19 @@ public class Usuario {
         }
     }
 
-    // =========================================================================
-    // 🔒 CIFRADO AUTOMÁTICO AL CREAR UN NUEVO USUARIO (INSERT)
-    // =========================================================================
+    // CIFRADO AUTOMÁTICO AL CREAR UN NUEVO USUARIO (INSERT)
     @PrePersist
     public void onPrePersist() {
         this.fechaRegistro = LocalDate.now(); 
         encryptData();
     }
 
-    // =========================================================================
-    // 🔒 CIFRADO AUTOMÁTICO AL MODIFICAR UN USUARIO (UPDATE)
-    // =========================================================================
+    //CIFRADO AUTOMÁTICO AL MODIFICAR UN USUARIO (UPDATE)
     @PreUpdate
     public void onPreUpdate() {
         encryptData();
     }
 
-    // 🔄 Método privado auxiliar para aplicar el cifrado simétrico AES-256
     private void encryptData() {
         if (this.getEmail() != null) {
             // Pasamos a minúsculas y limpiamos espacios antes de cifrar el email

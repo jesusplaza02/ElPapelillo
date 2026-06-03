@@ -1,5 +1,11 @@
+:host {
+    display: block;
+    padding-top: 80px;
+    min-height: 100vh;
+}
+
 .main-container {
-  padding: 15px;
+  padding: 30px; 
   max-width: 1200px;
   margin: 0 auto;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -43,11 +49,11 @@
   z-index: 10;
   background-color: #f8f9fa !important;
   border-radius: 16px;
-  padding: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  margin-top: 15px;
+  padding: 30px; 
   border: 1px solid #e9ecef;
   box-sizing: border-box;
+  margin-top: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .shadow-card {
@@ -55,11 +61,11 @@
   z-index: 11; 
   background: #ffffff !important;
   border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
-  margin-bottom: 25px; 
+  padding: 30px; 
+  margin-bottom: 35px; 
   border: 1px solid rgba(0, 0, 0, 0.04);
   box-sizing: border-box;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.03);
 }
 
 .card-header-row {
@@ -78,14 +84,14 @@
 }
 
 .card-header-row h2 { 
-  font-size: 1.4rem; 
+  font-size: 1.7rem; 
   color: #212529; 
   margin: 0; 
   font-weight: 700; 
 }
 
 .card-header-row h3 { 
-  font-size: 1.2rem; 
+  font-size: 1.3rem; 
   color: #343a40; 
   margin: 0; 
   font-weight: 600; 
@@ -117,7 +123,7 @@
 
 .fianza-form-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr); 
   gap: 15px;
   margin-bottom: 20px;
 }
@@ -161,20 +167,6 @@
   font-size: 0.85rem; 
   color: #555; 
   margin: 0 0 8px 0; 
-}
-
-.btn-delete-fianza { 
-  background-color: #fff5f5; 
-  color: #fa5252; 
-  border: 1px solid #ffe3e3; 
-  padding: 6px 12px; 
-  border-radius: 30px; 
-  font-size: 0.8rem; 
-  font-weight: 700; 
-  cursor: pointer; 
-  display: inline-flex; 
-  align-items: center; 
-  gap: 6px; 
 }
 
 .docs-review-container { 
@@ -232,7 +224,7 @@
 
 .doc-admin-actions { 
   display: flex; 
-  flex-direction: column; 
+  flex-direction: row; 
   gap: 12px; 
   align-items: stretch; 
   margin-top: 15px; 
@@ -241,7 +233,7 @@
 .doc-buttons-group { 
   display: flex; 
   gap: 8px; 
-  width: 100%; 
+  width: auto; 
 }
 
 .btn-doc-approve, 
@@ -296,13 +288,13 @@
   border: 1px solid #eef2f6 !important; 
   border-bottom: 4px solid #4e73df !important; 
   border-radius: 14px; 
-  padding: 15px !important; 
+  padding: 24px !important; 
   margin-bottom: 20px !important; 
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.04); 
 }
 
 .rep-name { 
-  font-size: 1.1rem !important; 
+  font-size: 1.25rem !important; 
   font-weight: 700 !important; 
   color: #1e293b !important; 
   margin: 0 0 10px 0 !important; 
@@ -349,8 +341,8 @@
 
 .info-grid { 
   display: grid; 
-  grid-template-columns: 1fr; 
-  gap: 15px; 
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+  gap: 25px; 
 }
 
 .info-item label { 
@@ -361,7 +353,7 @@
 }
 
 .info-item p { 
-  font-size: 0.95rem; 
+  font-size: 1rem; 
   color: #37474f; 
   margin: 0; 
   font-weight: 500; 
@@ -499,9 +491,23 @@
   font-size: 0.8rem; 
 }
 
+.btn-delete-fianza { 
+  background-color: #fff5f5; 
+  color: #fa5252; 
+  border: 1px solid #ffe3e3; 
+  padding: 6px 12px; 
+  border-radius: 30px; 
+  font-size: 0.8rem; 
+  font-weight: 700; 
+  cursor: pointer; 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 6px; 
+}
+
 .actions-row { 
   display: flex; 
-  flex-direction: column; 
+  flex-direction: row; 
   gap: 10px; 
   margin-top: 20px; 
   padding-top: 15px; 
@@ -682,80 +688,14 @@
 }
 
 .mobile-break { 
-  display: block; 
-  content: ""; 
-  margin-top: 4px; 
+  display: none; 
 }
 
 .table-footer-spacer {
   display: block; 
   width: 100%; 
-  height: 50px; 
+  height: 80px; 
   pointer-events: none;
-}
-
-@media (min-width: 768px) {
-  .main-container { 
-    padding: 30px; 
-  }
-
-  .panel-base-gris { 
-    padding: 30px; 
-  }
-
-  .shadow-card { 
-    padding: 30px; 
-    margin-bottom: 35px; 
-  }
-
-  .card-header-row h2 { 
-    font-size: 1.7rem; 
-  }
-
-  .card-header-row h3 { 
-    font-size: 1.3rem; 
-  }
-  
-  .fianza-form-grid { 
-    grid-template-columns: repeat(3, 1fr); 
-  }
-  
-  .doc-admin-actions { 
-    flex-direction: row; 
-  }
-
-  .doc-buttons-group { 
-    width: auto; 
-  }
-  
-  .info-grid { 
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
-    gap: 25px; 
-  }
-
-  .info-item p { 
-    font-size: 1rem; 
-  }
-
-  .actions-row { 
-    flex-direction: row; 
-  }
-
-  .mobile-break { 
-    display: none; 
-  }
-
-  .rep-info-block { 
-    padding: 24px !important; 
-  }
-
-  .rep-name { 
-    font-size: 1.25rem !important; 
-  }
-  
-  .table-footer-spacer { 
-    height: 80px; 
-  }
 }
 
 @keyframes fadeIn {
@@ -766,5 +706,71 @@
   to { 
     opacity: 1; 
     transform: translateY(0); 
+  }
+}
+
+@media (max-width: 767px) {
+  .main-container { 
+    padding: 15px; 
+  }
+
+  .panel-base-gris { 
+    padding: 15px; 
+  }
+
+  .shadow-card { 
+    padding: 20px; 
+    margin-bottom: 25px; 
+  }
+
+  .card-header-row h2 { 
+    font-size: 1.4rem; 
+  }
+
+  .card-header-row h3 { 
+    font-size: 1.2rem; 
+  }
+  
+  .fianza-form-grid { 
+    grid-template-columns: 1fr; 
+  }
+  
+  .doc-admin-actions { 
+    flex-direction: column; 
+  }
+
+  .doc-buttons-group { 
+    width: 100%; 
+  }
+  
+  .info-grid { 
+    grid-template-columns: 1fr; 
+    gap: 15px; 
+  }
+
+  .info-item p { 
+    font-size: 0.95rem; 
+  }
+
+  .actions-row { 
+    flex-direction: column; 
+  }
+
+  .mobile-break { 
+    display: block; 
+    content: ""; 
+    margin-top: 4px;
+  }
+
+  .rep-info-block { 
+    padding: 15px !important; 
+  }
+
+  .rep-name { 
+    font-size: 1.1rem !important; 
+  }
+  
+  .table-footer-spacer { 
+    height: 50px; 
   }
 }
