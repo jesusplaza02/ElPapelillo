@@ -1,9 +1,4 @@
-//import { bootstrapApplication } from '@angular/platform-browser';
-//import { appConfig } from './app/app.config';
-//import { App } from './app/app';
 
-//bootstrapApplication(App, appConfig)
-//  .catch((err) => console.error(err));
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
@@ -25,11 +20,10 @@ if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined')
       const encryptedValue = AES.encrypt(String(value), SECRET_KEY).toString();
       originalSetItem.apply(this, [key, encryptedValue]);
 
-      // Creamos el sello de seguridad
+
       const sello = SHA256(key + String(value) + SECRET_KEY).toString();
       originalSetItem.apply(this, [key + '_sello', sello]);
 
-      // 📢 NUEVO: Lanzamos un evento personalizado para avisar a los componentes en la misma pestaña
       window.dispatchEvent(new Event('local-storage-cambiado'));
 
     } catch (e) {
@@ -56,7 +50,7 @@ if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined')
         const selloEsperado = SHA256(key + decryptedText + SECRET_KEY).toString();
         
         if (guardadoSello !== selloEsperado) {
-          console.warn("🚨 Intento de manipulación detectado en: " + key);
+          console.warn("Intento de manipulación detectado en: " + key);
           originalSetItem.apply(this, ['clear_in_progress', 'true']);
           window.localStorage.clear();
           window.location.href = '/login';
