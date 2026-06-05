@@ -46,7 +46,12 @@
       </div>
 
       <div class="privacy-check-container">
-        <input type="checkbox" id="aceptaPrivacidad" #checkPrivacidad required>
+        <input 
+          type="checkbox" 
+          id="aceptaPrivacidad" 
+          name="aceptaPrivacidad" 
+          [(ngModel)]="aceptaPolitica" 
+          required>
         <label for="aceptaPrivacidad">
           He leído y acepto la 
           <a href="/politica-privacidad" target="_blank">Política de Privacidad</a>
@@ -56,11 +61,13 @@
       <div class="btn-container full-width">
         <button type="submit" 
                 class="btn-submit" 
-                [disabled]="registroForm.invalid || !checkPrivacidad.checked">
+                [disabled]="registroForm.invalid || !aceptaPolitica">
           Finalizar Registro
         </button>
         <a class="back-link" routerLink="/login">¿Ya tienes cuenta? Inicia sesión</a>
       </div>
+
+      
     </form>
   </div>
 </div>

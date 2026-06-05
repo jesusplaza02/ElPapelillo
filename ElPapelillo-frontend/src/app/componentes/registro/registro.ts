@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core'; // 1. Importamos ChangeDetectorRef
+import { Component, ChangeDetectorRef } from '@angular/core'; 
 import { RouterLink, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms'; 
 import { HttpClientModule, HttpClient } from '@angular/common/http';
@@ -23,6 +23,9 @@ export class RegistroComponent {
     telEmergencia: '',
     rol: 'REPRESENTANTE'
   };
+
+  // Variable de control para el estado del checkbox en tiempo real
+  aceptaPolitica: boolean = false; 
 
   mensaje: string | null = null;
   esExito: boolean = false;
@@ -53,7 +56,7 @@ export class RegistroComponent {
             textoError = err.error;
           }
 
-          this.mostrarMensaje('❌ ' + textoError, false);
+          this.mostrarMensaje(textoError, false);
           
           this.cdr.detectChanges(); 
         }
