@@ -1,0 +1,181 @@
+/* Contenedor Principal del Header con el Azul corporativo */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 2rem;
+  height: 70px;
+  background-color: #1a3a63; /* El azul oscuro/potente que tenías */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 2000;
+}
+
+/* Sección Logo */
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff; /* Texto en blanco para resaltar sobre el azul */
+  letter-spacing: -0.5px;
+}
+
+/* Menú de Navegación Central */
+.nav-menu {
+  display: flex;
+  gap: 10px;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.8); /* Blanco translúcido */
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.nav-menu a:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-menu a.active {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Sección de Usuario y Dropdown */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 16px;
+  border-radius: 30px;
+  background-color: rgba(255, 255, 255, 0.15); /* Fondo sutil para el botón de usuario */
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.2s;
+}
+
+.user-dropdown:hover .user-info {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.user-email {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #ffffff; /* Email en blanco */
+}
+
+.user-icon {
+  font-size: 1.8rem;
+  color: #ffffff; /* Icono en blanco */
+  display: flex;
+  align-items: center;
+}
+
+/* Menú Desplegable (Dropdown blanco para que sea legible) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 115%;
+  background-color: #ffffff;
+  min-width: 220px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.dropdown-header {
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  color: #1a3a63; /* El azul para el título del hola */
+}
+
+.dropdown-content a {
+  color: #2d3436;
+  padding: 12px 20px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f2f6;
+  color: #1a3a63;
+}
+
+.logout-link {
+  color: #d63031 !important;
+  border-top: 1px solid #eee;
+}
+
+/* Botón Iniciar Sesión (Cuando no está logueado) */
+.btn-login {
+  background-color: #ffffff;
+  color: #1a3a63;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.2s;
+}
+
+.btn-login:hover {
+  transform: scale(1.05);
+  background-color: #f1f2f6;
+}
+
+.logo-img {
+  height: 45px; /* Ajusta este valor según el tamaño de tu header */
+  width: auto;  /* Esto mantiene la proporción original */
+  object-fit: contain;
+  display: block;
+}
+
+.dropdown-content.show {
+  display: block !important;
+}
+
+@media (max-width: 768px) {
+  .main-header {
+    padding: 0 1rem; 
+    height: 60px;    
+  }
+
+  .brand-name {
+    font-size: 1.2rem; 
+  }
+
+  .logo-img {
+    height: 38px; 
+  }
+
+  .user-info {
+    padding: 4px 10px;
+    gap: 6px;
+    max-width: 180px;
+  }
+
+  .user-email {
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block; 
+  }
+  
+}

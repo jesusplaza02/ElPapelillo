@@ -1,0 +1,229 @@
+<main class="content-wrapper">
+  
+  <div class="top-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <button (click)="toggleFormulario(!mostrandoFormulario)" class="btn-inscribir" style="border: none; cursor: pointer;">
+      {{ mostrandoFormulario ? '✕ Cerrar formulario' : '+ Inscribir agrupación' }}
+    </button>
+  </div>
+
+  @if (mostrandoFormulario) {
+    <div class="inscripcion-card" style="margin-bottom: 40px; border-left: 5px solid #b2dfdb; padding: 25px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+      <h2 style="margin-top: 0;">Inscribir en Concurso</h2>
+      
+      <div style="display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+        <label style="cursor: pointer; font-weight: bold; color: #555;">
+          <input type="radio" name="modo" [(ngModel)]="modoFormulario" value="NUEVA"> 🆕 Crear Nueva Agrupación
+        </label>
+        <label style="cursor: pointer; font-weight: bold; color: #555;">
+          <input type="radio" name="modo" [(ngModel)]="modoFormulario" value="EXISTENTE"> 📂 Reutilizar Agrupación Existente
+        </label>
+      </div>
+
+      <form #f="ngForm" (ngSubmit)="enviarFormulario(f)" class="grid-form">
+        
+        <div class="form-field" style="grid-column: 1 / span 2; position: relative;">
+  <label>Concurso Destino</label>
+  
+  <div class="custom-select-trigger" (click)="dropdownAbierto = !dropdownAbierto">
+    {{ concursoSeleccionado ? (concursoSeleccionado.nombre + ' (' + concursoSeleccionado.tipoConcurso + ')') : 'Seleccione concurso...' }}
+    <span class="arrow" [class.open]="dropdownAbierto">▼</span>
+  </div>
+
+  @if (dropdownAbierto) {
+    <ul class="custom-select-options">
+      @for (c of concursosActivos; track c.idConcurso) {
+        <li (click)="seleccionarConcursoCustom(c)">
+          {{ c.nombre }} ({{ c.tipoConcurso }})
+        </li>
+      } @empty {
+        <li class="no-options">No hay concursos activos disponibles</li>
+      }
+    </ul>
+  }
+</div>
+
+        @if (modoFormulario === 'EXISTENTE') {
+        <div class="form-field" style="grid-column: 1 / span 2; background: #f9f9f9; padding: 15px; border-radius: 8px; position: relative;">
+  <label>Tus agrupaciones previas</label>
+  
+  @if (!concursoSeleccionado) {
+    <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">⚠️ Selecciona primero un concurso destino para ver tus agrupaciones compatibles.</p>
+  } @else if (misAgrupacionesFiltradas.length === 0) {
+    <p style="color: #c53030; font-size: 0.9rem; margin-top: 5px;">❌ No tienes ninguna agrupación previa registrada que sea de tipo <strong>{{ tipoDerivado }}</strong>.</p>
+  }
+
+  <div class="custom-select-trigger" 
+       [class.disabled-trigger]="!concursoSeleccionado || misAgrupacionesFiltradas.length === 0"
+       (click)="(!concursoSeleccionado || misAgrupacionesFiltradas.length === 0) ? null : dropdownAgrupacionesAbierto = !dropdownAgrupacionesAbierto">
+    {{ agrupacionExistenteSeleccionada ? (agrupacionExistenteSeleccionada.nombre + ' (' + agrupacionExistenteSeleccionada.categoria + ')') : 'Selecciona una...' }}
+    <span class="arrow" [class.open]="dropdownAgrupacionesAbierto">▼</span>
+  </div>
+
+  @if (dropdownAgrupacionesAbierto && concursoSeleccionado && misAgrupacionesFiltradas.length > 0) {
+    <ul class="custom-select-options">
+      @for (ins of misAgrupacionesFiltradas; track ins.idInscripcion ?? $index) {
+        @if (ins.agrupacion) {
+          <li (click)="seleccionarAgrupacionCustom(ins.agrupacion)">
+            {{ ins.agrupacion.nombre }} ({{ ins.agrupacion.categoria }})
+          </li>
+        }
+      }
+    </ul>
+  }
+</div>
+      }
+
+        @if (modoFormulario === 'NUEVA') {
+          <div class="form-field">
+            <label>Nombre Agrupación</label>
+            <input type="text" name="nombre" ngModel required class="form-input-styled">
+          </div>
+          
+          <div class="form-field">
+            <label>Nombre última participación</label>
+            <input type="text" name="nombreUltimaParticipacion" ngModel class="form-input-styled">
+          </div>
+
+          <div class="form-field" style="grid-column: 1 / span 2;">
+            <label>Categoría</label>
+            <select name="categoria" ngModel required class="form-input-styled">
+              <option value="ADULTO">Adulto</option>
+              <option value="JUVENIL">Juvenil</option>
+              <option value="INFANTIL">Infantil</option>
+            </select>
+          </div>
+
+          @if (tipoDerivado === 'CANTO') {
+            <div class="form-field"><label>Autor Letra</label><input type="text" name="autorLetra" ngModel required class="form-input-styled"></div>
+            <div class="form-field"><label>Autor Música</label><input type="text" name="autorMusica" ngModel required class="form-input-styled"></div>
+            <div class="form-field"><label>Dirección</label><input type="text" name="direccion" ngModel required class="form-input-styled"></div>
+            <div class="form-field" style="grid-column: 1 / span 2;">
+              <label>Modalidad</label>
+              <select name="modalidad" ngModel required class="form-input-styled">
+                <option value="ROMANCERO">Romancero</option>
+                <option value="MURGA">Murga</option>
+                <option value="COMPARSA">Comparsa</option>
+                <option value="CUARTETO">Cuarteto</option>
+                <option value="CORO">Coro</option>
+              </select>
+            </div>
+          }
+
+          @if (tipoDerivado === 'DRAG') {
+            <div class="form-field"><label>Nombre Artístico Drag</label><input type="text" name="nombreArtisticoDrag" ngModel required class="form-input-styled"></div>
+            <div class="form-field"><label>Diseñador/a</label><input type="text" name="disenador" ngModel required class="form-input-styled"></div>
+          }
+
+          @if (tipoDerivado === 'DIOSES') {
+            <div class="form-field"><label>Modelo</label><input type="text" name="modelo" ngModel required class="form-input-styled"></div>
+            <div class="form-field"><label>Diseñador/a</label><input type="text" name="disenador" ngModel required class="form-input-styled"></div>
+            <div class="form-field" style="grid-column: 1 / span 2;">
+              <label>Modalidad (Tipo de Dios)</label>
+              <select name="modalidadDios" ngModel required class="form-input-styled">
+                <option value="DIOS">Dios</option>
+                <option value="DIOSA">Diosa</option>
+              </select>
+            </div>
+          }
+
+          @if (tipoDerivado === 'OTRO') {
+            <div class="form-field" style="grid-column: 1 / span 2;">
+              <label>Comentarios Destacables / Observaciones de la Modalidad</label>
+              <textarea name="comentariosDestacables" ngModel class="form-input-styled" rows="3" placeholder="Escribe aquí detalles sobre la modalidad o la presentación..."></textarea>
+            </div>
+          }
+        }
+
+        <div class="form-actions" style="grid-column: 1 / span 2; display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button type="button" (click)="toggleFormulario(false)" class="btn-cancel" style="border:none; cursor:pointer; padding: 10px 20px; border-radius: 5px;">Cancelar</button>
+          
+          <button type="submit" class="btn-inscribir" style="border:none; cursor:pointer; padding: 10px 20px; border-radius: 5px;"
+            [disabled]="(!f.valid && modoFormulario === 'NUEVA') || (modoFormulario === 'EXISTENTE' && !agrupacionExistenteSeleccionada) || !concursoSeleccionado">
+            Confirmar Inscripción
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="cards-grid">
+    @if (loading) { <p>Cargando inscripciones...</p> }
+    
+    @for (ins of inscripciones; track ins.idInscripcion) {
+      <div class="card">
+        <div class="card-info">
+          <h2>{{ ins.agrupacion?.nombre }}</h2>
+          
+          <div class="badges">
+            <span class="badge badge-categoria">{{ ins.agrupacion?.categoria }}</span>
+            
+            <span class="badge" 
+              [ngClass]="{
+                'badge-aprobada': ins.estadoInscripcion === 'APROBADO',
+                'badge-rechazada': ins.estadoInscripcion === 'RECHAZADO',
+                'badge-pendiente': ins.estadoInscripcion === 'PENDIENTE'
+              }">
+              {{ ins.estadoInscripcion }}
+            </span>
+          </div>
+          
+          <div class="details">
+            <p><strong>Concurso:</strong> {{ ins.concurso?.nombre || 'No asignado' }}</p>
+            <p><strong>Fianza:</strong> {{ ins.fianza?.pagada ? 'Pagada' : 'Pendiente' }}</p>
+          </div>
+        </div>
+        
+        <div class="card-actions">
+          <a [routerLink]="['/participantes-rep', ins.idInscripcion]" class="btn-action" style="cursor: pointer;">
+            Gestión de participantes
+          </a>
+          
+          <a [routerLink]="['/documentacion-agrupacion-rep', ins.idInscripcion]" class="btn-action">
+            Gestión de documentación
+          </a>
+        </div>
+      </div>
+    } @empty {
+      @if (!loading) { 
+        <div class="empty-state">No tienes agrupaciones inscritas actualmente.</div> 
+      }
+    }
+  </div>
+
+</main>
+
+<div class="success-modal-overlay" *ngIf="mostrarModalExito" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
+  <div class="success-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    
+    <div style="width: 70px; height: 70px; background: #e8f5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;">
+      <i class="fas fa-check" style="color: #2e7d32; font-size: 2rem;"></i>
+    </div>
+    
+    <h3 style="margin: 0 0 10px 0; color: #1b5e20; font-size: 1.4rem; font-weight: 700;">¡Registro Completado!</h3>
+    <p style="margin: 0 0 25px 0; color: #555; font-size: 0.95rem; line-height: 1.5;">
+      La inscripción de la agrupación se ha realizado de forma satisfactoria en el concurso seleccionado.
+    </p>
+    
+    <button (click)="confirmarCierreModalExito()" style="background: #2e7d32; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);" onmouseover="this.style.background='#1b5e20'" onmouseout="this.style.background='#2e7d32'">
+      Entendido, cerrar
+    </button>
+  </div>
+</div>
+
+<div class="error-modal-overlay" *ngIf="mostrarModalDuplicado" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 10000; font-family: sans-serif;">
+  <div class="error-modal-card" style="background: white; padding: 30px; border-radius: 12px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    
+    <div style="width: 70px; height: 70px; background: #fff5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid #feb2b2;">
+      <i class="fas fa-exclamation-triangle" style="color: #e53e3e; font-size: 2rem;"></i>
+    </div>
+    
+    <h3 style="margin: 0 0 10px 0; color: #c53030; font-size: 1.35rem; font-weight: 700;">Inscripción Duplicada</h3>
+    <p style="margin: 0 0 25px 0; color: #4a5568; font-size: 0.95rem; line-height: 1.5; padding: 0 10px;">
+      {{ mensajeErrorDuplicado }}
+    </p>
+    
+    <button (click)="mostrarModalDuplicado = false" style="background: #e53e3e; color: white; border: none; padding: 11px 24px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; cursor: pointer; width: 100%; box-shadow: 0 4px 10px rgba(229, 62, 62, 0.2);" onmouseover="this.style.background='#c53030'" onmouseout="this.style.background='#e53e3e'">
+      Entendido, revisar datos
+    </button>
+  </div>
+</div>

@@ -1,0 +1,284 @@
+<div class="main-container">
+
+  <div class="navigation-row">
+    <button class="btn-back" (click)="irAlPanel()">
+      <span>← Volver al Panel de Control</span>
+    </button>
+  </div>
+
+  @if (esHistorico) {
+    <div class="info-box-historico">
+      <i class="fas fa-archive info-box-icon"></i>
+      <div>
+        <strong class="info-box-title">Modo Consulta Histórica Activo</strong>
+        <span class="info-box-subtitle">Este concurso ya ha finalizado. El registro oficial de participantes y personal auxiliar se encuentra congelado y en modo solo lectura.</span>
+      </div>
+    </div>
+  }
+
+  <header class="participants-header">
+    <div class="header-titles">
+      <h1>Listado de Participantes</h1>
+      <p class="subtitle-context" *ngIf="inscripcionActiva">
+        <strong>{{ inscripcionActiva.agrupacion?.nombre }}</strong> 
+        <span class="separator">|</span> 
+        Expediente de componentes y personal auxiliar
+      </p>
+    </div>
+    @if (!esHistorico) {
+      <div>
+        <button class="btn-add" (click)="abrirFormulario()">+ Añadir</button>
+      </div>
+    }
+  </header>
+
+  @if (!esHistorico) {
+    <div class="alert-warning-card">
+      <div class="alert-warning-main">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-text">
+          El listado de participantes se imprimirá a las <strong>00:01 del día de la actuación</strong>. Cualquier participante inscrito después de esa hora no podrá acceder al teatro.
+        </div>
+      </div>
+      
+      <div class="alert-warning-footer">
+        <strong>Aviso de cupos máximos:</strong> Los límites específicos de componentes permitidos para cada tipo de modalidad o agrupación deberán consultarse en las bases reglamentarias de dicho concurso. La aplicación <em>"El Papelillo"</em> queda eximida de cualquier responsabilidad legal, penal o administrativa ante incidencias, descalificaciones o problemas derivados del incumplimiento de dichos cupos por parte de la agrupación.
+      </div>
+    </div>
+  }
+
+  <div class="table-responsive-container">
+    <h2 class="section-title">Componentes e Inscritos</h2>
+
+    <div *ngIf="loading" class="table-loading-text">
+      <strong>Cargando listado oficial...</strong>
+    </div>
+
+    <table class="styled-table" *ngIf="!loading && listaParticipantes.length > 0">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>DNI</th>
+          <th>Fecha de nacimiento</th>
+          <th>Rol</th>
+          <th class="text-center" *ngIf="!esHistorico">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let part of listaParticipantes">
+          <td class="font-semibold">{{ part.participante?.nombre }}</td>
+          <td class="DNI-cell text-muted font-mono">{{ part.participante?.dni }}</td>
+          <td class="text-muted">{{ part.participante?.fechaNacimiento | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <span class="role-badge">{{ part.rol }}</span>
+          </td>
+          <td class="action-buttons-cell" *ngIf="!esHistorico">
+            <button class="btn-icon-edit" title="Editar participante" (click)="editarParticipante(part)">
+              ✏️
+            </button>
+            <button class="btn-icon-delete" title="Eliminar participante" (click)="solicitarEliminarParticipante(part.idParticipacion)">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-table-row" *ngIf="!loading && listaParticipantes.length === 0">
+      <p>Aún no hay ningún participante inscrito en este expediente.</p>
+      <p class="text-muted empty-table-sub" *ngIf="!esHistorico">Haga clic en " + Añadir" para registrar al primer integrante.</p>
+    </div>
+  </div>
+
+  <div class="form-overlay" *ngIf="mostrarFormulario && !esHistorico">
+    <div class="participant-form-card">
+      
+      <div class="form-card-header">
+        <h3>
+          <span>👤</span> 
+          {{ nuevoParticipante.idParticipacion ? 'Editar Registro de Participación' : 'Inscribir Nuevo Participante' }}
+        </h3>
+        <button class="btn-close-modal" (click)="cerrarFormulario()">✕</button>
+      </div>
+
+      <div class="dni-search-section" *ngIf="!nuevoParticipante.idParticipacion">
+        <label for="dniBusqueda">Comprobación de histórico de seguridad (DNI)</label>
+        <div class="search-group">
+          <input 
+            type="text" 
+            id="dniBusqueda" 
+            name="dniBusqueda"
+            class="form-control unique-dni-input" 
+            [(ngModel)]="dniBusqueda" 
+            (blur)="verificarDniAutomatico()"
+            placeholder="Introduce el DNI para verificar..."
+          />
+          <button class="btn-search-dni" type="button" (click)="buscarParticipantePorDni()">
+            🔍 Verificar
+          </button>
+        </div>
+
+        <div class="import-success-alert" *ngIf="participanteEncontradoHistorico">
+          <div class="import-info">
+            ✨ <strong>¡Localizado!</strong> {{ participanteEncontradoHistorico.nombre }} ya consta en la base de datos general.
+          </div>
+          <button class="btn-action-import" type="button" (click)="importarParticipanteEncontrado()">
+            Importar Datos
+          </button>
+        </div>
+      </div>
+
+      <div class="error-container" *ngIf="mensajeErrorForm">
+        <span class="error-icon-inline">⚠️</span>
+        <div class="error-text-inline">
+          <strong>Atención:</strong> {{ mensajeErrorForm }}
+        </div>
+      </div>
+
+      <hr class="form-divider" *ngIf="!nuevoParticipante.idParticipacion" />
+
+      <form #partForm="ngForm" (ngSubmit)="guardarParticipante(partForm)">
+        
+        <div class="grid-form">
+          <div class="form-group">
+            <label for="nombre">Nombre Completo *</label>
+            <input 
+              type="text" 
+              id="nombre" 
+              name="nombre" 
+              class="form-control" 
+              required
+              [disabled]="!!nuevoParticipante.idParticipanteBase"
+              #nombreModel="ngModel"
+              [(ngModel)]="nuevoParticipante.nombre"
+              placeholder="Nombre y apellidos"
+            />
+            <small class="text-danger" *ngIf="nombreModel.invalid && nombreModel.touched">
+              El nombre es obligatorio.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="dni">DNI / NIE *</label>
+            <input 
+              type="text" 
+              id="dni" 
+              name="dni" 
+              class="form-control" 
+              required
+              (blur)="detectarDniEscritoAManos()"
+              [disabled]="!!nuevoParticipante.idParticipacion || !!nuevoParticipante.idParticipanteBase"
+              #dniModel="ngModel"
+              [(ngModel)]="nuevoParticipante.dni"
+              placeholder="12345678X"
+            />
+            <small class="text-danger" *ngIf="dniModel.invalid && dniModel.touched">
+              El DNI es obligatorio.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="fechaNacimiento">Fecha de Nacimiento *</label>
+            <input 
+              type="date" 
+              id="fechaNacimiento" 
+              name="fechaNacimiento" 
+              class="form-control" 
+              required
+              [disabled]="!!nuevoParticipante.idParticipanteBase"
+              #fechaModel="ngModel"
+              [(ngModel)]="nuevoParticipante.fechaNacimiento"
+            />
+            <small class="text-danger" *ngIf="fechaModel.invalid && fechaModel.touched">
+              La fecha es requerida.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="rol">Rol / Función asignada *</label>
+            <select 
+              id="rol" 
+              name="rol" 
+              class="form-control" 
+              required
+              [(ngModel)]="nuevoParticipante.rol"
+            >
+              <optgroup label="Componentes">
+                <option value="VOZ">Voz</option>
+                <option value="GUITARRA">Guitarra</option>
+                <option value="CAJA">Caja</option>
+                <option value="BOMBO">Bombo</option>
+              </optgroup>
+              <optgroup label="Personal Auxiliar">
+                <option value="AYUDANTE_DE_ESCENA">Ayudantes de escena</option>
+                <option value="MONTADOR">Montadores</option>
+                <option value="MAQUILLADORA">Maquilladoras</option>
+                <option value="OTRO">Otros</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions-row">
+          <button class="btn-secondary" type="button" (click)="cerrarFormulario()">
+            Cancelar
+          </button>
+          <button 
+            class="btn-confirm-save" 
+            type="submit" 
+            [disabled]="partForm.invalid || !!participanteEncontradoHistorico"
+          >
+            {{ nuevoParticipante.idParticipacion ? 'Actualizar Ficha' : 'Confirmar Alta' }}
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-system-overlay-success" *ngIf="mostrarModalExito">
+  <div class="modal-system-card">
+    <div class="modal-system-icon-circle-success">
+      <span class="modal-system-icon-check">✓</span>
+    </div>
+    <h3 class="modal-system-title-success">{{ tituloModalExito }}</h3>
+    <p class="modal-system-text">{{ contenidoModalExito }}</p>
+    <button class="modal-system-btn-success" (click)="mostrarModalExito = false">
+      Entendido, continuar
+    </button>
+  </div>
+</div>
+
+<div class="modal-system-overlay-error" *ngIf="mostrarModalError">
+  <div class="modal-system-card">
+    <div class="modal-system-icon-circle-error">
+      <span class="modal-system-icon-warning">⚠️</span>
+    </div>
+    <h3 class="modal-system-title-error">{{ tituloModalError }}</h3>
+    <p class="modal-system-text-error">{{ contenidoModalError }}</p>
+    <button class="modal-system-btn-error" (click)="mostrarModalError = false">
+      Aceptar y revisar
+    </button>
+  </div>
+</div>
+
+<div class="modal-system-overlay-confirm" *ngIf="mostrarModalConfirmar">
+  <div class="modal-system-card">
+    <div class="modal-system-icon-circle-confirm">
+      <span class="modal-system-icon-trash">🗑️</span>
+    </div>
+    <h3 class="modal-system-title-confirm">¿Confirmar eliminación?</h3>
+    <p class="modal-system-text">¿Estás completamente seguro de que deseas dar de baja a este integrante de la agrupación? Esta acción es irreversible.</p>
+    <div class="modal-system-actions-gap">
+      <button class="modal-system-btn-cancel" (click)="mostrarModalConfirmar = false">
+        Cancelar
+      </button>
+      <button class="modal-system-btn-delete" (click)="confirmarEliminar()">
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>

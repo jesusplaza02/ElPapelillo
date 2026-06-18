@@ -1,0 +1,97 @@
+/* Forzamos que el contenedor de confeti esté al fondo */
+:host-context(app-root) .confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0 !important; 
+    pointer-events: none; 
+}
+
+.edit-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    position: relative;
+    z-index: 10;
+}
+
+/* Estilos de la Tarjeta */
+
+.edit-card { 
+    background: white; 
+    padding: 40px; 
+    border-radius: 15px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+    width: 100%; 
+    max-width: 550px;
+    position: relative;
+    z-index: 20; /* Asegura que la tarjeta esté por encima de todo */
+}
+
+h2 { color: #1a365d; text-align: center; margin-bottom: 30px; }
+
+/* Formulario */
+
+.form-group { margin-bottom: 20px; }
+
+.form-group label { 
+    display: block; 
+    font-weight: 700; 
+    margin-bottom: 8px; 
+    color: #334155; 
+}
+
+.form-group input { 
+    width: 100%; 
+    padding: 12px; 
+    border: 2px solid #e2e8f0; 
+    border-radius: 8px; 
+    box-sizing: border-box; 
+    font-size: 1rem;
+    background-color: white; 
+}
+
+.form-group input:focus { 
+    border-color: #3b82f6; 
+    outline: none; 
+}
+
+.disabled-input { 
+    background: #f8fafc; 
+    color: #94a3b8; 
+    cursor: not-allowed; 
+    border-color: #f1f5f9; 
+}
+
+/* Botones */
+
+.actions { display: flex; gap: 15px; margin-top: 30px; }
+
+.btn-cancel { 
+    background: #f1f5f9; 
+    border: none; 
+    padding: 12px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    flex: 1; 
+    font-weight: 600; 
+    color: #475569;
+}
+
+.btn-save { 
+    background: #1e3a8a; 
+    color: white; 
+    border: none; 
+    padding: 12px; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    flex: 2; 
+    font-weight: bold; 
+}
+
+.btn-save:disabled { 
+    background: #94a3b8; 
+    cursor: not-allowed; 
+}

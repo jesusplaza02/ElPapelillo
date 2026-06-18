@@ -1,0 +1,246 @@
+<div class="concurso-dashboard-wrapper" *ngIf="concurso">
+  
+  <header class="concurso-main-card header-concurso-section">
+    <div class="header-title-block">
+      <h1 class="concurso-title">
+        <span class="icon-trofeo">🏆</span> 
+        {{ concurso?.nombre }}
+      </h1>
+      <div class="badges-status-row">
+        <span class="badge-estado" [ngClass]="esHistorico ? 'badge-historico' : 'badge-activo'">
+          {{ esHistorico ? 'Histórico' : 'Activo' }}
+        </span>
+        <button (click)="conmutarEstadoConcurso()" class="btn-toggle-status-custom">
+          {{ esHistorico ? '⚡ Activar Concurso' : '📦 Archivar en Histórico' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="dates-flex-container">
+      <div class="date-info-box">
+        <p class="date-box-title">📅 Periodo de Inscripción</p>
+        <p><strong>Inicio:</strong> {{ concurso?.fechaInicioInscripcion }}</p>
+        <p><strong>Fin:</strong> {{ concurso?.fechaFinInscripcion }}</p>
+      </div>
+      <div class="date-info-box">
+        <p class="date-box-title">🎭 Fechas del Concurso</p>
+        <p><strong>Inicio:</strong> {{ concurso?.fechaInicio }}</p>
+        <p><strong>Fin:</strong> {{ concurso?.fechaFin }}</p>
+      </div>
+      <div class="actions-header-box">
+        <button class="btn-action-pdf-general" (click)="generarPDF()">
+          📄 Exportar Listado General (PDF)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="stats-dashboard-grid">
+    <div class="stat-custom-card card-total">
+      <div class="stat-text-side">
+        <h3>Grupos Inscritos</h3>
+        <p class="stat-number-display">{{ stats?.totalGrupos }}</p>
+      </div>
+      <span class="stat-icon-side">👥</span>
+    </div>
+    
+    <div class="stat-custom-card card-advertencia">
+      <div class="stat-text-side">
+        <h3>Pendientes Validar</h3>
+        <p class="stat-number-display">{{ stats?.pendientesValidar }}</p>
+      </div>
+      <span class="stat-icon-side">⏳</span>
+    </div>
+
+    <div class="stat-custom-card card-peligro">
+      <div class="stat-text-side">
+        <h3>Fianzas Pendientes</h3>
+        <p class="stat-number-display">{{ stats?.fianzasPendientes }}</p>
+      </div>
+      <span class="stat-icon-side">💰</span>
+    </div>
+  </section>
+
+  <section class="concurso-main-card controls-table-card">
+    <div class="search-input-wrapper">
+      <span class="search-icon-inside">🔍</span>
+      <input 
+        type="text" 
+        [(ngModel)]="filtroTexto" 
+        (input)="filtrarAgrupaciones()" 
+        placeholder="Buscar por agrupación o representante...">
+    </div>
+    
+    <div class="filters-and-actions-flex">
+      <div class="select-filters-cluster">
+        <select [(ngModel)]="filtroCategoria" (change)="filtrarAgrupaciones()">
+          <option value="">Todas las categorías</option>
+          <option value="ADULTOS">Adultos</option>
+          <option value="JUVENIL">Juvenil</option>
+          <option value="INFANTIL">Infantil</option>
+        </select>
+
+        <select [(ngModel)]="filtroEstado" (change)="filtrarAgrupaciones()">
+          <option value="">Todos los estados</option>
+          <option value="APROBADO">Aprobados</option>
+          <option value="PENDIENTE">Pendientes</option>
+          <option value="RECHAZADO">Rechazados</option>
+        </select>
+
+        <select [(ngModel)]="filtroFianza" (change)="filtrarAgrupaciones()">
+          <option value="">Todas las fianzas</option>
+          <option value="PAGADA">Fianza Pagada</option>
+          <option value="PENDIENTE">Fianza Pendiente</option>
+        </select>
+      </div>
+
+      <div class="action-buttons-cluster">
+        <button class="btn-custom-comunicado" [disabled]="esHistorico" (click)="abrirModalCircular()">
+          ✉️ Enviar Nota Informativa
+        </button>
+
+        <button class="btn-custom-lote" [disabled]="!tieneSeleccionados()" (click)="generarPdfParticipantesSeleccionados()">
+          🗂️ PDF Seleccionados
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="mobile-select-all-bar">
+    <label class="mobile-checkbox-label">
+      <input type="checkbox" (change)="seleccionarTodos($event)">
+      <span>Seleccionar todas las agrupaciones</span>
+    </label>
+  </div>
+
+  <section class="concurso-main-card table-responsive-wrapper">
+    <table class="custom-data-table">
+      <thead>
+        <tr>
+          <th width="40"><input type="checkbox" (change)="seleccionarTodos($event)"></th>
+          <th>Nombre de la Agrupación</th>
+          <th>Modalidad</th>
+          <th>Categoría</th>
+          <th>Representante</th>
+          <th>Estado</th>
+          <th>Fianza</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ins of inscripcionesFiltradas" (click)="irADetalleAgrupacion(ins?.idInscripcion)">
+          <td class="checkbox-cell" (click)="$event.stopPropagation()">
+            <span class="mobile-label">Seleccionar:</span>
+            <input type="checkbox" [(ngModel)]="ins.seleccionado">
+          </td>
+          <td class="font-bold-table-cell">
+            <span class="mobile-label">Grupo:</span>
+            {{ ins?.agrupacion?.nombre }}
+          </td>
+          <td>
+            <span class="mobile-label">Modalidad:</span>
+            <span class="table-badge badge-modalidad">{{ ins?.agrupacion?.modalidad }}</span>
+          </td>
+          <td>
+            <span class="mobile-label">Categoría:</span>
+            <span class="table-badge badge-categoria">{{ ins?.agrupacion?.categoria }}</span>
+          </td>
+          <td>
+            <span class="mobile-label">Representante:</span>
+            {{ ins?.agrupacion?.representante?.nombre || 'Sin asignar' }}
+          </td>
+          <td>
+            <span class="mobile-label">Estado:</span>
+            <span class="status-pill" [ngClass]="{
+              'pill-aprobado': ins?.estadoInscripcion?.toUpperCase() === 'APROBADO',
+              'pill-pendiente': ins?.estadoInscripcion?.toUpperCase() === 'PENDIENTE',
+              'pill-rechazado': ins?.estadoInscripcion?.toUpperCase() === 'RECHAZADO'
+            }">
+              {{ ins?.estadoInscripcion?.toUpperCase() }}
+            </span>
+          </td>
+          <td>
+            <span class="mobile-label">Fianza:</span>
+            <span class="status-pill" [ngClass]="ins?.fianza?.idFianza || ins?.fianza?.id ? 'pill-aprobado' : 'pill-pendiente'">
+              {{ (ins?.fianza?.idFianza || ins?.fianza?.id) ? '✓ PAGADA' : '⏳ PENDIENTE' }}
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="inscripcionesFiltradas?.length === 0">
+          <td colspan="7" class="empty-table-fallback">
+            No se encontraron agrupaciones con los filtros aplicados.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<div class="custom-modal-overlay" *ngIf="mostrarModalCircular" (click)="cerrarModalCircular()">
+  <div class="custom-modal-box" (click)="$event.stopPropagation()">
+    <div class="custom-modal-header">
+      <h2>📬 Enviar Nota Informativa masiva</h2>
+      <button class="close-modal-x" [disabled]="enviandoCircular" (click)="cerrarModalCircular()">&times;</button>
+    </div>
+    
+    <div class="custom-modal-body">
+      <div class="destinatarios-alert-box">
+        📢 Destinatarios actuales: <strong>{{ tieneSeleccionados() ? 'Solo agrupaciones marcadas con el checkbox' : 'Todas las agrupaciones de la lista' }}</strong>
+      </div>
+      
+      <div class="error-modal-banner" *ngIf="errorCircular">
+        ⚠️ {{ errorCircular }}
+      </div>
+
+      <div class="modal-form-row">
+        <label>Asunto del mensaje:</label>
+        <input type="text" [(ngModel)]="circularAsunto" [disabled]="enviandoCircular" placeholder="Escriba el motivo del correo...">
+      </div>
+
+      <div class="modal-form-row">
+        <label>Cuerpo del correo:</label>
+        <textarea rows="5" [(ngModel)]="circularCuerpo" [disabled]="enviandoCircular" placeholder="Redacte el comunicado oficial aquí..."></textarea>
+      </div>
+
+      <div class="modal-form-row">
+        <label>Adjuntar Archivos:</label>
+        <div class="drop-zone-area">
+          <input type="file" multiple [disabled]="enviandoCircular" (change)="prepararArchivoCircular($event)">
+          <p>📎 Haz clic o arrastra ficheros aquí para adjuntarlos</p>
+        </div>
+        
+        <div class="files-preview-list" *ngIf="archivosCircularSeleccionados?.length">
+          <div class="file-preview-tag" *ngFor="let file of archivosCircularSeleccionados; let idx = index">
+            <span>{{ file.name }}</span>
+            <button class="btn-remove-file-tag" [disabled]="enviandoCircular" (click)="eliminarArchivoDeCola(idx)">&times;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="custom-modal-footer">
+      <button class="btn-secondary-modal" [disabled]="enviandoCircular" (click)="cerrarModalCircular()">Cancelar</button>
+      <button class="btn-primary-modal" [disabled]="enviandoCircular || !circularAsunto.trim() || !circularCuerpo.trim()" (click)="procesarEnvioCircular()">
+        {{ enviandoCircular ? 'Enviando...' : 'Enviar Correo' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="custom-modal-overlay" *ngIf="mostrarModalExitoGlobal" (click)="mostrarModalExitoGlobal = false">
+  <div class="global-alert-toast success-toast">
+    <div class="toast-icon">✓</div>
+    <h3>{{ tituloModalExitoGlobal }}</h3>
+    <p>{{ contenidoModalExitoGlobal }}</p>
+    <button class="btn-close-toast" (click)="mostrarModalExitoGlobal = false">Entendido</button>
+  </div>
+</div>
+
+<div class="custom-modal-overlay" *ngIf="mostrarModalErrorGlobal" (click)="mostrarModalErrorGlobal = false">
+  <div class="global-alert-toast error-toast">
+    <div class="toast-icon">✕</div>
+    <h3>{{ tituloModalErrorGlobal }}</h3>
+    <p>{{ contenidoModalErrorGlobal }}</p>
+    <button class="btn-close-toast" (click)="mostrarModalErrorGlobal = false">Cerrar</button>
+  </div>
+</div>

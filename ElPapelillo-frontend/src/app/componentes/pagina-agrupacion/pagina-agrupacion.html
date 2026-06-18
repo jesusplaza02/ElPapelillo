@@ -1,0 +1,328 @@
+<div class="main-container" *ngIf="inscripcion">
+  
+  <div class="top-actions-bar">
+    <button class="btn-back" (click)="volver()">
+      <i class="fas fa-arrow-left"></i> Volver al listado
+    </button>
+  </div>
+
+  <div *ngIf="esHistorico" class="alert-historical">
+    <i class="fas fa-lock icon-lock"></i>
+    <div>
+      <strong>Concurso Finalizado / Histórico (Modo Lectura):</strong> El concurso al que pertenece esta agrupación se encuentra bloqueado. Las operaciones de aprobación de expediente, validación de documentos y gestión de fianzas quedan inhabilitadas.
+    </div>
+  </div>
+
+  <div class="panel-base-gris">
+
+    <div class="shadow-card">
+      <div class="card-header-row">
+        <div>
+          <h2>{{ inscripcion?.agrupacion?.nombre }}</h2>
+          <p class="subtitle" *ngIf="inscripcion?.agrupacion?.nombreUltimaParticipacion">
+            <span>Nombre última participación:</span> {{ inscripcion?.agrupacion?.nombreUltimaParticipacion }}
+          </p>
+        </div>
+        
+        <span class="badge-status" [ngClass]="{
+          'bg-pendiente': inscripcion?.estadoInscripcion === 'PENDIENTE' || inscripcion?.estadoInscripcion === 'Pendiente',
+          'bg-aprobado': inscripcion?.estadoInscripcion === 'APROBADO' || inscripcion?.estadoInscripcion === 'Aprobada',
+          'bg-rechazado': inscripcion?.estadoInscripcion === 'RECHAZADO' || inscripcion?.estadoInscripcion === 'Rechazada'
+        }">
+          {{ inscripcion?.estadoInscripcion }}
+        </span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Categoría</label>
+          <p>{{ inscripcion?.agrupacion?.categoria }}</p>
+        </div>
+        <div class="info-item">
+          <label>Tipo de Concurso</label>
+          <p class="tag-tipo">{{ inscripcion?.agrupacion?.tipoConcurso }}</p>
+        </div>
+        <div class="info-item">
+          <label>Año de registro</label>
+          <p>{{ inscripcion?.agrupacion?.anio }}</p>
+        </div>
+
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'CANTO'">
+          <div class="info-item">
+            <label>Modalidad</label>
+            <p>{{ inscripcion?.agrupacion?.modalidad }}</p> 
+          </div>
+          <div class="info-item">
+            <label>Autor de Letra</label>
+            <p>{{ inscripcion?.agrupacion?.autorLetra || 'No indicado' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Autor de Música</label>
+            <p>{{ inscripcion?.agrupacion?.autorMusica || 'No indicado' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Dirección</label>
+            <p>{{ inscripcion?.agrupacion?.direccion || 'No indicada' }}</p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DIOSES'">
+          <div class="info-item">
+            <label>Modalidad</label>
+            <p>{{ inscripcion?.agrupacion?.modalidad === 1 ? 'Dios/Diosa' : 'Nivel ' + inscripcion?.agrupacion?.modalidad }}</p>
+          </div>
+          <div class="info-item">
+            <label>Diseñador/a</label>
+            <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Modelo de Disfraz/Tipo</label>
+            <p>{{ inscripcion?.agrupacion?.modelo || 'No indicado' }}</p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'DRAG'">
+          <div class="info-item">
+            <label>Nombre Artístico Drag</label>
+            <p class="bold-text text-purple">{{ inscripcion?.agrupacion?.nombreArtisticodrag || 'Sin nombre artístico' }}</p>
+          </div>
+          <div class="info-item">
+            <label>Diseñador/a del Vestuario</label>
+            <p>{{ inscripcion?.agrupacion?.disenador || 'No indicado' }}</p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="inscripcion?.agrupacion?.tipoConcurso === 'OTRO'">
+          <div class="info-item full-width">
+            <label>Comentarios Destacables de la Inscripción</label>
+            <p class="comments-box">{{ inscripcion?.agrupacion?.comentariosDestacables || 'Sin comentarios.' }}</p>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="actions-row" *ngIf="!esHistorico">
+        <button class="btn-approve" (click)="actualizarEstadoInscripcion('APROBADO')">
+          <i class="fas fa-check"></i> Aprobar Inscripción
+        </button>
+        <button class="btn-reject" (click)="actualizarEstadoInscripcion('RECHAZADO')">
+          <i class="fas fa-times"></i> Rechazar Inscripción
+        </button>
+      </div>
+    </div>
+
+    <div class="shadow-card">
+      <div class="card-header-row header-wrap">
+        <h3>Representante y Componentes</h3>
+        <button class="btn-pdf-download" (click)="descargarPDF()">
+          <i class="fas fa-download"></i> Descargar Listado PDF
+        </button>
+      </div>
+
+      <div class="rep-info-block">
+        <p class="rep-name">{{ inscripcion?.agrupacion?.representante?.nombre || 'Sin asignar' }}</p>
+        <div class="rep-email">
+          <strong>Email:</strong> {{ inscripcion?.agrupacion?.representante?.email || 'sin email' }} <br class="mobile-break"> 
+          <strong>Teléfono:</strong> {{ inscripcion?.agrupacion?.representante?.telefono || 'sin teléfono' }} <br class="mobile-break">
+          <strong>Emergencia:</strong> {{ inscripcion?.agrupacion?.representante?.contacto_emergencia || 'sin teléfono de emergencia' }}
+        </div>
+      </div>
+
+      <p class="section-sub-title">Componentes Artísticos</p>
+      <div class="table-container">
+        <table class="participants-table">
+          <thead>
+            <tr>
+              <th>Nombre Completo</th>
+              <th>DNI/NIE</th>
+              <th>Fecha Nacimiento</th>
+              <th>Rol / Instrumento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of inscripcion?.participaciones">
+              <td class="bold-text">{{ p?.participante?.nombre }}</td>
+              <td>{{ p?.participante?.dni }}</td>
+              <td>{{ p?.participante?.fechaNacimiento }}</td>
+              <td>
+                <span class="role-badge">
+                  {{ p?.rol || 'Componente' }}
+                </span>
+              </td>
+            </tr>
+            <tr *ngIf="!inscripcion?.participaciones || inscripcion?.participaciones?.length === 0">
+              <td colspan="4" class="empty-table-msg">
+                No hay componentes registrados en esta inscripción.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="shadow-card">
+      <div class="card-header-row header-wrap">
+        <div>
+          <h3>Gestión de Documentación</h3>
+          <p class="subtitle">Validación de archivos obligatorios cargados por el representante</p>
+        </div>
+        
+        <div class="header-actions-right" *ngIf="!fianzaSubida && !mostrandoFormularioFianza && !esHistorico">
+          <button class="btn-fianza-header" (click)="abrirFormularioFianza()">
+            <i class="fas fa-file-invoice-dollar"></i> Adjuntar Fianza (.pdf)
+          </button>
+        </div>
+      </div>
+
+      <div class="fianza-upload-form" *ngIf="mostrandoFormularioFianza && !esHistorico">
+        <h4><i class="fas fa-money-check-alt"></i> Registrar Datos de la Fianza</h4>
+        
+        <div class="fianza-form-grid">
+          <div class="form-group">
+            <label>Importe (€)</label>
+            <input type="number" [(ngModel)]="datosFianza.importe" class="doc-comment-input">
+          </div>
+          
+          <div class="form-group">
+            <label>Fecha de Pago</label>
+            <input type="datetime-local" [(ngModel)]="datosFianza.fechaPago" class="doc-comment-input">
+          </div>
+          
+          <div class="form-group">
+            <label>Justificante PDF</label>
+            <input type="file" (change)="prepararArchivoFianza($event)" accept=".pdf" class="file-input-custom">
+          </div>
+        </div>
+        
+        <div class="fianza-form-actions">
+          <button class="btn-doc-approve" 
+            [disabled]="!archivoFianzaSeleccionado || !datosFianza.importe || !datosFianza.fechaPago" 
+            (click)="guardarFianzaCompleta()">
+            <i class="fas fa-save"></i> Guardar Fianza
+          </button>
+          <button class="btn-cancel" (click)="cancelarFianza()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <div class="docs-review-container-fianza" *ngIf="fianzaSubida && inscripcion?.fianza">
+        <p class="section-sub-title title-green"><i class="fas fa-shield-alt"></i> Fianza de la Inscripción</p>
+        
+        <div class="doc-review-item-card card-green">
+          <div class="doc-review-main-row header-wrap">
+            <div class="doc-meta-info">
+              <h4>Resguardo Contable: {{ inscripcion.fianza.importe }} €</h4>
+              <p class="date-p" *ngIf="inscripcion.fianza.fechaPago">
+                <strong>Fecha de Pago registrada:</strong> {{ inscripcion.fianza.fechaPago | date:'dd/MM/yyyy HH:mm' }}
+              </p>
+              
+              <button class="btn-download-file link-green" (click)="descargarArchivo(inscripcion.fianza.rutaRecibo, 'Fianza_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')">
+                <i class="far fa-file-pdf"></i> Descargar Comprobante
+              </button>
+            </div>
+            
+            <button class="btn-delete-fianza" *ngIf="!esHistorico" (click)="solicitarConfirmacionBorradoFianza()">
+              <i class="fas fa-trash-alt"></i> Borrar Fianza
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <p class="section-sub-title" *ngIf="fianzaSubida">Resto de la Documentación</p>
+      
+      <div class="docs-review-container">
+        <div class="doc-review-item-card" *ngFor="let doc of documentosPaginados">
+          
+          <div class="doc-review-main-row header-wrap">
+            <div class="doc-meta-info">
+              <h4>{{ doc.nombre }}</h4>
+              <button class="btn-download-file" 
+                      *ngIf="doc.urlArchivo" 
+                      (click)="descargarArchivo(doc.urlArchivo, doc.nombre + '_' + (inscripcion?.agrupacion?.nombre || 'Agrupacion') + '.pdf')">
+                <i class="far fa-file-pdf"></i> Descargar Fichero
+              </button>
+              <span class="btn-download-file disabled" *ngIf="!doc.urlArchivo">
+                <i class="far fa-file-pdf"></i> No presentado
+              </span>
+            </div>
+            
+            <span class="badge-status" [ngClass]="{
+              'bg-pendiente': doc.estado === 'PENDIENTE',
+              'bg-aprobado': doc.estado === 'APROBADO',
+              'bg-rechazado': doc.estado === 'RECHAZADO'
+            }">
+              {{ doc.estado }}
+            </span>
+          </div>
+
+          <div class="doc-admin-actions" *ngIf="doc.urlArchivo && !esHistorico">
+            <div class="doc-buttons-group">
+              <button class="btn-doc-approve" [class.active]="doc.estado === 'APROBADO'" (click)="evaluarDocumento(doc, 'APROBADO')">
+                <i class="fas fa-check"></i> Aprobar
+              </button>
+              <button class="btn-doc-reject" [class.active]="doc.estado === 'RECHAZADO'" (click)="evaluarDocumento(doc, 'RECHAZADO')">
+                <i class="fas fa-times"></i> Rechazar
+              </button>
+            </div>
+
+            <input type="text" 
+                   class="doc-comment-input" 
+                   [(ngModel)]="doc.comentarioRevision"
+                   placeholder="Escribe un motivo o comentario de revisión (opcional)...">
+          </div>
+
+          <div class="historical-comment" *ngIf="esHistorico && doc.comentarioRevision">
+            <strong>Comentario de revisión histórica registrado:</strong> "{{ doc.comentarioRevision }}"
+          </div>
+
+        </div>
+      </div>
+
+      <div class="pagination-actions-row">
+        <button class="btn-secondary" (click)="paginaAnterior()" [disabled]="paginaActual === 1">
+          <i class="fas fa-chevron-left"></i> Anteriores
+        </button>
+        <span class="pagination-info">Página {{ paginaActual }} de {{ totalPaginas }}</span>
+        <button class="btn-secondary" (click)="paginaSiguiente()" [disabled]="paginaActual === totalPaginas">
+          Siguientes <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="table-footer-spacer"></div>
+</div>
+
+<div class="custom-modal-overlay" *ngIf="mostrarModalExito">
+  <div class="custom-modal-card success-border">
+    <div class="modal-icon-circle circle-green">
+      <i class="fas fa-check-circle text-green"></i>
+    </div>
+    <h3>Actualización Correcta</h3>
+    <p>{{ mensajeModalExito }}</p>
+    <button class="btn-modal-submit bg-green" (click)="mostrarModalExito = false">Aceptar y continuar</button>
+  </div>
+</div>
+
+<div class="custom-modal-overlay" *ngIf="mostrarModalError">
+  <div class="custom-modal-card error-border">
+    <div class="modal-icon-circle circle-red">
+      <i class="fas fa-exclamation-triangle text-red"></i>
+    </div>
+    <h3>{{ tituloModalError }}</h3>
+    <p>{{ contenidoModalError }}</p>
+    <button class="btn-modal-submit bg-red" (click)="mostrarModalError = false">Entendido, revisar</button>
+  </div>
+</div>
+
+<div class="custom-modal-overlay" *ngIf="mostrarModalConfirmarBorrado">
+  <div class="custom-modal-card">
+    <h3>¿Eliminar resguardo contable?</h3>
+    <p class="text-left-muted">Esta acción purgará los metadatos financieros introducidos y el archivo PDF de fianza asociado a la inscripción. No se puede deshacer.</p>
+    <div class="modal-flex-actions">
+      <button class="btn-cancel" (click)="mostrarModalConfirmarBorrado = false">Cancelar</button>
+      <button class="btn-modal-delete" (click)="ejecutarEliminarFianza()">Sí, eliminar fianza</button>
+    </div>
+  </div>
+</div>

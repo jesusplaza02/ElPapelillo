@@ -1,0 +1,176 @@
+/* ESTRUCTURA GLOBAL */
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Altura total de la ventana */
+    width: 100%;
+    overflow: hidden; /* Evita cualquier desbordamiento */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.content {
+    flex: 1; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 5;
+}
+
+/* LA TARJETA */
+.login-card {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    width: 95%;
+    max-width: 420px;
+    text-align: center;
+    box-sizing: border-box;
+    z-index: 10;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.login-card h2 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 32px;
+    margin: 0 0 5px 0;
+    color: #1A237E;
+}
+
+.login-card p {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #757575;
+    margin-bottom: 25px;
+}
+
+.input-group {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #E0E0E0;
+    border-radius: 12px;
+    box-sizing: border-box;
+    font-size: 16px;
+    background-color: #FAFAFA;
+}
+
+/* BOTONES */
+.btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: transform 0.2s, background-color 0.2s;
+    display: block;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-login { 
+    background-color: #C6DFFF !important; 
+    color: #1A237E !important; 
+}
+
+.btn-register { 
+    background-color: #B9F6CA !important; 
+    color: #1B5E20 !important; 
+}
+
+.forgot-password {
+    color: #546E7A;
+    text-decoration: none;
+    font-size: 14px;
+    display: block;
+    margin-top: 5px;
+}
+
+/* CAJA DE INFO */
+.info-box {
+    background-color: #E8F4FD;
+    color: #1565C0;
+    padding: 15px;
+    border-radius: 15px;
+    border: 2px solid #BBDEFB; /* Marco azul */
+    margin-top: 20px;
+    font-size: 0.85rem;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.info-box i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+}
+
+.info-box a {
+    color: #1976D2;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.password-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.toggle-eye {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #757575;
+}
+
+.error-box {
+    background-color: #FDEDEC;
+    color: #E74C3C;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #FADBD8;
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    animation: shake 0.4s both;
+}
+
+@keyframes shake {
+    10%, 90% { transform: translate3d(-1px, 0, 0); }
+    30%, 70% { transform: translate3d(-2px, 0, 0); }
+    40%, 60% { transform: translate3d(2px, 0, 0); }
+}
+
+/* AJUSTES PARA PANTALLAS PEQUEÑAS */
+@media (max-height: 750px) {
+    .login-card { padding: 20px 30px; }
+    .login-card h2 { font-size: 26px; }
+    .login-card p { margin-bottom: 12px; }
+    .info-box { margin-top: 10px; padding: 10px; }
+    .btn { padding: 10px; }
+    .input-group { margin-bottom: 12px; }
+}

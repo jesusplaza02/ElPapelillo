@@ -1,0 +1,13 @@
+<div class="confetti-container">
+  @for (c of confettis; track $index) {
+    <div class="confetti" [ngStyle]="c.style"></div>
+  }
+</div>
+
+<app-header [ocultarMenu]="esRutaAcceso"></app-header>
+
+<main>
+  <router-outlet></router-outlet>
+</main>
+
+<app-footer></app-footer>

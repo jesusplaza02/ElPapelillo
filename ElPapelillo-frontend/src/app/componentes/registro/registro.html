@@ -1,0 +1,73 @@
+<div class="content">
+  <div class="register-card">
+    <h2>Registro de Representante</h2>
+    <p class="subtitle">Ingresa los datos del sistema</p>
+
+    <div *ngIf="mensaje" [ngClass]="{'alert-exito': esExito, 'alert-error': !esExito}" class="mensaje-formulario">
+      <i class="fas" [ngClass]="esExito ? 'fa-check-circle' : 'fa-exclamation-triangle'"></i>
+      {{ mensaje }}
+    </div>
+
+    <form (ngSubmit)="finalizarRegistro()" #registroForm="ngForm" class="form-grid">
+      
+      <div class="input-group full-width">
+        <label for="email">Correo Electrónico</label>
+        <input type="email" id="email" name="email" [(ngModel)]="datosUsuario.email" placeholder="ejemplo@correo.com" required>
+      </div>
+      
+      <div class="input-group">
+        <label for="nombre">Nombre</label>
+        <input type="text" id="nombre" name="nombre" [(ngModel)]="datosUsuario.nombre" placeholder="Tu nombre" required>
+      </div>
+
+      <div class="input-group">
+        <label for="apellidos">Apellidos</label>
+        <input type="text" id="apellidos" name="apellidos" [(ngModel)]="datosUsuario.apellidos" placeholder="Tus apellidos" required>
+      </div>
+
+      <div class="input-group">
+        <label for="dni">DNI</label>
+        <input type="text" id="dni" name="dni" [(ngModel)]="datosUsuario.dni" placeholder="12345678A" required>
+      </div>
+
+      <div class="input-group">
+        <label for="direccion">Dirección</label>
+        <input type="text" id="direccion" name="direccion" [(ngModel)]="datosUsuario.direccion" placeholder="Calle Larios, 2...">
+      </div>
+
+      <div class="input-group">
+        <label for="telefono">Teléfono</label>
+        <input type="tel" id="telefono" name="telefono" [(ngModel)]="datosUsuario.telefono" placeholder="600 000 000">
+      </div>
+
+      <div class="input-group">
+        <label for="telEmergencia">Teléfono de emergencia</label>
+        <input type="tel" id="telEmergencia" name="telEmergencia" [(ngModel)]="datosUsuario.telEmergencia" placeholder="650 500 500">
+      </div>
+
+      <div class="privacy-check-container">
+        <input 
+          type="checkbox" 
+          id="aceptaPrivacidad" 
+          name="aceptaPrivacidad" 
+          [(ngModel)]="aceptaPolitica" 
+          required>
+        <label for="aceptaPrivacidad">
+          He leído y acepto la 
+          <a href="/politica-privacidad" target="_blank">Política de Privacidad</a>
+        </label>
+      </div>
+
+      <div class="btn-container full-width">
+        <button type="submit" 
+                class="btn-submit" 
+                [disabled]="registroForm.invalid || !aceptaPolitica">
+          Finalizar Registro
+        </button>
+        <a class="back-link" routerLink="/login">¿Ya tienes cuenta? Inicia sesión</a>
+      </div>
+
+      
+    </form>
+  </div>
+</div>

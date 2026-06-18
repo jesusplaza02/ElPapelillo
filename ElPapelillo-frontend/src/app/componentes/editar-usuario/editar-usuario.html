@@ -1,0 +1,53 @@
+<div class="edit-container">
+  <div class="edit-card">
+    <h2><i class="fas fa-user-shield"></i> Perfil de {{ usuario.rol }}</h2>
+    <p class="subtitle">Todos los campos son obligatorios</p>
+
+    <form (ngSubmit)="actualizar()" #editForm="ngForm">
+      
+      <div class="form-group">
+        <label>Nombre Completo *</label>
+        <input type="text" [(ngModel)]="usuario.nombre" name="nombre" required>
+      </div>
+
+      <div class="form-group">
+        <label>Teléfono de Contacto *</label>
+        <input type="text" [(ngModel)]="usuario.telefono" name="telefono" required>
+      </div>
+
+      <div class="form-group">
+        <label>Dirección *</label>
+        <input type="text" [(ngModel)]="usuario.direccion" name="direccion" required>
+      </div>
+
+      @if (usuario.rol === 'REPRESENTANTE') {
+        <div class="form-group">
+          <label>Contacto de Emergencia *</label>
+          <input type="text" [(ngModel)]="usuario.contacto_emergencia" name="contacto_emergencia" required>
+        </div>
+      }
+
+      @if (usuario.rol === 'ADMINISTRADOR') {
+        <div class="form-group">
+          <label>Cargo / Departamento *</label>
+          <input type="text" [(ngModel)]="usuario.cargo" name="cargo" required>
+        </div>
+      }
+
+      <div class="form-group">
+        <label>Email (Bloqueado)</label>
+        <input type="email" [value]="usuario.email" disabled class="disabled-input">
+      </div>
+
+      <div class="form-group">
+        <label>Rol (Bloqueado)</label>
+        <input type="text" [value]="usuario.rol" disabled class="disabled-input">
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn-cancel" (click)="cancelar()">Cancelar</button>
+        <button type="submit" class="btn-save" [disabled]="editForm.invalid">Actualizar Datos</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,80 @@
+<div class="content">
+  <div *ngFor="let confetti of confettis" class="confetti" [ngStyle]="confetti.style"></div>
+
+  <div class="login-card">
+    <h2>Bienvenido</h2>
+    <p>Inicia sesión en tu cuenta</p>
+
+    <div *ngIf="errorMessage" class="error-box">
+      <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+    </div>
+
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+      <div class="input-group">
+        <label>Email</label>
+        <input 
+          type="text" 
+          name="email" 
+          [(ngModel)]="loginData.email" 
+          (input)="errorMessage = ''"
+          placeholder="Ingresa tu email" 
+          required>
+      </div>
+
+      <div class="input-group">
+        <label>Contraseña</label>
+        <div class="password-container">
+          <input 
+            [type]="showPassword ? 'text' : 'password'" 
+            name="password" 
+            [(ngModel)]="loginData.password" 
+            placeholder="Ingresa tu contraseña" 
+            required>
+          
+          <button type="button" class="toggle-eye" (click)="togglePassword()">
+            <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-login" [disabled]="!loginForm.valid">
+        Iniciar Sesión
+      </button>
+      
+      <button type="button" class="btn btn-register" routerLink="/registro">
+        Registrarse como Representante
+      </button>
+
+      <a (click)="olvidarPassword()" class="forgot-password" style="cursor: pointer;">
+        ¿Olvidaste tu contraseña?
+      </a>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i> ¿Deseas registrar una nueva organización? <br>
+        Contacta con el administrador a través de: <br>
+        <a [href]="'mailto:' + config.EMAIL_SOPORTE">
+          {{ config.EMAIL_SOPORTE }}
+        </a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModalExitoGlobal">
+  <div class="modal-content card" style="max-width: 450px; text-align: center; padding: 25px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 1100;">
+    <i class="fas fa-check-circle" style="color: #10b981; font-size: 54px; margin-bottom: 15px; display: block;"></i>
+    <h3 style="margin-bottom: 10px; font-size: 1.4rem; color: #111827; font-family: sans-serif;">{{ tituloModalExitoGlobal }}</h3>
+    <p style="color: #4b5563; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; font-family: sans-serif;">{{ contenidoModalExitoGlobal }}</p>
+    <button class="btn btn-login" (click)="mostrarModalExitoGlobal = false" style="margin: 0; width: 100%; padding: 12px; font-weight: 600;">Aceptar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModalErrorGlobal">
+  <div class="modal-content card" style="max-width: 450px; text-align: center; padding: 25px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 1100;">
+    <i class="fas fa-times-circle" style="color: #ef4444; font-size: 54px; margin-bottom: 15px; display: block;"></i>
+    <h3 style="margin-bottom: 10px; font-size: 1.4rem; color: #111827; font-family: sans-serif;">{{ tituloModalErrorGlobal }}</h3>
+    <p style="color: #4b5563; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; font-family: sans-serif;">{{ contenidoModalErrorGlobal }}</p>
+    <button class="btn" (click)="mostrarModalErrorGlobal = false" style="margin: 0; width: 100%; padding: 12px; font-weight: 600; background-color: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Cerrar</button>
+  </div>
+</div>

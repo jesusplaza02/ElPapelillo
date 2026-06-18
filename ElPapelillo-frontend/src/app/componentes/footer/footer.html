@@ -1,0 +1,11 @@
+<footer class="main-footer">
+  <div class="footer-content">
+  <nav><p>&copy; 2026 {{ config.NOMBRE_APP }}</p></nav>
+  <nav>
+    <a [routerLink]="config.URL_PRIVACIDAD"> Política de privacidad</a>
+  </nav>
+  <nav>
+    <a [href]="'mailto:' + config.EMAIL_SOPORTE">Contactar con {{ config.EMAIL_SOPORTE }}</a>
+  </nav>
+  </div>
+</footer>
